@@ -1,0 +1,89 @@
+/* log.css */
+body {
+  background-color: var(--beige);
+}
+
+/* Contenedor */
+.login-container {
+  max-width: 420px;
+  margin: 10% auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Título */
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Formulario */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Label */
+.login-form label {
+  font-weight: 600;
+  color: #444;
+  font-size: 14px;
+}
+
+/* Inputs */
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.login-form input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.4);
+}
+
+/* Botón principal */
+.login-form button {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #2c3d1e;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-form button:hover {
+  background: #3d552afb;
+}
+
+/* Botón secundario (registrarse) */
+.login-form .secondary-btn {
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.login-form .secondary-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Mensajes de error */
+.error {
+  color: #d9534f;
+  font-size: 13px;
+  text-align: center;
+}

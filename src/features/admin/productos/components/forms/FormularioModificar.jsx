@@ -1,41 +1,50 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { ActualizarProducto } from "../../../../../services/productoService";
 
 const FormularioModificarProducto = ({
   show,
   close,
   producto,
-  onSubmit,
-  nombreRef,
-  categoriaRef,
-  precioRef,
-  stockRef,
-  descripcionRef,
-  proveedorRef,
-  estadoRef,
-  categorias,
-  proveedores
+  setListaProductos,
+  categorias = []
 }) => {
-  const [busquedaProveedor, setBusquedaProveedor] = useState("");
-  const [mostrarOpcionesProveedor, setMostrarOpcionesProveedor] = useState(false);
-  
-  useEffect(() => {
-    if (producto && show) {
-      setBusquedaProveedor(producto.proveedor || "");
+  const [nombre, setNombre] = useState(producto?.nombreProducto || "");
+  const [categoria, setCategoria] = useState(producto?.idCategoria || "");
+  const [precio, setPrecio] = useState(producto?.precio || 0);
+  const [stock, setStock] = useState(producto?.stock || 0);
+  const [estado, setEstado] = useState(producto?.estado || false);
+  const [imagen, setImagen] = useState(null);
+
+  if (!show) return null; // no renderizar si está oculto
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const productoEditado = {
+        NombreProducto: nombre,
+        Precio: parseFloat(precio),
+        Stock: parseInt(stock),
+        IdCategoria: parseInt(categoria),
+        Imagen: imagen, // archivo (si seleccionaste uno nuevo)
+        Estado: estado
+      };
+
+      const actualizado = await ActualizarProducto(producto.codigoProducto, productoEditado);
+
+      // actualizar lista local
+      setListaProductos((prev) =>
+        prev.map((p) =>
+          p.codigoProducto === actualizado.codigoProducto ? actualizado : p
+        )
+      );
+
+      close();
+    } catch (error) {
+      console.error("❌ Error editando producto:", error);
+      alert("Hubo un error al editar el producto");
     }
-  }, [producto, show]);
-
-  // Filtrar proveedores según búsqueda
-  const proveedoresFiltrados = proveedores.filter(proveedor =>
-    proveedor.toLowerCase().includes(busquedaProveedor.toLowerCase())
-  );
-
-  const seleccionarProveedor = (proveedor) => {
-    proveedorRef.current.value = proveedor;
-    setBusquedaProveedor(proveedor);
-    setMostrarOpcionesProveedor(false);
   };
-
-  if (!show) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -49,129 +58,105 @@ const FormularioModificarProducto = ({
             ✕
           </button>
         </div>
-        
-        <form onSubmit={onSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nombre *
             </label>
             <input
-              ref={nombreRef}
               type="text"
               required
-              defaultValue={producto?.nombre || ""}
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
+          {/* Categoría */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Categoría *
             </label>
             <select
-              ref={categoriaRef}
               required
-              defaultValue={producto?.categoria || ""}
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Seleccionar categoría</option>
-              {categorias.map(cat => (
-                <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
+              {categorias.map((cat) => (
+                <option key={cat.idCategoria} value={cat.idCategoria}>
+                  {cat.nombreCategoria}
+                </option>
               ))}
             </select>
           </div>
-          
+
+          {/* Precio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Precio *
             </label>
             <input
-              ref={precioRef}
               type="number"
               min="1"
               required
-              defaultValue={producto?.precio || ""}
+              value={precio}
+              onChange={(e) => setPrecio(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
+          {/* Stock */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Stock *
             </label>
             <input
-              ref={stockRef}
               type="number"
               min="0"
               required
-              defaultValue={producto?.stock || ""}
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
+
+          {/* Imagen */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descripción *
-            </label>
-            <textarea
-              ref={descripcionRef}
-              required
-              rows="3"
-              defaultValue={producto?.descripcion || ""}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            ></textarea>
-          </div>
-          
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proveedor
+              Imagen (opcional)
             </label>
             <input
-              ref={proveedorRef}
-              type="text"
-              value={busquedaProveedor}
-              onChange={(e) => {
-                setBusquedaProveedor(e.target.value);
-                setMostrarOpcionesProveedor(true);
-              }}
-              onFocus={() => setMostrarOpcionesProveedor(true)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Buscar o ingresar proveedor"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImagen(e.target.files[0])}
+              className="w-full"
             />
-            
-            {mostrarOpcionesProveedor && proveedoresFiltrados.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {proveedoresFiltrados.map((proveedor, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                    onClick={() => seleccionarProveedor(proveedor)}
-                  >
-                    {proveedor}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-          
+
+          {/* Estado */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Estado
             </label>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                ref={estadoRef}
-                type="checkbox" 
-                defaultChecked={producto?.estado}
+              <input
+                type="checkbox"
+                checked={estado}
+                onChange={(e) => setEstado(e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               <span className="ml-3 text-sm font-medium text-gray-900">
-                {producto?.estado ? 'Activo' : 'Inactivo'}
+                {estado ? "Activo" : "Inactivo"}
               </span>
             </label>
           </div>
-          
+
+          {/* Botones */}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"

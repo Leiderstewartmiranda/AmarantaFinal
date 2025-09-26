@@ -17,7 +17,7 @@ const TablaAdmin = ({ listaCabecera, children }) => {
           ))}
         </tr>
       </thead>
-      <tbody class="bg-[var(--blanco)]">{Children.toArray(children)}</tbody>
+      <tbody className="bg-[var(--blanco)]">{Children.toArray(children)}</tbody>
     </table>
   );
 };

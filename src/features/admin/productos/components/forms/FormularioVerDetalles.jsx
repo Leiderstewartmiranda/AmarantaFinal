@@ -31,12 +31,12 @@ const FormularioVerDetallesProducto = ({ show, close, producto }) => {
         <div className="space-y-3">
           <div className="flex justify-between">
             <span className="font-medium">Nombre:</span>
-            <span>{producto?.nombre}</span>
+            <span>{producto?.nombreProducto}</span>
           </div>
           
           <div className="flex justify-between">
             <span className="font-medium">Categoría:</span>
-            <span>{producto?.categoria}</span>
+            <span>{producto?.idCategoria}</span>
           </div>
           
           <div className="flex justify-between">

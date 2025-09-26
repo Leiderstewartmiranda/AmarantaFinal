@@ -8,10 +8,16 @@ import PaginaProveedores from "./features/admin/proveedores/pages/PaginaProveedo
 import PaginaProductos from "./features/admin/productos/pages/PaginaProductos";
 import PaginaCompras from "./features/admin/compras/pages/PaginaCompras";
 import PaginaCategorias from "./features/admin/categorias/pages/PaginaCategorias";
+import Register from "./features/login/register";
+import Verification from "./features/login/verification";
+import Login from "./features/login/login";
 
 const Router = () => {
   return (
     <Routes>
+      <Route path="/" element={<Login/>} ></Route>
+      <Route path="/register" element={<Register/>} ></Route>
+      <Route path="/verification" element={<Verification/>} ></Route>
       {/* Rutas administrativas */}
       <Route path="/admin" element={<App />}>
         <Route path="clientes" element={<PaginaClientes />} />
