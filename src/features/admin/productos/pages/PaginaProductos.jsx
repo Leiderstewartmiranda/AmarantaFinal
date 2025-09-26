@@ -285,7 +285,7 @@ const PaginaProductos = () => {
         stockRef={stockRef}
         estadoRef={estadoRef}
         categorias={categorias}
-        setListaProductos={setListaProductos}   // 👈 aquí
+        setListaProductos={setListaProductos} 
         listaProductos={listaProductos}  
       />
 
