@@ -1,35 +1,39 @@
-// FormularioModificar.jsx - Versión corregida para proveedores
+// FormularioModificar.jsx - Versión conectada a API
 import React, { useEffect, useState } from "react";
+import { PutProveedor } from "../../../../../services/proveedorService"; // Ajusta la ruta según tu estructura
 
 const FormularioModificarProveedor = ({
   show,
   close,
   formData: initialData,
-  onSubmit,
+  onProveedorActualizado, // Cambiamos el nombre para mayor claridad
   titulo = "Modificar Proveedor",
 }) => {
   const [formData, setFormData] = useState({
-    tipoDocumento: "",
-    documento: "",
-    nombre: "",
-    contacto: "",
+    nit: "",
+    representante: "",
+    nombreEmpresa: "",
+    correo: "",
     telefono: "",
     estado: "Activo"
   });
 
   const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
+  const [errorServidor, setErrorServidor] = useState("");
 
   // Actualizar los valores de los campos cuando cambie initialData
   useEffect(() => {
     if (show && initialData) {
       setFormData({
-        tipoDocumento: initialData.tipoDocumento || "",
-        documento: initialData.documento || "",
-        nombre: initialData.nombre || "",
-        contacto: initialData.contacto || "",
-        telefono: initialData.telefono || "",
-        estado: initialData.estado ? "Activo" : "Inactivo"
+        nit: initialData.nit || "",
+        representante: initialData.representante || "",
+        nombreEmpresa: initialData.nombreEmpresa || "",
+        correo: initialData.correo || "",
+        telefono: initialData.telefono || ""
+        // estado: initialData.estado ? "Activo" : "Inactivo"
       });
+      setErrorServidor(""); // Limpiar errores al abrir
     }
   }, [show, initialData]);
 
@@ -47,28 +51,33 @@ const FormularioModificarProveedor = ({
         [name]: ""
       }));
     }
+    
+    // Limpiar error del servidor cuando el usuario empiece a escribir
+    if (errorServidor) {
+      setErrorServidor("");
+    }
   };
 
   const validarFormulario = () => {
     const nuevosErrores = {};
 
-    if (!formData.tipoDocumento) {
-      nuevosErrores.tipoDocumento = "El tipo de documento es obligatorio";
+    if (!formData.nit) {
+      nuevosErrores.nit = "El tipo de documento es obligatorio";
     }
 
-    if (!formData.documento.trim()) {
-      nuevosErrores.documento = "El documento es obligatorio";
+    if (!formData.representante.trim()) {
+      nuevosErrores.representante = "El documento es obligatorio";
     } else {
       // Validaciones específicas según el tipo de documento
-      switch(formData.tipoDocumento) {
+      switch(formData.nit) {
         case "NIT":
-          if (!/^\d{9,10}-\d$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "El NIT debe tener el formato: 123456789-1";
+          if (!/^\d{9,10}-\d$/.test(formData.representante.trim())) {
+            nuevosErrores.representante = "El NIT debe tener el formato: 123456789-1";
           }
           break;
         case "Cédula":
-          if (!/^\d{7,10}$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "La cédula debe tener entre 7 y 10 dígitos";
+          if (!/^\d{7,10}$/.test(formData.representante.trim())) {
+            nuevosErrores.representante = "La cédula debe tener entre 7 y 10 dígitos";
           }
           break;
         default:
@@ -76,14 +85,14 @@ const FormularioModificarProveedor = ({
       }
     }
 
-    if (!formData.nombre.trim()) {
-      nuevosErrores.nombre = "El nombre es obligatorio";
+    if (!formData.nombreEmpresa.trim()) {
+      nuevosErrores.nombreEmpresa = "El nombre es obligatorio";
     }
 
-    if (!formData.contacto.trim()) {
-      nuevosErrores.contacto = "El contacto es obligatorio";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contacto)) {
-      nuevosErrores.contacto = "El formato del email no es válido";
+    if (!formData.correo.trim()) {
+      nuevosErrores.correo = "El contacto es obligatorio";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
+      nuevosErrores.correo = "El formato del email no es válido";
     }
 
     if (!formData.telefono.trim()) {
@@ -96,23 +105,51 @@ const FormularioModificarProveedor = ({
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validarFormulario()) {
-      // Convertir el estado de string a booleano
+    
+    if (!validarFormulario()) {
+      return;
+    }
+
+    setCargando(true);
+    setErrorServidor("");
+
+    try {
+      // Preparar datos para la API
       const datosProveedor = {
-        ...formData,
-        estado: formData.estado === "Activo",
-        id: initialData.id // Mantener el ID original
+        idProveedor: initialData.idProveedor,
+        nit: formData.nit,
+        representante: formData.representante,
+        nombreEmpresa: formData.nombreEmpresa,
+        correo: formData.correo,
+        telefono: formData.telefono
+        // estado: formData.estado === "Activo"
       };
-      onSubmit(datosProveedor);
+
+      // Llamar a la API
+      await PutProveedor(initialData.idProveedor, datosProveedor);
+
+      // Notificar al componente padre que la actualización fue exitosa
+      if (onProveedorActualizado) {
+        onProveedorActualizado();
+      }
+
+      // Cerrar el modal
+      close();
+
+    } catch (error) {
+      console.error("Error al actualizar proveedor:", error);
+      setErrorServidor(error.message || "Error al actualizar el proveedor. Intente nuevamente.");
+    } finally {
+      setCargando(false);
     }
   };
 
   const getDocumentoPlaceholder = () => {
-    switch(formData.tipoDocumento) {
+    switch(formData.nit) {
       case "NIT": return "Ej: 900123456-1";
-      case "Cédula": return "Ej: 1234567890";
+      case "CC": return "Ej: 1234567890";
       default: return "Ingrese el documento";
     }
   };
@@ -127,6 +164,7 @@ const FormularioModificarProveedor = ({
           <button
             onClick={close}
             className="text-gray-500 hover:text-gray-700"
+            disabled={cargando}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -134,37 +172,46 @@ const FormularioModificarProveedor = ({
           </button>
         </div>
         
+        {/* Mostrar error del servidor */}
+        {errorServidor && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {errorServidor}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded p-4">
           {/* Tipo Documento y Documento */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-gray-700 font-medium">Tipo Documento *</label>
               <select
-                name="tipoDocumento"
-                value={formData.tipoDocumento}
+                name="nit"
+                value={formData.nit}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.tipoDocumento ? 'border-red-500' : 'border-gray-300'}`}
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.nit ? 'border-red-500' : 'border-gray-300'}`}
                 required
+                disabled={cargando}
               >
                 <option value="">Seleccionar tipo</option>
                 <option value="NIT">NIT</option>
-                <option value="Cédula">Cédula</option>
+                <option value="CC">CC</option>
               </select>
-              {errores.tipoDocumento && <p className="text-red-500 text-xs mt-1">{errores.tipoDocumento}</p>}
+              {errores.nit && <p className="text-red-500 text-xs mt-1">{errores.nit}</p>}
             </div>
 
             <div>
               <label className="block text-gray-700 font-medium">Número de Documento *</label>
               <input
                 type="text"
-                name="documento"
-                value={formData.documento}
+                name="representante"
+                value={formData.representante}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.documento ? 'border-red-500' : 'border-gray-300'}`}
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.representante ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder={getDocumentoPlaceholder()}
                 required
+                disabled={cargando}
               />
-              {errores.documento && <p className="text-red-500 text-xs mt-1">{errores.documento}</p>}
+              {errores.representante && <p className="text-red-500 text-xs mt-1">{errores.representante}</p>}
             </div>
           </div>
 
@@ -174,28 +221,30 @@ const FormularioModificarProveedor = ({
               <label className="block text-gray-700 font-medium">Nombre *</label>
               <input
                 type="text"
-                name="nombre"
-                value={formData.nombre}
+                name="nombreEmpresa"
+                value={formData.nombreEmpresa}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.nombre ? 'border-red-500' : 'border-gray-300'}`}
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.nombreEmpresa ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="Nombre del proveedor"
                 required
+                disabled={cargando}
               />
-              {errores.nombre && <p className="text-red-500 text-xs mt-1">{errores.nombre}</p>}
+              {errores.nombreEmpresa && <p className="text-red-500 text-xs mt-1">{errores.nombreEmpresa}</p>}
             </div>
 
             <div>
               <label className="block text-gray-700 font-medium">Contacto (Email) *</label>
               <input
                 type="email"
-                name="contacto"
-                value={formData.contacto}
+                name="correo"
+                value={formData.correo}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.contacto ? 'border-red-500' : 'border-gray-300'}`}
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.correo ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="contacto@proveedor.com"
                 required
+                disabled={cargando}
               />
-              {errores.contacto && <p className="text-red-500 text-xs mt-1">{errores.contacto}</p>}
+              {errores.correo && <p className="text-red-500 text-xs mt-1">{errores.correo}</p>}
             </div>
           </div>
 
@@ -211,6 +260,7 @@ const FormularioModificarProveedor = ({
                 className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.telefono ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="Número de teléfono"
                 required
+                disabled={cargando}
               />
               {errores.telefono && <p className="text-red-500 text-xs mt-1">{errores.telefono}</p>}
             </div>
@@ -223,6 +273,7 @@ const FormularioModificarProveedor = ({
                 onChange={handleChange}
                 className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.estado ? 'border-red-500' : 'border-gray-300'}`}
                 required
+                disabled={cargando}
               >
                 <option value="Activo">Activo</option>
                 <option value="Inactivo">Inactivo</option>
@@ -235,14 +286,16 @@ const FormularioModificarProveedor = ({
           <div className="flex justify-evenly gap-3 mt-6">
             <button
               type="submit"
-              className="bg-[var(--naranjado)] text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition duration-300 flex-1"
+              disabled={cargando}
+              className="bg-[var(--naranjado)] text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition duration-300 flex-1 disabled:bg-orange-400 disabled:cursor-not-allowed"
             >
-              Actualizar Proveedor
+              {cargando ? "Actualizando..." : "Actualizar Proveedor"}
             </button>
             <button
               onClick={close}
               type="button"
-              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 flex-1"
+              disabled={cargando}
+              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 flex-1 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>

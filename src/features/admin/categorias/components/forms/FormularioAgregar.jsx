@@ -1,11 +1,16 @@
-// FormularioAgregar.jsx (Categorías - Versión Mejorada con Estado)
+import {PostCProducto} from "../../../../../services/categoriaService";
+
+const validarSoloLetras = (valor) => {
+  const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+  return regex.test(valor);
+};
 const FormularioAgregar = ({
   show, 
   setShow, 
   onSubmit, 
   nombreRef, 
   descripcionRef, 
-  estadoRef, // Nueva referencia para el estado
+  //estadoRef, // Nueva referencia para el estado
   errores,
   setErrores
 }) => {
@@ -49,7 +54,7 @@ const FormularioAgregar = ({
             {errores.descripcion && <span className="text-red-500 text-sm mt-1">{errores.descripcion}</span>}
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-gray-700 font-medium mb-1">Estado</label>
             <select 
               ref={estadoRef}
@@ -59,7 +64,7 @@ const FormularioAgregar = ({
               <option value={true}>Activo</option>
               <option value={false}>Inactivo</option>
             </select>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-3 pt-2">
             <button 

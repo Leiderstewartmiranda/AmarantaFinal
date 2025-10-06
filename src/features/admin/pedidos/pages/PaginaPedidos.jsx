@@ -2,198 +2,31 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
 import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import FormularioAgregar from "../components/forms/FormularioAgregar";
 import FormularioModificar from "../components/forms/FormularioModificar";
 import FormularioVer from "../components/forms/FormularioVer";
 import FormularioAbono from "../components/forms/FormularioAbono";
-import { productos } from "../utils/ListaProductos";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
 import Paginacion from "../../../../compartidos/paginacion/Paginacion";
+import { 
+  GetPedidos,
+  GetPedidoById, 
+  PostPedido, 
+  CancelarPedido,
+  GetClientes,
+  GetProductos 
+} from "../../../../services/pedidoService";
 
 const PaginaPedidos = () => {
-  // Lista de clientes - idealmente esto vendría de un contexto global o props
-  const [listaClientes] = useState([
-    {
-      Id_Cliente: 1,
-      Documento: "123456789",
-      Nombre: "Juan",
-      Apellido: "Pérez",
-      Correo: "juan.perez@example.com",
-      Telefono: "3001234567",
-      Id_Rol: 1,
-    },
-    {
-      Id_Cliente: 2,
-      Documento: "987654321",
-      Nombre: "María",
-      Apellido: "Gómez",
-      Correo: "maria.gomez@example.com",
-      Telefono: "3007654321",
-      Id_Rol: 2,
-    },
-    {
-      Id_Cliente: 3,
-      Documento: "456789123",
-      Nombre: "Carlos",
-      Apellido: "López",
-      Correo: "carlos.lopez@example.com",
-      Telefono: "3009876543",
-      Id_Rol: 1,
-    },
-    {
-      Id_Cliente: 4,
-      Documento: "321654987",
-      Nombre: "Ana",
-      Apellido: "Martínez",
-      Correo: "ana.martinez@example.com",
-      Telefono: "3006543210",
-      Id_Rol: 2,
-    },
-    {
-      Id_Cliente: 5,
-      Documento: "159753486",
-      Nombre: "Luis",
-      Apellido: "Hernández",
-      Correo: "luis.hernandez@example.com",
-      Telefono: "3003216549",
-      Id_Rol: 1,
-    },
-    {
-      Id_Cliente: 6,
-      Documento: "753159486",
-      Nombre: "Sofía",
-      Apellido: "Torres",
-      Correo: "sofia.torres@example.com",
-      Telefono: "3009871234",
-      Id_Rol: 2,
-    },
-  ]);
+  // Estados para datos
+  const [listaClientes, setListaClientes] = useState([]);
+  const [listaProductos, setListaProductos] = useState([]);
+  const [listaPedidos, setListaPedidos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [listaPedidos, setListaPedidos] = useState([
-    {
-      Id_Pedido: 1,
-      Cliente: "Juan Pérez",
-      Id_Cliente: 1,
-      Direccion: "Calle 123 #45-67, Medellín",
-      Total: 150000,
-      Correo: "juan.perez@example.com",
-      Estado: "Pendiente",
-      Abonos: 50000,
-    },
-    {
-      Id_Pedido: 2,
-      Cliente: "María Gómez",
-      Id_Cliente: 2,
-      Direccion: "Carrera 80 #30-25, Medellín",
-      Total: 280000,
-      Correo: "maria.gomez@example.com",
-      Estado: "En Proceso",
-      Abonos: 100000,
-    },
-    {
-      Id_Pedido: 3,
-      Cliente: "Carlos López",
-      Id_Cliente: 3,
-      Direccion: "Avenida 70 #52-18, Medellín",
-      Total: 95000,
-      Correo: "carlos.lopez@example.com",
-      Estado: "Completado",
-      Abonos: 95000,
-    },
-    {
-      Id_Pedido: 4,
-      Cliente: "Ana Martínez",
-      Id_Cliente: 4,
-      Direccion: "Calle 50 #25-30, Medellín",
-      Total: 320000,
-      Correo: "ana.martinez@example.com",
-      Estado: "Cancelado",
-      Abonos: 0,
-    },
-    {
-      Id_Pedido: 5,
-      Cliente: "Luis Hernández",
-      Id_Cliente: 5,
-      Direccion: "Carrera 65 #40-15, Medellín",
-      Total: 200000,
-      Correo: "luis.hernandez@example.com",
-      Estado: "Pendiente",
-      Abonos: 80000,
-    },
-    {
-      Id_Pedido: 6,
-      Cliente: "Sofía Torres",
-      Id_Cliente: 6,
-      Direccion: "Calle 30 #60-45, Medellín",
-      Total: 175000,
-      Correo: "sofia.torres@example.com",
-      Estado: "En Proceso",
-      Abonos: 175000,
-    },
-    // Agregando más pedidos para probar la paginación
-    {
-      Id_Pedido: 7,
-      Cliente: "Roberto Silva",
-      Id_Cliente: 7,
-      Direccion: "Carrera 45 #20-10, Medellín",
-      Total: 125000,
-      Correo: "roberto.silva@example.com",
-      Estado: "Pendiente",
-      Abonos: 25000,
-    },
-    {
-      Id_Pedido: 8,
-      Cliente: "Carmen Ruiz",
-      Id_Cliente: 8,
-      Direccion: "Calle 78 #35-42, Medellín",
-      Total: 350000,
-      Correo: "carmen.ruiz@example.com",
-      Estado: "En Proceso",
-      Abonos: 150000,
-    },
-    {
-      Id_Pedido: 9,
-      Cliente: "Diego Vargas",
-      Id_Cliente: 9,
-      Direccion: "Avenida 52 #28-15, Medellín",
-      Total: 90000,
-      Correo: "diego.vargas@example.com",
-      Estado: "Completado",
-      Abonos: 90000,
-    },
-    {
-      Id_Pedido: 10,
-      Cliente: "Laura Fernández",
-      Id_Cliente: 10,
-      Direccion: "Carrera 33 #55-20, Medellín",
-      Total: 240000,
-      Correo: "laura.fernandez@example.com",
-      Estado: "Pendiente",
-      Abonos: 60000,
-    },
-    {
-      Id_Pedido: 11,
-      Cliente: "Pedro Ramírez",
-      Id_Cliente: 11,
-      Direccion: "Calle 15 #40-25, Medellín",
-      Total: 180000,
-      Correo: "pedro.ramirez@example.com",
-      Estado: "En Proceso",
-      Abonos: 90000,
-    },
-    {
-      Id_Pedido: 12,
-      Cliente: "Lucía Morales",
-      Id_Cliente: 12,
-      Direccion: "Avenida 85 #60-30, Medellín",
-      Total: 310000,
-      Correo: "lucia.morales@example.com",
-      Estado: "Cancelado",
-      Abonos: 0,
-    },
-  ]);
-
+  // Estados de UI
   const [productosAgregados, setProductosAgregados] = useState([]);
   const [totalCalculado, setTotalCalculado] = useState(0);
   const [showAgregar, setShowAgregar] = useState(false);
@@ -203,22 +36,23 @@ const PaginaPedidos = () => {
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const pedidosPorPagina = 5; // Número de pedidos por página
+  const pedidosPorPagina = 5;
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [pedidoAEliminar, setPedidoAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
   const [formData, setFormData] = useState({
     Cliente: "",
-    Id_Cliente: "",
+    IdCliente: "",
     Direccion: "",
-    Total: "",
+    PrecioTotal: "",
     Productos: [],
     Correo: "",
     Estado: "",
     Abonos: "",
   });
 
+  // Refs
   const clienteRef = useRef();
   const direccionRef = useRef();
   const totalRef = useRef();
@@ -230,7 +64,53 @@ const PaginaPedidos = () => {
 
   const estadosDisponibles = ["Pendiente", "En Proceso", "Completado", "Cancelado"];
 
-  // Filtrar pedidos basado en el término de búsqueda
+  // 🔄 Cargar datos iniciales
+  useEffect(() => {
+    cargarDatosIniciales();
+  }, []);
+
+  const cargarDatosIniciales = async () => {
+    try {
+      setLoading(true);
+      const [pedidosData, clientesData, productosData] = await Promise.all([
+        GetPedidos(),
+        GetClientes(),
+        GetProductos()
+      ]);
+      
+      // Mapear los pedidos con la estructura correcta según tu DTO
+      const pedidosMapeados = pedidosData.map(pedido => mapearPedidoDesdeAPI(pedido));
+      setListaPedidos(pedidosMapeados);
+      setListaClientes(clientesData);
+      setListaProductos(productosData);
+    } catch (err) {
+      console.error("Error cargando datos:", err);
+      setError("Error al cargar los datos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🎯 Función para mapear datos de la API a tu formato
+  const mapearPedidoDesdeAPI = (pedido) => {
+    return {
+      CodigoPedido: pedido.codigoPedido || pedido.CodigoPedido,
+      Id_Pedido: pedido.codigoPedido || pedido.CodigoPedido, // Para compatibilidad
+      Cliente: pedido.nombreCliente || pedido.NombreCliente || "Cliente no disponible",
+      IdCliente: pedido.idCliente || pedido.IdCliente,
+      Direccion: "Dirección del cliente", // Tu DTO no incluye dirección del cliente
+      PrecioTotal: pedido.precioTotal || pedido.PrecioTotal || 0,
+      Total: pedido.precioTotal || pedido.PrecioTotal || 0, // Para compatibilidad
+      Correo: "", // Tu DTO no incluye correo
+      Estado: pedido.estado || pedido.Estado || "Pendiente",
+      Abonos: 0, // Tu modelo no tiene abonos
+      FechaPedido: pedido.fechaPedido || pedido.FechaPedido,
+      Productos: pedido.detalles || pedido.Detalles || [],
+      Detalles: pedido.detalles || pedido.Detalles || [] // Para compatibilidad con formularios
+    };
+  };
+
+  // 🔍 Filtrar pedidos basado en el término de búsqueda
   const pedidosFiltrados = useMemo(() => {
     if (!terminoBusqueda.trim()) {
       return listaPedidos;
@@ -239,11 +119,11 @@ const PaginaPedidos = () => {
     const termino = terminoBusqueda.toLowerCase().trim();
     
     return listaPedidos.filter((pedido) => {
-      const cliente = pedido.Cliente.toLowerCase();
-      const direccion = pedido.Direccion.toLowerCase();
-      const correo = pedido.Correo.toLowerCase();
-      const estado = pedido.Estado.toLowerCase();
-      const total = pedido.Total.toString();
+      const cliente = pedido.Cliente?.toLowerCase() || "";
+      const direccion = pedido.Direccion?.toLowerCase() || "";
+      const correo = pedido.Correo?.toLowerCase() || "";
+      const estado = pedido.Estado?.toLowerCase() || "";
+      const total = pedido.PrecioTotal?.toString() || "";
 
       return (
         cliente.includes(termino) ||
@@ -255,92 +135,122 @@ const PaginaPedidos = () => {
     });
   }, [listaPedidos, terminoBusqueda]);
 
-  // Calcular datos de paginación
+  // 📄 Calcular datos de paginación
   const totalPaginas = Math.ceil(pedidosFiltrados.length / pedidosPorPagina);
   const indiceInicio = (paginaActual - 1) * pedidosPorPagina;
   const indiceFin = indiceInicio + pedidosPorPagina;
   const pedidosPaginados = pedidosFiltrados.slice(indiceInicio, indiceFin);
 
-  // Manejar cambios en la barra de búsqueda
+  // 🔄 Manejar cambios en la barra de búsqueda
   const handleBusquedaChange = (e) => {
     setTerminoBusqueda(e.target.value);
-    setPaginaActual(1); // Resetear a la primera página cuando se busca
+    setPaginaActual(1);
   };
 
-  // Manejar cambio de página
+  // 🔄 Manejar cambio de página
   const handleCambioPagina = (nuevaPagina) => {
     setPaginaActual(nuevaPagina);
   };
 
-  // Función para manejar cambio de cliente en el formulario
+  // 👤 Manejar cambio de cliente en el formulario
   const handleClienteChange = (cliente) => {
     setClienteSeleccionado(cliente);
   };
 
-  // Nueva función para cambiar el estado directamente
-  const handleCambiarEstado = (id, nuevoEstado) => {
-    setListaPedidos(
-      listaPedidos.map((pedido) =>
-        pedido.Id_Pedido === id ? { ...pedido, Estado: nuevoEstado } : pedido
-      )
-    );
+  // 📝 Función para cambiar el estado directamente
+  const handleCambiarEstado = async (id, nuevoEstado) => {
+    try {
+      if (nuevoEstado === "Cancelado") {
+        await CancelarPedido(id);
+      }
+      
+      // Actualizar estado localmente
+      setListaPedidos(
+        listaPedidos.map((pedido) =>
+          pedido.CodigoPedido === id ? { ...pedido, Estado: nuevoEstado } : pedido
+        )
+      );
+      
+      // Recargar datos para asegurar consistencia
+      if (nuevoEstado === "Cancelado") {
+        await cargarDatosIniciales();
+      }
+    } catch (error) {
+      console.error("Error cambiando estado:", error);
+      alert("Error al cambiar el estado del pedido");
+    }
   };
 
-  // Función para manejar abonos
-  const handleAbonar = (id, montoAbono) => {
-    setListaPedidos(
-      listaPedidos.map((pedido) => {
-        if (pedido.Id_Pedido === id) {
-          const nuevosAbonos = pedido.Abonos + montoAbono;
-          // Si el abono completa el total, cambiar estado a Completado
-          const nuevoEstado = nuevosAbonos >= pedido.Total ? "Completado" : pedido.Estado;
-          return { 
-            ...pedido, 
-            Abonos: nuevosAbonos,
-            Estado: nuevoEstado
-          };
-        }
-        return pedido;
-      })
-    );
+  // 💰 Función para manejar abonos
+  const handleAbonar = async (id, montoAbono) => {
+    try {
+      // Actualizar localmente (necesitarías un servicio para esto)
+      setListaPedidos(
+        listaPedidos.map((pedido) => {
+          if (pedido.CodigoPedido === id) {
+            const nuevosAbonos = (pedido.Abonos || 0) + montoAbono;
+            const nuevoEstado = nuevosAbonos >= pedido.PrecioTotal ? "Completado" : pedido.Estado;
+            return { 
+              ...pedido, 
+              Abonos: nuevosAbonos,
+              Estado: nuevoEstado
+            };
+          }
+          return pedido;
+        })
+      );
+    } catch (error) {
+      console.error("Error procesando abono:", error);
+      alert("Error al procesar el abono");
+    }
   };
 
-  // Función para mostrar modal de abono
+  // 💰 Mostrar modal de abono
   const mostrarAbono = (id) => {
-    const pedido = listaPedidos.find((pedido) => pedido.Id_Pedido === id);
+    const pedido = listaPedidos.find((pedido) => pedido.CodigoPedido === id);
     if (pedido) {
       setPedidoSeleccionado(pedido);
       setShowAbono(true);
     }
   };
 
-  // Función mejorada para encontrar y agregar productos
+  // 🛍️ Función para encontrar y agregar productos
   const encontrarProducto = () => {
     const productId = productosRef.current.value;
     if (!productId) return;
 
-    const product = productos.find(p => p.id_producto == productId);
+    const product = listaProductos.find(p => 
+      p.codigoProducto == productId || 
+      p.id == productId ||
+      p.codigoProducto?.toString() === productId
+    );
     
     if (product) {
       setProductosAgregados(prev => {
-        // Buscar si el producto ya existe en la lista
-        const productoExistente = prev.find(p => p.id_producto === product.id_producto);
+        const productoExistente = prev.find(p => 
+          p.codigoProducto === product.codigoProducto || 
+          p.id === product.id
+        );
         
         if (productoExistente) {
-          // Si existe, aumentar la cantidad
           const nuevaLista = prev.map(p => 
-            p.id_producto === product.id_producto 
-              ? { ...p, cantidad: p.cantidad + 1, subtotal: (p.cantidad + 1) * p.precio }
+            (p.codigoProducto === product.codigoProducto || p.id === product.id)
+              ? { 
+                  ...p, 
+                  cantidad: p.cantidad + 1, 
+                  subtotal: (p.cantidad + 1) * (p.precio || p.precioVenta || 0) 
+                }
               : p
           );
           calcularTotal(nuevaLista);
           return nuevaLista;
         } else {
-          // Si no existe, agregarlo con cantidad 1
           const nuevoProducto = { 
             ...product, 
             cantidad: 1, 
-            subtotal: product.precio 
+            subtotal: product.precio || product.precioVenta || 0,
+            CodigoProducto: product.codigoProducto || product.id,
+            NombreProducto: product.nombreProducto || product.nombre || "Producto sin nombre"
           };
           const nuevaLista = [...prev, nuevoProducto];
           calcularTotal(nuevaLista);
@@ -348,29 +258,30 @@ const PaginaPedidos = () => {
         }
       });
       
-      // Resetear el select
       productosRef.current.value = "";
     } else {
-      console.log("Producto no encontrado");
+      alert("Producto no encontrado");
     }
   };
 
-  // Función para calcular el total
+  // 🧮 Función para calcular el total
   const calcularTotal = (listaProductos) => {
-    const total = listaProductos.reduce((acc, producto) => acc + producto.subtotal, 0);
+    const total = listaProductos.reduce((acc, producto) => acc + (producto.subtotal || 0), 0);
     setTotalCalculado(total);
   };
 
-  // Función para eliminar producto de la lista
+  // ❌ Función para eliminar producto de la lista
   const eliminarProducto = (productId) => {
     setProductosAgregados(prev => {
-      const nuevaLista = prev.filter(p => p.id_producto !== productId);
+      const nuevaLista = prev.filter(p => 
+        p.codigoProducto !== productId && p.id !== productId
+      );
       calcularTotal(nuevaLista);
       return nuevaLista;
     });
   };
 
-  // Función para cambiar cantidad de un producto
+  // 🔢 Función para cambiar cantidad de un producto
   const cambiarCantidad = (productId, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarProducto(productId);
@@ -379,8 +290,12 @@ const PaginaPedidos = () => {
 
     setProductosAgregados(prev => {
       const nuevaLista = prev.map(p => 
-        p.id_producto === productId 
-          ? { ...p, cantidad: nuevaCantidad, subtotal: nuevaCantidad * p.precio }
+        (p.codigoProducto === productId || p.id === productId)
+          ? { 
+              ...p, 
+              cantidad: nuevaCantidad, 
+              subtotal: nuevaCantidad * (p.precio || p.precioVenta || 0) 
+            }
           : p
       );
       calcularTotal(nuevaLista);
@@ -388,13 +303,14 @@ const PaginaPedidos = () => {
     });
   };
 
-  // Función para limpiar productos agregados
+  // 🧹 Función para limpiar productos agregados
   const limpiarProductos = () => {
     setProductosAgregados([]);
     setTotalCalculado(0);
   };
 
-  const handleAgregarSubmit = (e) => {
+ // ➕ Manejar agregar pedido - VERSIÓN CORREGIDA
+  const handleAgregarSubmit = async (e) => {
     e.preventDefault();
 
     if (!clienteSeleccionado) {
@@ -402,67 +318,113 @@ const PaginaPedidos = () => {
       return;
     }
 
-    const pedido = {
-      Id_Pedido: listaPedidos.length + 1,
-      Cliente: `${clienteSeleccionado.Nombre} ${clienteSeleccionado.Apellido}`,
-      Id_Cliente: clienteSeleccionado.Id_Cliente,
-      Direccion: direccionRef.current.value,
-      Total: totalCalculado,
-      Correo: clienteSeleccionado.Correo,
-      Estado: estadoRef.current.value,
-      Abonos: parseFloat(abonosRef.current.value) || 0,
-      Productos: productosAgregados
-    };
+    if (productosAgregados.length === 0) {
+      alert("Por favor agrega al menos un producto");
+      return;
+    }
 
-    setListaPedidos([...listaPedidos, pedido]);
-    setShowAgregar(false);
-    
-    // Limpiar el formulario
-    limpiarProductos();
-    setClienteSeleccionado(null);
-    direccionRef.current.value = "";
-    estadoRef.current.value = "";
-    abonosRef.current.value = "0";
+    try {
+      // Obtener el ID del cliente correctamente
+      const clienteId = clienteSeleccionado.idCliente || 
+                      clienteSeleccionado.codigoCliente || 
+                      clienteSeleccionado.Id_Cliente || 
+                      clienteSeleccionado.id;
+
+      console.log("👤 Cliente seleccionado:", clienteSeleccionado);
+      console.log("🆔 ID Cliente a usar:", clienteId);
+
+      // Preparar los detalles correctamente
+      const detalles = productosAgregados.map(producto => {
+        const codigoProducto = producto.codigoProducto || producto.CodigoProducto || producto.id;
+        console.log(`📦 Producto: ${producto.nombre || producto.nombreProducto}, ID: ${codigoProducto}, Cantidad: ${producto.cantidad}`);
+        
+        return {
+          CodigoProducto: parseInt(codigoProducto),
+          Cantidad: parseInt(producto.cantidad)
+        };
+      });
+
+      console.log("📋 Detalles preparados:", detalles);
+
+      const nuevoPedido = {
+        IdCliente: parseInt(clienteId),
+        FechaPedido: new Date().toISOString().split("T")[0],
+        Detalles: detalles
+      };
+
+      console.log("🚀 Enviando pedido completo:", nuevoPedido);
+      
+      const resultado = await PostPedido(nuevoPedido);
+      
+      // Recargar la lista de pedidos
+      await cargarDatosIniciales();
+      
+      setShowAgregar(false);
+      limpiarProductos();
+      setClienteSeleccionado(null);
+      
+      alert("Pedido creado exitosamente");
+      
+    } catch (error) {
+      console.error("Error creando pedido:", error);
+      alert("Error al crear el pedido: " + error.message);
+    }
   };
 
-  const handleEditarSubmit = (e, datosActualizados) => {
-  e.preventDefault();
+  // ✏️ Manejar editar pedido (solo estado por ahora)
+  const handleEditarSubmit = async (e, datosActualizados) => {
+    e.preventDefault();
 
-  // Usar los datos que vienen del formulario modificar
-  const updatedPedido = {
-    Id_Pedido: datosActualizados.Id_Pedido,
-    Cliente: datosActualizados.Cliente,
-    Id_Cliente: datosActualizados.Id_Cliente,
-    Direccion: datosActualizados.Direccion,
-    Total: datosActualizados.Total,
-    Correo: datosActualizados.Correo,
-    Estado: datosActualizados.Estado,
-    Abonos: datosActualizados.Abonos,
-    Productos: datosActualizados.Productos || []
-  };
-    setListaPedidos(
-      listaPedidos.map((pedido) =>
-        pedido.Id_Pedido === datosActualizados.Id_Pedido ? updatedPedido : pedido
-      )
-    );
-    closeModal();
+    try {
+      // Actualizar solo el estado por ahora
+      if (datosActualizados.Estado === "Cancelado") {
+        await CancelarPedido(datosActualizados.CodigoPedido);
+      }
+      
+      // Actualizar localmente
+      setListaPedidos(
+        listaPedidos.map((pedido) =>
+          pedido.CodigoPedido === datosActualizados.CodigoPedido 
+            ? { ...pedido, Estado: datosActualizados.Estado }
+            : pedido
+        )
+      );
+      
+      closeModal();
+      alert("Pedido actualizado exitosamente");
+    } catch (error) {
+      console.error("Error actualizando pedido:", error);
+      alert("Error al actualizar el pedido");
+    }
   };
 
+  // 🗑️ Manejar eliminar pedido
   const handleEliminar = (id) => {
-    const pedido = listaPedidos.find((pedido) => pedido.Id_Pedido === id);
+    const pedido = listaPedidos.find((pedido) => pedido.CodigoPedido === id);
     if (pedido) {
       setPedidoAEliminar(pedido);
       setShowConfirmacion(true);
     }
   };
 
-  const confirmarEliminacion = () => {
+  // ✅ Confirmar eliminación
+  const confirmarEliminacion = async () => {
     if (pedidoAEliminar) {
-      setListaPedidos(
-        listaPedidos.filter((pedido) => pedido.Id_Pedido !== pedidoAEliminar.Id_Pedido)
-      );
-      setPedidoAEliminar(null);
-      setShowConfirmacion(false);
+      try {
+        // Cancelar en lugar de eliminar
+        await CancelarPedido(pedidoAEliminar.CodigoPedido);
+        
+        // Recargar datos
+        await cargarDatosIniciales();
+        
+        alert("Pedido cancelado exitosamente");
+      } catch (error) {
+        console.error("Error cancelando pedido:", error);
+        alert("Error al cancelar el pedido");
+      } finally {
+        setPedidoAEliminar(null);
+        setShowConfirmacion(false);
+      }
     }
   };
 
@@ -471,44 +433,40 @@ const PaginaPedidos = () => {
     setPedidoAEliminar(null);
   };
 
-  const mostrarVer = (id) => {
-    const pedido = listaPedidos.find((pedido) => pedido.Id_Pedido === id);
-
-    if (pedido) {
-      setFormData({
-        Cliente: pedido.Cliente,
-        Id_Cliente: pedido.Id_Cliente,
-        Direccion: pedido.Direccion,
-        Total: pedido.Total,
-        Correo: pedido.Correo,
-        Estado: pedido.Estado,
-        Abonos: pedido.Abonos,
-        Id_Pedido: pedido.Id_Pedido,
-        Productos: pedido.Productos || [],
-      });
+  // 👀 Mostrar detalles del pedido
+  const mostrarVer = async (id) => {
+    try {
+      console.log("🔍 Abriendo detalles del pedido ID:", id);
+      
+      // Establecer el pedido seleccionado con el ID
+      setPedidoSeleccionado({ CodigoPedido: id });
       setShowVer(true);
+      
+    } catch (error) {
+      console.error("Error cargando detalles:", error);
+      alert("Error al cargar los detalles del pedido");
     }
   };
 
-  const mostrarEditar = (id) => {
-    const pedido = listaPedidos.find((pedido) => pedido.Id_Pedido === id);
-
-    if (pedido) {
-      setFormData({
-        Cliente: pedido.Cliente,
-        Id_Cliente: pedido.Id_Cliente,
-        Direccion: pedido.Direccion,
-        Total: pedido.Total,
-        Correo: pedido.Correo,
-        Estado: pedido.Estado,
-        Abonos: pedido.Abonos,
-        Id_Pedido: pedido.Id_Pedido,
-        Productos: pedido.Productos || [],
-      });
-      setShowEditar(true);
+  // ✏️ Mostrar editar pedido
+  const mostrarEditar = async (id) => {
+    try {
+      const pedido = listaPedidos.find((pedido) => pedido.CodigoPedido === id);
+      
+      if (pedido) {
+        setFormData({
+          ...pedido,
+          Productos: pedido.Detalles || pedido.Productos || []
+        });
+        setShowEditar(true);
+      }
+    } catch (error) {
+      console.error("Error cargando detalles:", error);
+      alert("Error al cargar los detalles del pedido");
     }
   };
 
+  // ❌ Cerrar modales
   const closeModal = () => {
     setShowEditar(false);
     setShowVer(false);
@@ -517,9 +475,9 @@ const PaginaPedidos = () => {
     setClienteSeleccionado(null);
     setFormData({
       Cliente: "",
-      Id_Cliente: "",
+      IdCliente: "",
       Direccion: "",
-      Total: "",
+      PrecioTotal: "",
       Correo: "",
       Estado: "",
       Abonos: "",
@@ -527,14 +485,16 @@ const PaginaPedidos = () => {
     });
   };
 
+  // 💵 Formatear moneda
   const formatearMoneda = (valor) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
-    }).format(valor);
+    }).format(valor || 0);
   };
 
+  // 🎨 Obtener color del estado
   const getEstadoColor = (estado) => {
     switch (estado) {
       case "Pendiente":
@@ -550,34 +510,29 @@ const PaginaPedidos = () => {
     }
   };
 
-  // Función para generar los números de página
+  // 🔢 Generar números de página
   const generarNumerosPagina = () => {
     const numeros = [];
-    const maxVisible = 7; // Número máximo de páginas visibles
+    const maxVisible = 7;
     
     if (totalPaginas <= maxVisible) {
-      // Si hay pocas páginas, mostrar todas
       for (let i = 1; i <= totalPaginas; i++) {
         numeros.push(i);
       }
     } else {
-      // Lógica para mostrar páginas con puntos suspensivos
       if (paginaActual <= 4) {
-        // Mostrar las primeras páginas
         for (let i = 1; i <= 5; i++) {
           numeros.push(i);
         }
         numeros.push('...');
         numeros.push(totalPaginas);
       } else if (paginaActual >= totalPaginas - 3) {
-        // Mostrar las últimas páginas
         numeros.push(1);
         numeros.push('...');
         for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
           numeros.push(i);
         }
       } else {
-        // Mostrar páginas alrededor de la actual
         numeros.push(1);
         numeros.push('...');
         for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
@@ -591,6 +546,30 @@ const PaginaPedidos = () => {
     return numeros;
   };
 
+  // ⏳ Mostrar loading
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Cargando pedidos...</div>
+      </div>
+    );
+  }
+
+  // ❌ Mostrar error
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-red-500 text-lg">{error}</div>
+        <button 
+          onClick={cargarDatosIniciales}
+          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <section className="flex justify-center col-span-2">
@@ -603,7 +582,7 @@ const PaginaPedidos = () => {
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda 
             ref={busquedaRef}
-            placeholder="Buscar pedidos"
+            placeholder="Buscar por cliente, estado o total"
             value={terminoBusqueda}
             onChange={handleBusquedaChange}
           />
@@ -617,35 +596,34 @@ const PaginaPedidos = () => {
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
         <TablaAdmin
-          listaCabecera={["Cliente", "Dirección", "Total", "Estado", "Abonos", "Acciones"]}
+          listaCabecera={["Cliente", "Fecha", "Total", "Estado", "Acciones"]}
         >
           {pedidosPaginados.length > 0 ? (
             pedidosPaginados.map((element) => (
               <tr
-                key={element.Id_Pedido}
+                key={element.CodigoPedido}
                 className="hover:bg-gray-100 border-t-2 border-gray-300"
               >
                 <td className="py-2 px-4 font-medium">{element.Cliente}</td>
-                <td className="py-2 px-4 text-sm text-black max-w-xs truncate">
-                  {element.Direccion}
+                <td className="py-2 px-4 text-sm text-black">
+                  {element.FechaPedido ? new Date(element.FechaPedido).toLocaleDateString('es-CO') : 'N/A'}
                 </td>
                 <td className="py-2 px-4 text-black">
-                  {formatearMoneda(element.Total)}
+                  {formatearMoneda(element.PrecioTotal)}
                 </td>
                 <td className="py-2 px-4">
-                  {/* Desplegable dinámico para cambiar estado */}
                   <select
                     value={element.Estado}
-                    onChange={(e) => handleCambiarEstado(element.Id_Pedido, e.target.value)}
-                    disabled={element.Abonos >= element.Total}
+                    onChange={(e) => handleCambiarEstado(element.CodigoPedido, e.target.value)}
+                    disabled={element.Estado === "Completado" || element.Estado === "Cancelado"}
                     className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.Estado)} ${
-                      element.Abonos >= element.Total
+                      element.Estado === "Completado" || element.Estado === "Cancelado"
                         ? 'cursor-not-allowed opacity-70' 
                         : 'cursor-pointer hover:shadow-sm'
                     }`}
                     title={
-                      element.Abonos >= element.Total
-                        ? "No se puede cambiar el estado de un pedido completamente pagado"
+                      element.Estado === "Completado" || element.Estado === "Cancelado"
+                        ? "No se puede cambiar el estado de un pedido completado o cancelado"
                         : "Cambiar estado del pedido"
                     }
                   >
@@ -656,38 +634,13 @@ const PaginaPedidos = () => {
                     ))}
                   </select>
                 </td>
-                <td className="py-2 px-4">
-                  {element.Abonos >= element.Total || element.Estado === "Completado" ? (
-                    <button 
-                      className="bg-green-500 text-white px-3 py-2 rounded text-sm font-medium cursor-default"
-                      disabled
-                    >
-                      Pagado
-                    </button>
-                  ) : element.Estado === "Cancelado" ? (
-                    <button 
-                      className="bg-gray-400 text-white px-3 py-2 rounded text-sm font-medium cursor-default"
-                      disabled
-                    >
-                      Cancelado
-                    </button>
-                  ) : (
-                    <button 
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
-                      onClick={() => mostrarAbono(element.Id_Pedido)}
-                      title={`Abonado: ${formatearMoneda(element.Abonos)} de ${formatearMoneda(element.Total)}`}
-                    >
-                      Abonar
-                    </button>
-                  )}
-                </td>
                 <td className="py-2 px-4 flex gap-2 justify-center">
                   <Icon
                     icon="material-symbols:visibility-outline"
                     width="24"
                     height="24"
                     className="text-green-700 cursor-pointer hover:text-green-800"
-                    onClick={() => mostrarVer(element.Id_Pedido)}
+                    onClick={() => mostrarVer(element.CodigoPedido)}
                     title="Ver detalles"
                   />
                   <Icon
@@ -695,23 +648,32 @@ const PaginaPedidos = () => {
                     width="24"
                     height="24"
                     className="text-blue-700 cursor-pointer hover:text-blue-800"
-                    onClick={() => mostrarEditar(element.Id_Pedido)}
+                    onClick={() => mostrarEditar(element.CodigoPedido)}
                     title="Editar pedido"
+                    disabled={element.Estado === "Completado" || element.Estado === "Cancelado"}
                   />
                   <Icon
                     icon="tabler:trash"
                     width="24"
                     height="24"
-                    className="text-red-700 cursor-pointer hover:text-red-800"
-                    onClick={() => handleEliminar(element.Id_Pedido)}
-                    title="Eliminar pedido"
+                    className={`cursor-pointer hover:text-red-800 ${
+                      element.Estado === "Cancelado" 
+                        ? "text-gray-400 cursor-not-allowed" 
+                        : "text-red-700"
+                    }`}
+                    onClick={() => element.Estado !== "Cancelado" && handleEliminar(element.CodigoPedido)}
+                    title={
+                      element.Estado === "Cancelado" 
+                        ? "Pedido ya cancelado" 
+                        : "Cancelar pedido"
+                    }
                   />
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
+              <td colSpan="5" className="py-8 px-4 text-center text-gray-500">
                 {terminoBusqueda ? 
                   `No se encontraron pedidos que coincidan con "${terminoBusqueda}"` : 
                   "No hay pedidos disponibles"
@@ -752,10 +714,10 @@ const PaginaPedidos = () => {
         estadosDisponibles={estadosDisponibles}
         titulo="Agregar Nuevo Pedido"
         formatearMoneda={formatearMoneda}
-        // Props para manejo de clientes
         clientes={listaClientes}
         clienteSeleccionado={clienteSeleccionado}
         onClienteChange={handleClienteChange}
+        productos={listaProductos}
       />
 
       <FormularioModificar
@@ -772,14 +734,13 @@ const PaginaPedidos = () => {
         estadosDisponibles={estadosDisponibles}
         titulo="Modificar Pedido"
         formatearMoneda={formatearMoneda}
-        // Props para manejo de clientes
         clientes={listaClientes}
       />
 
       <FormularioVer
         show={showVer}
         close={closeModal}
-        formData={formData}
+        codigoPedido={pedidoSeleccionado?.CodigoPedido} // Pasa solo el ID
         titulo="Detalles del Pedido"
         formatearMoneda={formatearMoneda}
       />
@@ -796,19 +757,19 @@ const PaginaPedidos = () => {
         show={showConfirmacion}
         onClose={cerrarConfirmacion}
         onConfirm={confirmarEliminacion}
-        titulo="Anular Pedido"
-        mensaje="¿Estás seguro de que deseas Anular este pedido?"
+        titulo="Cancelar Pedido"
+        mensaje="¿Estás seguro de que deseas cancelar este pedido?"
         detalles={pedidoAEliminar && (
           <>
             <div><strong>Cliente:</strong> {pedidoAEliminar.Cliente}</div>
-            <div><strong>Total:</strong> {formatearMoneda(pedidoAEliminar.Total)}</div>
+            <div><strong>Total:</strong> {formatearMoneda(pedidoAEliminar.PrecioTotal)}</div>
             <div><strong>Estado:</strong> {pedidoAEliminar.Estado}</div>
-            <div><strong>Dirección:</strong> {pedidoAEliminar.Direccion}</div>
+            <div><strong>Fecha:</strong> {pedidoAEliminar.FechaPedido ? new Date(pedidoAEliminar.FechaPedido).toLocaleDateString('es-CO') : 'N/A'}</div>
           </>
         )}
-        textoConfirmar="Eliminar"
-        textoCancelar="Cancelar"
-        tipoIcono="danger"
+        textoConfirmar="Cancelar Pedido"
+        textoCancelar="Mantener"
+        tipoIcono="warning"
         colorConfirmar="red"
       />
     </>

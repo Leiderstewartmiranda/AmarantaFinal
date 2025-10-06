@@ -2,7 +2,8 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
 import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
+import { GetProveedores, PostProveedor, PutProveedor, DeleteProveedore } from "../../../../services/proveedorService";
 import FormularioAgregarProveedor from "../components/forms/FormularioAgregar";
 import FormularioModificarProveedor from "../components/forms/FormularioModificar";
 import FormularioVerProveedor from "../components/forms/FormularioVer";
@@ -11,89 +12,34 @@ import Paginacion from "../../../../compartidos/paginacion/Paginacion";
 
 const PaginaProveedores = () => {
   // Lista de proveedores
-  const [listaProveedores, setListaProveedores] = useState([
-    { 
-      id: 1, 
-      nombre: 'Distribuidora Caribe S.A.S', 
-      contacto: 'contacto@caribe.com',
-      telefono: '300-123-4567',
-      tipoDocumento: 'NIT',
-      documento: '900123456-1',
-      estado: true,
-      fechaCreacion: '2024-01-15'
-    },
-    { 
-      id: 2, 
-      nombre: 'Productos del Sur Ltda', 
-      contacto: 'ventas@sur.com',
-      telefono: '310-987-6543',
-      tipoDocumento: 'NIT',
-      documento: '800987654-2',
-      estado: true,
-      fechaCreacion: '2024-01-20'
-    },
-    { 
-      id: 3, 
-      nombre: 'Juan Carlos Pérez', 
-      contacto: 'juan.perez@email.com',
-      telefono: '320-555-7890',
-      tipoDocumento: 'Cédula',
-      documento: '12345678',
-      estado: false,
-      fechaCreacion: '2024-02-01'
-    },
-    { 
-      id: 4, 
-      nombre: 'Importadora Oceanía S.A', 
-      contacto: 'info@oceania.co',
-      telefono: '315-444-1122',
-      tipoDocumento: 'NIT',
-      documento: '900444555-7',
-      estado: true,
-      fechaCreacion: '2024-02-10'
-    },
-    { 
-      id: 5, 
-      nombre: 'Tecnología Avanzada Ltda', 
-      contacto: 'info@tecnologia.co',
-      telefono: '318-777-8888',
-      tipoDocumento: 'NIT',
-      documento: '900777888-9',
-      estado: true,
-      fechaCreacion: '2024-02-15'
-    },
-    { 
-      id: 6, 
-      nombre: 'María Elena Rodríguez', 
-      contacto: 'maria.rodriguez@email.com',
-      telefono: '319-666-5555',
-      tipoDocumento: 'Cédula',
-      documento: '98765432',
-      estado: false,
-      fechaCreacion: '2024-02-20'
-    },
-  ]);
+  const [listaProveedores, setListaProveedores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [recarga, setRecarga] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await GetProveedores();
+        console.log("Datos recibidos de la API:", data);
+        setListaProveedores(data);
+      } catch (error) {
+        console.error("Error cargando proveedores:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [recarga]);
 
   const [showAgregar, setShowAgregar] = useState(false);
   const [showEditar, setShowEditar] = useState(false);
   const [showVer, setShowVer] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const proveedoresPorPagina = 5; // Número de proveedores por página
+  const proveedoresPorPagina = 5;
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [proveedorAEliminar, setProveedorAEliminar] = useState(null);
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
-
-  const [formData, setFormData] = useState({
-    id: "",
-    nombre: "",
-    contacto: "",
-    telefono: "",
-    tipoDocumento: "",
-    documento: "",
-    estado: true,
-    fechaCreacion: ""
-  });
 
   const busquedaRef = useRef();
 
@@ -106,15 +52,15 @@ const PaginaProveedores = () => {
     const termino = terminoBusqueda.toLowerCase().trim();
     
     return listaProveedores.filter((proveedor) => {
-      const nombre = proveedor.nombre.toLowerCase();
-      const contacto = proveedor.contacto.toLowerCase();
-      const tipoDocumento = proveedor.tipoDocumento.toLowerCase();
-      const documento = proveedor.documento.toLowerCase();
+      const nombreEmpresa = proveedor.nombreEmpresa?.toLowerCase() || '';
+      const correo = proveedor.correo?.toLowerCase() || '';
+      const tipoDocumento = proveedor.nit?.toLowerCase() || '';
+      const documento = proveedor.representante?.toLowerCase() || '';
       const telefono = proveedor.telefono ? proveedor.telefono.toLowerCase() : "";
 
       return (
-        nombre.includes(termino) ||
-        contacto.includes(termino) ||
+        nombreEmpresa.includes(termino) ||
+        correo.includes(termino) ||
         tipoDocumento.includes(termino) ||
         documento.includes(termino) ||
         telefono.includes(termino)
@@ -131,7 +77,7 @@ const PaginaProveedores = () => {
   // Manejar cambios en la barra de búsqueda
   const handleBusquedaChange = (e) => {
     setTerminoBusqueda(e.target.value);
-    setPaginaActual(1); // Resetear a la primera página cuando se busca
+    setPaginaActual(1);
   };
 
   // Manejar cambio de página
@@ -140,50 +86,77 @@ const PaginaProveedores = () => {
   };
 
   // Función para cambiar estado del proveedor
-  const handleCambiarEstado = (id, nuevoEstado) => {
-    setListaProveedores(
-      listaProveedores.map((proveedor) =>
-        proveedor.id === id ? { ...proveedor, estado: nuevoEstado } : proveedor
-      )
-    );
+  const handleCambiarEstado = async (id, nuevoEstado) => {
+    try {
+      const proveedor = listaProveedores.find(p => p.idProveedor === id);
+      if (proveedor) {
+        const datosActualizados = {
+          ...proveedor,
+          estado: nuevoEstado
+        };
+        
+        await PutProveedor(id, datosActualizados);
+        
+        setListaProveedores(
+          listaProveedores.map((proveedor) =>
+            proveedor.idProveedor === id ? { ...proveedor, estado: nuevoEstado } : proveedor
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error cambiando estado:", error);
+    }
   };
 
-  const handleAgregarSubmit = (nuevoProveedor) => {
-    const nuevoId = Math.max(...listaProveedores.map(p => p.id)) + 1;
-    const proveedorConId = { 
-      ...nuevoProveedor, 
-      id: nuevoId,
-      fechaCreacion: new Date().toISOString().split('T')[0]
-    };
-    
-    setListaProveedores([...listaProveedores, proveedorConId]);
-    setShowAgregar(false);
+  const handleAgregarSubmit = async (nuevoProveedor) => {
+    try {
+      const proveedorCreado = await PostProveedor(nuevoProveedor);
+      setRecarga(prev => prev + 1);
+      setListaProveedores([...listaProveedores, proveedorCreado]);
+      setShowAgregar(false);
+    } catch (error) {
+      console.error("Error creando proveedor:", error);
+    }
   };
 
-  const handleEditarSubmit = (proveedorActualizado) => {
-    setListaProveedores(
-      listaProveedores.map((proveedor) =>
-        proveedor.id === proveedorActualizado.id ? proveedorActualizado : proveedor
-      )
-    );
-    closeModal();
+  const handleEditarSubmit = async (proveedorActualizado) => {
+    try {
+      await PutProveedor(proveedorActualizado.idProveedor, proveedorActualizado);
+      setRecarga(prev => prev + 1);
+      
+      // Actualizar la lista local
+      setListaProveedores(
+        listaProveedores.map((proveedor) =>
+          proveedor.idProveedor === proveedorActualizado.idProveedor ? proveedorActualizado : proveedor
+        )
+      );
+      
+      closeModal();
+    } catch (error) {
+      console.error("Error actualizando proveedor:", error);
+    }
   };
 
   const handleEliminar = (id) => {
-    const proveedor = listaProveedores.find((proveedor) => proveedor.id === id);
+    const proveedor = listaProveedores.find((proveedor) => proveedor.idProveedor === id);
     if (proveedor) {
       setProveedorAEliminar(proveedor);
       setShowConfirmacion(true);
     }
   };
 
-  const confirmarEliminacion = () => {
+  const confirmarEliminacion = async () => {
     if (proveedorAEliminar) {
-      setListaProveedores(
-        listaProveedores.filter((proveedor) => proveedor.id !== proveedorAEliminar.id)
-      );
-      setProveedorAEliminar(null);
-      setShowConfirmacion(false);
+      try {
+        await DeleteProveedore(proveedorAEliminar.idProveedor);
+        setListaProveedores(
+          listaProveedores.filter((proveedor) => proveedor.idProveedor !== proveedorAEliminar.idProveedor)
+        );
+        setProveedorAEliminar(null);
+        setShowConfirmacion(false);
+      } catch (error) {
+        console.error("Error eliminando proveedor:", error);
+      }
     }
   };
 
@@ -193,16 +166,16 @@ const PaginaProveedores = () => {
   };
 
   const mostrarVer = (id) => {
-    const proveedor = listaProveedores.find((proveedor) => proveedor.id === id);
+    const proveedor = listaProveedores.find((proveedor) => proveedor.idProveedor === id);
 
     if (proveedor) {
-      setFormData({
-        id: proveedor.id,
-        nombre: proveedor.nombre,
-        contacto: proveedor.contacto,
+      setProveedorSeleccionado({
+        idProveedor: proveedor.idProveedor,
+        nombreEmpresa: proveedor.nombreEmpresa,
+        correo: proveedor.correo,
         telefono: proveedor.telefono,
-        tipoDocumento: proveedor.tipoDocumento,
-        documento: proveedor.documento,
+        nit: proveedor.nit,
+        representante: proveedor.representante,
         estado: proveedor.estado,
         fechaCreacion: proveedor.fechaCreacion
       });
@@ -211,16 +184,16 @@ const PaginaProveedores = () => {
   };
 
   const mostrarEditar = (id) => {
-    const proveedor = listaProveedores.find((proveedor) => proveedor.id === id);
+    const proveedor = listaProveedores.find((proveedor) => proveedor.idProveedor === id);
 
     if (proveedor) {
-      setFormData({
-        id: proveedor.id,
-        nombre: proveedor.nombre,
-        contacto: proveedor.contacto,
+      setProveedorSeleccionado({
+        idProveedor: proveedor.idProveedor,
+        nombreEmpresa: proveedor.nombreEmpresa,
+        correo: proveedor.correo,
         telefono: proveedor.telefono,
-        tipoDocumento: proveedor.tipoDocumento,
-        documento: proveedor.documento,
+        nit: proveedor.nit,
+        representante: proveedor.representante,
         estado: proveedor.estado,
         fechaCreacion: proveedor.fechaCreacion
       });
@@ -232,54 +205,39 @@ const PaginaProveedores = () => {
     setShowEditar(false);
     setShowVer(false);
     setProveedorSeleccionado(null);
-    setFormData({
-      id: "",
-      nombre: "",
-      contacto: "",
-      telefono: "",
-      tipoDocumento: "",
-      documento: "",
-      estado: true,
-      fechaCreacion: ""
-    });
   };
 
   const getEstadoColor = (estado) => {
     return estado ? "bg-green-100 text-green-800 border-green-300" : "bg-red-100 text-red-800 border-red-300";
   };
 
-  const getTipoDocumentoColor = (tipoDocumento) => {
-    return tipoDocumento === "NIT" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300";
+  const getTipoDocumentoColor = (nit) => {
+    return nit === "NIT" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300";
   };
 
   // Función para generar los números de página
   const generarNumerosPagina = () => {
     const numeros = [];
-    const maxVisible = 7; // Número máximo de páginas visibles
+    const maxVisible = 7;
     
     if (totalPaginas <= maxVisible) {
-      // Si hay pocas páginas, mostrar todas
       for (let i = 1; i <= totalPaginas; i++) {
         numeros.push(i);
       }
     } else {
-      // Lógica para mostrar páginas con puntos suspensivos
       if (paginaActual <= 4) {
-        // Mostrar las primeras páginas
         for (let i = 1; i <= 5; i++) {
           numeros.push(i);
         }
         numeros.push('...');
         numeros.push(totalPaginas);
       } else if (paginaActual >= totalPaginas - 3) {
-        // Mostrar las últimas páginas
         numeros.push(1);
         numeros.push('...');
         for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
           numeros.push(i);
         }
       } else {
-        // Mostrar páginas alrededor de la actual
         numeros.push(1);
         numeros.push('...');
         for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
@@ -292,6 +250,14 @@ const PaginaProveedores = () => {
     
     return numeros;
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center col-span-2 h-64">
+        <p>Cargando proveedores...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -324,25 +290,25 @@ const PaginaProveedores = () => {
           {proveedoresPaginados.length > 0 ? (
             proveedoresPaginados.map((element) => (
               <tr
-                key={element.id}
+                key={element.idProveedor}
                 className="hover:bg-gray-100 border-t-2 border-gray-300"
               >
-                <td className="py-2 px-4 font-medium">{element.nombre}</td>
+                <td className="py-2 px-4 font-medium">{element.nombreEmpresa}</td>
                 <td className="py-2 px-4 text-sm text-black max-w-xs truncate">
-                  {element.contacto}
+                  {element.correo}
                 </td>
                 <td className="py-2 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getTipoDocumentoColor(element.tipoDocumento)}`}>
-                    {element.tipoDocumento}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getTipoDocumentoColor(element.nit)}`}>
+                    {element.nit}
                   </span>
                 </td>
                 <td className="py-2 px-4 text-black">
-                  {element.documento}
+                  {element.representante}
                 </td>
                 <td className="py-2 px-4">
                   <select
                     value={element.estado ? "Activo" : "Inactivo"}
-                    onChange={(e) => handleCambiarEstado(element.id, e.target.value === "Activo")}
+                    onChange={(e) => handleCambiarEstado(element.idProveedor, e.target.value === "Activo")}
                     className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.estado)} cursor-pointer hover:shadow-sm`}
                   >
                     <option value="Activo">Activo</option>
@@ -355,7 +321,7 @@ const PaginaProveedores = () => {
                     width="24"
                     height="24"
                     className="text-green-700 cursor-pointer hover:text-green-800"
-                    onClick={() => mostrarVer(element.id)}
+                    onClick={() => mostrarVer(element.idProveedor)}
                     title="Ver detalles"
                   />
                   <Icon
@@ -363,7 +329,7 @@ const PaginaProveedores = () => {
                     width="24"
                     height="24"
                     className="text-blue-700 cursor-pointer hover:text-blue-800"
-                    onClick={() => mostrarEditar(element.id)}
+                    onClick={() => mostrarEditar(element.idProveedor)}
                     title="Editar proveedor"
                   />
                   <Icon
@@ -371,7 +337,7 @@ const PaginaProveedores = () => {
                     width="24"
                     height="24"
                     className="text-red-700 cursor-pointer hover:text-red-800"
-                    onClick={() => handleEliminar(element.id)}
+                    onClick={() => handleEliminar(element.idProveedor)}
                     title="Eliminar proveedor"
                   />
                 </td>
@@ -410,15 +376,15 @@ const PaginaProveedores = () => {
       <FormularioModificarProveedor
         show={showEditar}
         close={closeModal}
-        formData={formData}
-        onSubmit={handleEditarSubmit}
+        formData={proveedorSeleccionado}
+        onProveedorActualizado={handleEditarSubmit}
         titulo="Modificar Proveedor"
       />
 
       <FormularioVerProveedor
         show={showVer}
         close={closeModal}
-        formData={formData}
+        formData={proveedorSeleccionado}
         titulo="Detalles del Proveedor"
       />
 
@@ -430,10 +396,10 @@ const PaginaProveedores = () => {
         mensaje="¿Estás seguro de que deseas eliminar este proveedor?"
         detalles={proveedorAEliminar && (
           <>
-            <div><strong>Nombre:</strong> {proveedorAEliminar.nombre}</div>
-            <div><strong>Contacto:</strong> {proveedorAEliminar.contacto}</div>
-            <div><strong>Tipo Documento:</strong> {proveedorAEliminar.tipoDocumento}</div>
-            <div><strong>Documento:</strong> {proveedorAEliminar.documento}</div>
+            <div><strong>Nombre:</strong> {proveedorAEliminar.nombreEmpresa}</div>
+            <div><strong>Correo:</strong> {proveedorAEliminar.correo}</div>
+            <div><strong>Tipo Documento:</strong> {proveedorAEliminar.nit}</div>
+            <div><strong>Documento:</strong> {proveedorAEliminar.representante}</div>
           </>
         )}
         textoConfirmar="Eliminar"

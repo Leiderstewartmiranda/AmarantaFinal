@@ -31,10 +31,10 @@ const FormularioModificar = ({
             <input 
               type="text"
               ref={nombreRef}
-              defaultValue={formData.nombre}
+              defaultValue={formData.nombreCategoria}
               onChange={(e) => {
-                setFormData({...formData, nombre: e.target.value});
-                setErrores({...errores, nombre: ''});
+                setFormData({...formData, nombreCategoria: e.target.value});
+                setErrores({...errores, nombreCategoria: ''});
               }}
               className={`w-full border ${errores.nombre ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none`}
             />
@@ -56,7 +56,7 @@ const FormularioModificar = ({
             {errores.descripcion && <span className="text-red-500 text-sm mt-1">{errores.descripcion}</span>}
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-gray-700 font-medium mb-1">Estado</label>
             <select 
               value={formData.estado} 
@@ -66,7 +66,7 @@ const FormularioModificar = ({
               <option value={true}>Activo</option>
               <option value={false}>Inactivo</option>
             </select>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-3 pt-2">
             <button 

@@ -3,197 +3,213 @@ import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
 import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
 import Paginacion from "../../../../compartidos/paginacion/Paginacion";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import FormularioAgregar from "../components/forms/FormularioAgregar";
 import FormularioModificar from "../components/forms/FormularioModificar";
 import FormularioVerDetalles from "../components/forms/FormularioVerDetalles";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
+import {
+  GetClientes,
+  CrearCliente,
+  EditarCliente,
+  DeleteCliente,
+} from "../../../../services/clienteService";
 
 const PaginaClientes = () => {
-  const [listaClientes, setListaClientes] = useState([
-    {
-      Id_Cliente: 1,
-      TipoDocumento: "CC",
-      Documento: "123456789",
-      NombreCompleto: "Juan Pérez",
-      Correo: "juan.perez@example.com",
-      Telefono: "3001234567",
-      Direccion: "Calle 123 #45-67",
-      Estado: "Activo",
-    },
-    {
-      Id_Cliente: 2,
-      TipoDocumento: "CE",
-      Documento: "987654321",
-      NombreCompleto: "María Gómez",
-      Correo: "maria.gomez@example.com",
-      Telefono: "3007654321",
-      Direccion: "Avenida 456 #78-90",
-      Estado: "Activo",
-    },
-  ]);
+  const [listaClientes, setListaClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showAgregar, setShowAgregar] = useState(false);
   const [showEditar, setShowEditar] = useState(false);
   const [showDetalles, setShowDetalles] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const clientesPorPagina = 5; 
+  const clientesPorPagina = 5;
+
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [clienteAEliminar, setClienteAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
   const [formData, setFormData] = useState({
+    IdCliente: null,
     TipoDocumento: "",
     Documento: "",
-    NombreCompleto: "",
+    Nombre: "",
+    Apellido: "",
     Correo: "",
     Telefono: "",
     Direccion: "",
-    Estado: "",
   });
 
-  // Referencias para los formularios (mantener para FormularioModificar si es necesario)
-  const tipoDocumentoRef = useRef();
-  const documentoRef = useRef();
-  const nombreCompletoRef = useRef();
-  const correoRef = useRef();
-  const telefonoRef = useRef();
-  const direccionRef = useRef();
-  const estadoRef = useRef();
   const busquedaRef = useRef();
 
-  // Filtrar clientes basado en el término de búsqueda
-  const clientesFiltrados = useMemo(() => {
-    if (!terminoBusqueda.trim()) {
-      return listaClientes;
+  // 🔹 Cargar clientes desde API
+  useEffect(() => {
+    const cargar = async () => {
+      try {
+        setLoading(true);
+        const data = await GetClientes();
+
+        const adaptados = data.map((c) => ({
+          IdCliente: c.idCliente,
+          Nombre: c.nombre,
+          Apellido: c.apellido,
+          NombreCompleto: `${c.nombre} ${c.apellido}`,
+          TipoDocumento: c.tipoDocumento,
+          Documento: c.documento,
+          Correo: c.correo,
+          Telefono: c.telefono,
+          Direccion: c.direccion,
+          Estado: c.idRol === 2 ? "Activo" : "Inactivo",
+        }));
+
+        setListaClientes(adaptados);
+      } catch (error) {
+        console.error("Error cargando clientes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargar();
+  }, []);
+
+  // 🔹 Agregar cliente
+  const handleAgregarCliente = async (datosFormulario) => {
+    console.log("📝 Datos recibidos del formulario:", datosFormulario);
+    console.log("🔍 TipoDocumento value:", datosFormulario.tipoDocumento);
+    console.log("🔍 Tipo de dato:", typeof datosFormulario.tipoDocumento);
+
+    // Validar que tipoDocumento tenga valor
+    if (!datosFormulario.tipoDocumento) {
+      console.error("❌ ERROR: tipoDocumento está vacío");
+      alert("Por favor selecciona un tipo de documento");
+      return;
     }
 
-    const termino = terminoBusqueda.toLowerCase().trim();
-    
-    return listaClientes.filter((cliente) => {
-      const nombreCompleto = cliente.NombreCompleto.toLowerCase();
-      const tipoDocumento = cliente.TipoDocumento.toLowerCase();
-      const documento = cliente.Documento.toLowerCase();
-      const correo = cliente.Correo.toLowerCase();
-      const telefono = cliente.Telefono.toLowerCase();
-      const direccion = cliente.Direccion ? cliente.Direccion.toLowerCase() : "";
-      const estado = cliente.Estado.toLowerCase();
-
-      return (
-        nombreCompleto.includes(termino) ||
-        tipoDocumento.includes(termino) ||
-        documento.includes(termino) ||
-        correo.includes(termino) ||
-        telefono.includes(termino) ||
-        direccion.includes(termino) ||
-        estado.includes(termino)
-      );
-    });
-  }, [listaClientes, terminoBusqueda]);
-
-  // Calcular datos de paginación
-  const totalPaginas = Math.ceil(clientesFiltrados.length / clientesPorPagina);
-  const indiceInicio = (paginaActual - 1) * clientesPorPagina;
-  const indiceFin = indiceInicio + clientesPorPagina;
-  const clientesPaginados = clientesFiltrados.slice(indiceInicio, indiceFin);
-
-  // Manejar cambios en la barra de búsqueda
-  const handleBusquedaChange = (e) => {
-    setTerminoBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
-
-  // Manejar cambio de página
-  const handleCambioPagina = (nuevaPagina) => {
-    setPaginaActual(nuevaPagina);
-  };
-
-  // NUEVA función para manejar agregar cliente - compatible con FormularioAgregar
-  const handleAgregarCliente = (datosFormulario) => {
     const nuevoCliente = {
-      Id_Cliente: Math.max(...listaClientes.map(c => c.Id_Cliente), 0) + 1,
       TipoDocumento: datosFormulario.tipoDocumento,
       Documento: datosFormulario.documento,
-      NombreCompleto: datosFormulario.nombreCompleto,
+      Nombre: datosFormulario.nombre,
+      Apellido: datosFormulario.apellido,
       Correo: datosFormulario.correo,
+      Clave: datosFormulario.clave || "123456",
       Telefono: datosFormulario.telefono,
-      Direccion: datosFormulario.direccion || "",
-      Estado: datosFormulario.estado,
+      Direccion: datosFormulario.direccion,
+      IdRol: 2, // Rol fijo para Cliente
     };
+    console.log("🚀 DATOS a enviar a la API:", nuevoCliente);
 
-    setListaClientes(prevClientes => [...prevClientes, nuevoCliente]);
-    console.log("Cliente agregado:", nuevoCliente);
-  };
+    try {
+      const creado = await CrearCliente(nuevoCliente);
+        console.log("✅ RESPUESTA COMPLETA de la API:", creado);
+        console.log("🔍 TipoDocumento en respuesta:", creado.TipoDocumento);
+        console.log("🔍 TODAS las propiedades del objeto:", Object.keys(creado));
 
-  const handleEditarSubmit = (e) => {
-    e.preventDefault();
+      const adaptado = {
+        IdCliente: creado.idCliente,
+        Nombre: creado.nombre,
+        Apellido: creado.apellido,
+        NombreCompleto: `${creado.nombre} ${creado.apellido}`.trim(),
+        TipoDocumento: creado.tipoDocumento || nuevoCliente.TipoDocumento,
+        Documento: creado.documento,
+        Correo: creado.correo,
+        Telefono: creado.telefono,
+        Direccion: creado.direccion,
+      };
 
-    const updatedCliente = {
-      Id_Cliente: formData.Id_Cliente,
-      TipoDocumento: tipoDocumentoRef.current.value,
-      Documento: documentoRef.current.value,
-      NombreCompleto: nombreCompletoRef.current.value,
-      Correo: correoRef.current.value,
-      Telefono: telefonoRef.current.value,
-      Direccion: direccionRef.current.value,
-      Estado: estadoRef.current.value,
-    };
-
-    setListaClientes(
-      listaClientes.map((cliente) =>
-        cliente.Id_Cliente === formData.Id_Cliente ? updatedCliente : cliente
-      )
-    );
-    closeModal();
-  };
-
-  const handleEliminar = (id) => {
-    const cliente = listaClientes.find((cliente) => cliente.Id_Cliente === id);
-    
-    if (cliente) {
-      setClienteAEliminar(cliente);
-      setShowConfirmacion(true);
+      setListaClientes((prev) => [...prev, adaptado]);
+    } catch (error) {
+      console.error("Error agregando cliente:", error);
     }
   };
 
-  const confirmarEliminacion = () => {
-    if (clienteAEliminar) {
-      setListaClientes(
-        listaClientes.filter(
-          (cliente) => cliente.Id_Cliente !== clienteAEliminar.Id_Cliente
+  // 🔹 Editar cliente
+  const handleEditarSubmit = async (datosFormulario) => {
+
+    const actualizado = {
+      IdCliente: datosFormulario.IdCliente,
+      TipoDocumento: datosFormulario.TipoDocumento,
+      Documento: datosFormulario.Documento,
+      Nombre: datosFormulario.Nombre,
+      Apellido: datosFormulario.Apellido,
+      Correo: datosFormulario.Correo,
+      Telefono: datosFormulario.Telefono,
+      Direccion: datosFormulario.Direccion,
+      IdRol: 2,
+    };
+
+    try {
+      await EditarCliente(datosFormulario.IdCliente, actualizado);
+
+      setListaClientes((prev) =>
+        prev.map((c) =>
+          c.IdCliente === datosFormulario.IdCliente
+            ? {
+                ...c,
+                ...actualizado,
+                NombreCompleto: `${actualizado.Nombre} ${actualizado.Apellido}`.trim(),
+                Estado: "Activo",
+              }
+            : c
         )
       );
+
+      closeModal();
+    } catch (error) {
+      console.error("Error editando cliente:", error);
+    }
+  };
+
+  // 🔹 Eliminar cliente
+  const confirmarEliminacion = async () => {
+    if (!clienteAEliminar) return;
+    try {
+      await DeleteCliente(clienteAEliminar.IdCliente);
+      setListaClientes((prev) =>
+        prev.filter((c) => c.IdCliente !== clienteAEliminar.IdCliente)
+      );
+    } catch (error) {
+      console.error("Error eliminando cliente:", error);
+    } finally {
       setClienteAEliminar(null);
       setShowConfirmacion(false);
     }
   };
 
-  const cerrarConfirmacion = () => {
-    setShowConfirmacion(false);
-    setClienteAEliminar(null);
-  };
+  // 🔹 Filtrar clientes
+  const clientesFiltrados = useMemo(() => {
+    if (!terminoBusqueda.trim()) return listaClientes;
+    const termino = terminoBusqueda.toLowerCase();
+    return listaClientes.filter(
+      (c) =>
+        c.NombreCompleto.toLowerCase().includes(termino) ||
+        c.Documento.toLowerCase().includes(termino) ||
+        c.Correo.toLowerCase().includes(termino) ||
+        c.Telefono.toLowerCase().includes(termino)
+    );
+  }, [listaClientes, terminoBusqueda]);
+
+  // Paginación
+  const totalPaginas = Math.ceil(clientesFiltrados.length / clientesPorPagina);
+  const indiceInicio = (paginaActual - 1) * clientesPorPagina;
+  const clientesPaginados = clientesFiltrados.slice(
+    indiceInicio,
+    indiceInicio + clientesPorPagina
+  );
+
+  const handleCambioPagina = (nuevaPagina) => setPaginaActual(nuevaPagina);
 
   const mostrarEditar = (id) => {
-    const cliente = listaClientes.find((cliente) => cliente.Id_Cliente === id);
-
+    const cliente = listaClientes.find((c) => c.IdCliente === id);
     if (cliente) {
-      setFormData({
-        TipoDocumento: cliente.TipoDocumento,
-        Documento: cliente.Documento,
-        NombreCompleto: cliente.NombreCompleto,
-        Correo: cliente.Correo,
-        Telefono: cliente.Telefono,
-        Direccion: cliente.Direccion,
-        Estado: cliente.Estado,
-        Id_Cliente: cliente.Id_Cliente,
-      });
+      setFormData(cliente);
       setShowEditar(true);
     }
   };
 
   const mostrarDetalles = (id) => {
-    const cliente = listaClientes.find((cliente) => cliente.Id_Cliente === id);
+    const cliente = listaClientes.find((c) => c.IdCliente === id);
     if (cliente) {
       setClienteSeleccionado(cliente);
       setShowDetalles(true);
@@ -203,55 +219,15 @@ const PaginaClientes = () => {
   const closeModal = () => {
     setShowEditar(false);
     setFormData({
+      IdCliente: null,
       TipoDocumento: "",
       Documento: "",
-      NombreCompleto: "",
+      Nombre: "",
+      Apellido: "",
       Correo: "",
       Telefono: "",
       Direccion: "",
-      Estado: "",
     });
-  };
-
-  const closeDetalles = () => {
-    setShowDetalles(false);
-    setClienteSeleccionado(null);
-  };
-
-  // Función para generar los números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-    
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
-    }
-    
-    return numeros;
   };
 
   return (
@@ -259,17 +235,17 @@ const PaginaClientes = () => {
       <section className="flex justify-center col-span-2">
         <h2 className="text-2xl font-bold">Clientes</h2>
       </section>
-      
+
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
         <div className="flex-shrink-0 w-80">
-          <BarraBusqueda 
+          <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar cliente"
             value={terminoBusqueda}
-            onChange={handleBusquedaChange}
+            onChange={(e) => setTerminoBusqueda(e.target.value)}
           />
           {terminoBusqueda && (
             <p className="text-sm text-gray-600 mt-2 text-right">
@@ -281,70 +257,73 @@ const PaginaClientes = () => {
 
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-        <TablaAdmin
-          listaCabecera={["Nombre Completo", "Tipo Doc.", "Documento", "Correo", "Teléfono", "Estado", "Acciones"]}
-        >
-          {clientesPaginados.length > 0 ? (
-            clientesPaginados.map((element) => (
-              <tr
-                key={element.Id_Cliente}
-                className="hover:bg-gray-100 border-t-2 border-gray-300"
-              >
-                <td className="py-2 px-4">
-                  {element.NombreCompleto}
-                </td>
-                <td className="py-2 px-4">{element.TipoDocumento}</td>
-                <td className="py-2 px-4">{element.Documento}</td>
-                <td className="py-2 px-4">{element.Correo}</td>
-                <td className="py-2 px-4">{element.Telefono}</td>
-                <td className="py-2 px-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    element.Estado === "Activo" ? "bg-green-100 text-green-800" :
-                    element.Estado === "Inactivo" ? "bg-red-100 text-red-800" :
-                    "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {element.Estado}
-                  </span>
-                </td>
-                <td className="py-2 px-4 flex gap-2 justify-center">
-                  <Icon
-                    icon="mdi:eye-outline"
-                    width="24"
-                    height="24"
-                    className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
-                    onClick={() => mostrarDetalles(element.Id_Cliente)}
-                    title="Ver detalles"
-                  />
-                  <Icon
-                    icon="material-symbols:edit-outline"
-                    width="24"
-                    height="24"
-                    className="text-blue-700 cursor-pointer hover:text-blue-900 transition-colors"
-                    onClick={() => mostrarEditar(element.Id_Cliente)}
-                    title="Editar"
-                  />
-                  <Icon
-                    icon="tabler:trash"
-                    width="24"
-                    height="24"
-                    className="text-red-700 cursor-pointer hover:text-red-900 transition-colors"
-                    onClick={() => handleEliminar(element.Id_Cliente)}
-                    title="Eliminar"
-                  />
+          <TablaAdmin
+            listaCabecera={[
+              "Nombre Completo",
+              "Tipo Doc.",
+              "Documento",
+              "Correo",
+              "Teléfono",
+              "Estado",
+              "Acciones",
+            ]}
+          >
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="text-center py-6">Cargando...</td>
+              </tr>
+            ) : clientesPaginados.length > 0 ? (
+              clientesPaginados.map((c) => (
+                <tr key={c.IdCliente} className="hover:bg-gray-100">
+                  <td className="py-2 px-4">{c.NombreCompleto}</td>
+                  <td className="py-2 px-4">{c.TipoDocumento}</td>
+                  <td className="py-2 px-4">{c.Documento}</td>
+                  <td className="py-2 px-4">{c.Correo}</td>
+                  <td className="py-2 px-4">{c.Telefono}</td>
+                  <td className="py-2 px-4">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        c.Estado === "Activo"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {c.Estado}
+                    </span>
+                  </td>
+                  <td className="py-2 px-4 flex gap-2 justify-center">
+                    <Icon
+                      icon="mdi:eye-outline"
+                      width="24"
+                      className="text-green-700 cursor-pointer"
+                      onClick={() => mostrarDetalles(c.IdCliente)}
+                    />
+                    <Icon
+                      icon="material-symbols:edit-outline"
+                      width="24"
+                      className="text-blue-700 cursor-pointer"
+                      onClick={() => mostrarEditar(c.IdCliente)}
+                    />
+                    <Icon
+                      icon="tabler:trash"
+                      width="24"
+                      className="text-red-700 cursor-pointer"
+                      onClick={() => {
+                        setClienteAEliminar(c);
+                        setShowConfirmacion(true);
+                      }}
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="text-center py-6">
+                  No hay clientes disponibles
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7" className="py-8 px-4 text-center text-gray-500">
-                {terminoBusqueda ? 
-                  `No se encontraron clientes que coincidan con "${terminoBusqueda}"` : 
-                  "No hay clientes disponibles"
-                }
-              </td>
-            </tr>
-          )}
-        </TablaAdmin>
+            )}
+          </TablaAdmin>
         </div>
       </section>
 
@@ -353,11 +332,9 @@ const PaginaClientes = () => {
           paginaActual={paginaActual}
           totalPaginas={totalPaginas}
           handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={generarNumerosPagina}
         />
       )}
 
-      {/* FormularioAgregar actualizado - usando la nueva función */}
       <FormularioAgregar
         show={showAgregar}
         setShow={setShowAgregar}
@@ -370,41 +347,20 @@ const PaginaClientes = () => {
         close={closeModal}
         formData={formData}
         onSubmit={handleEditarSubmit}
-        tipoDocumentoRef={tipoDocumentoRef}
-        documentoRef={documentoRef}
-        nombreCompletoRef={nombreCompletoRef}
-        correoRef={correoRef}
-        telefonoRef={telefonoRef}
-        direccionRef={direccionRef}
-        estadoRef={estadoRef}
       />
 
       <FormularioVerDetalles
         show={showDetalles}
-        close={closeDetalles}
+        close={() => setShowDetalles(false)}
         cliente={clienteSeleccionado}
       />
 
       <ModalConfirmacion
         show={showConfirmacion}
-        onClose={cerrarConfirmacion}
+        onClose={() => setShowConfirmacion(false)}
         onConfirm={confirmarEliminacion}
         titulo="Eliminar Cliente"
         mensaje="¿Estás seguro de que deseas eliminar este cliente?"
-        detalles={clienteAEliminar && (
-          <>
-            <div><strong>Nombre:</strong> {clienteAEliminar.NombreCompleto}</div>
-            <div><strong>Tipo Documento:</strong> {clienteAEliminar.TipoDocumento}</div>
-            <div><strong>Documento:</strong> {clienteAEliminar.Documento}</div>
-            <div><strong>Correo:</strong> {clienteAEliminar.Correo}</div>
-            <div><strong>Teléfono:</strong> {clienteAEliminar.Telefono}</div>
-            <div><strong>Estado:</strong> {clienteAEliminar.Estado}</div>
-          </>
-        )}
-        textoConfirmar="Eliminar"
-        textoCancelar="Cancelar"
-        tipoIcono="danger"
-        colorConfirmar="red"
       />
     </>
   );

@@ -9,10 +9,12 @@ const FormularioAgregar = ({
   const [formData, setFormData] = useState({
     tipoDocumento: "",
     documento: "",
-    nombreCompleto: "",
+    nombre: "",
+    apellido: "",
     correo: "",
     telefono: "",
     direccion: "",
+    clave: "",
     estado: "Activo"
   });
 
@@ -24,8 +26,7 @@ const FormularioAgregar = ({
       ...prev,
       [name]: value
     }));
-    
-    // Limpiar error del campo cuando se modifica
+
     if (errores[name]) {
       setErrores(prev => ({
         ...prev,
@@ -44,7 +45,6 @@ const FormularioAgregar = ({
     if (!formData.documento.trim()) {
       nuevosErrores.documento = "El documento es obligatorio";
     } else {
-      // Validaciones específicas según el tipo de documento
       switch(formData.tipoDocumento) {
         case "CC":
           if (!/^\d{7,10}$/.test(formData.documento.trim())) {
@@ -76,8 +76,12 @@ const FormularioAgregar = ({
       }
     }
 
-    if (!formData.nombreCompleto.trim()) {
-      nuevosErrores.nombreCompleto = "El nombre completo es obligatorio";
+    if (!formData.nombre.trim()) {
+      nuevosErrores.nombre = "El nombre es obligatorio";
+    }
+
+    if (!formData.apellido.trim()) {
+      nuevosErrores.apellido = "El apellido es obligatorio";
     }
 
     if (!formData.correo.trim()) {
@@ -102,28 +106,36 @@ const FormularioAgregar = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Formulario enviado con datos:", formData);
-    
+
     if (validarFormulario()) {
-      console.log("Validación exitosa, enviando datos...");
-      onSubmit(formData);
-      
-      // Resetear formulario después de enviar
+      const clienteFinal = {
+        tipoDocumento: formData.tipoDocumento,
+        documento: formData.documento,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        correo: formData.correo,
+        telefono: formData.telefono,
+        direccion: formData.direccion,
+        idRol: 2, // Rol fijo de cliente
+        estado: formData.estado
+      };
+
+      onSubmit(clienteFinal);
+
+      // Resetear formulario
       setFormData({
         tipoDocumento: "",
         documento: "",
-        nombreCompleto: "",
+        nombre: "",
+        apellido: "",
         correo: "",
         telefono: "",
         direccion: "",
+        clave: "",
         estado: "Activo"
       });
-      
-      // Cerrar modal
+
       setShow(false);
-      console.log("Modal cerrado");
-    } else {
-      console.log("Errores de validación:", errores);
     }
   };
 
@@ -154,9 +166,7 @@ const FormularioAgregar = ({
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Grid de 2 columnas con 3 campos cada una */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             {/* Columna izquierda */}
             <div className="space-y-5">
               {/* Tipo Documento */}
@@ -171,10 +181,10 @@ const FormularioAgregar = ({
                   }`}
                 >
                   <option value="">Seleccionar tipo</option>
-                  <option value="CC">Cédula de Ciudadanía</option>
-                  <option value="CE">Cédula de Extranjería</option>
-                  <option value="TI">Tarjeta de Identidad</option>
-                  <option value="PAS">Pasaporte</option>
+                  <option value="CC">CC</option>
+                  <option value="CE">CE</option>
+                  <option value="TI">TI</option>
+                  <option value="PAS">PAS</option>
                   <option value="NIT">NIT</option>
                 </select>
                 {errores.tipoDocumento && (
@@ -201,21 +211,39 @@ const FormularioAgregar = ({
                 )}
               </div>
 
-              {/* Nombre Completo */}
+              {/* Nombre */}
               <div>
-                <label className="block text-gray-700 font-medium">Nombre Completo *</label>
+                <label className="block text-gray-700 font-medium">Nombre *</label>
                 <input
                   type="text"
-                  name="nombreCompleto"
-                  value={formData.nombreCompleto}
+                  name="nombre"
+                  value={formData.nombre}
                   onChange={handleChange}
                   className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
-                    errores.nombreCompleto ? 'border-red-500' : 'border-gray-300'
+                    errores.nombre ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Nombre completo del cliente"
+                  placeholder="Nombre"
                 />
-                {errores.nombreCompleto && (
-                  <span className="text-red-500 text-sm mt-1 block">{errores.nombreCompleto}</span>
+                {errores.nombre && (
+                  <span className="text-red-500 text-sm mt-1 block">{errores.nombre}</span>
+                )}
+              </div>
+
+              {/* Apellido */}
+              <div>
+                <label className="block text-gray-700 font-medium">Apellido *</label>
+                <input
+                  type="text"
+                  name="apellido"
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+                    errores.apellido ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Apellido"
+                />
+                {errores.apellido && (
+                  <span className="text-red-500 text-sm mt-1 block">{errores.apellido}</span>
                 )}
               </div>
             </div>
@@ -270,6 +298,18 @@ const FormularioAgregar = ({
                   placeholder="Dirección del cliente"
                 />
               </div>
+              {/*Clave*/}
+              <div>
+                <label className="block text-gray-700 font-medium">Clave</label>
+                <input
+                  type="password"
+                  name="clave"
+                  value={formData.clave}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded p-2 focus:border-orange-500 focus:outline-none"
+                  placeholder="Clave"
+                />
+              </div>
             </div>
           </div>
 
@@ -293,7 +333,7 @@ const FormularioAgregar = ({
             )}
           </div>
 
-          {/* Botones de acción */}
+          {/* Botones */}
           <div className="flex justify-evenly gap-3 mt-6 pt-4 border-t border-gray-200">
             <button
               type="submit"

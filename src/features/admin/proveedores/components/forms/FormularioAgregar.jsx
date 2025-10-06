@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { PostProveedor } from "../../../../../services/proveedorService";
 
 const FormularioAgregar = ({
   show,
@@ -7,12 +8,12 @@ const FormularioAgregar = ({
   titulo = "Agregar Nuevo Proveedor",
 }) => {
   const [formData, setFormData] = useState({
-    nombre: "",
-    contacto: "",
+    nombreEmpresa: "",      
+    correo: "",             
     telefono: "",
-    tipoDocumento: "",
-    documento: "",
-    estado: true
+    Nit: "",                
+    Representante: ""      
+    // estado: true
   });
 
   const [errores, setErrores] = useState({});
@@ -35,14 +36,14 @@ const FormularioAgregar = ({
   const validarFormulario = () => {
     const nuevosErrores = {};
 
-    if (!formData.nombre.trim()) {
-      nuevosErrores.nombre = "El nombre es obligatorio";
+    if (!formData.nombreEmpresa.trim()) {
+      nuevosErrores.nombreEmpresa = "El nombre es obligatorio";
     }
 
-    if (!formData.contacto.trim()) {
-      nuevosErrores.contacto = "El contacto es obligatorio";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contacto)) {
-      nuevosErrores.contacto = "El formato del email no es válido";
+    if (!formData.correo.trim()) {
+      nuevosErrores.correo = "El contacto es obligatorio";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
+      nuevosErrores.correo = "El formato del email no es válido";
     }
 
     if (!formData.telefono.trim()) {
@@ -51,12 +52,12 @@ const FormularioAgregar = ({
       nuevosErrores.telefono = "El teléfono debe contener entre 7 y 15 dígitos";
     }
 
-    if (!formData.tipoDocumento) {
-      nuevosErrores.tipoDocumento = "Seleccione un tipo de documento";
+    if (!formData.Nit) {
+      nuevosErrores.Nit = "Seleccione un tipo de documento";
     }
 
-    if (!formData.documento.trim()) {
-      nuevosErrores.documento = "El documento es obligatorio";
+    if (!formData.Representante.trim()) {
+      nuevosErrores.Representante = "El documento es obligatorio";
     }
 
     setErrores(nuevosErrores);
@@ -68,12 +69,12 @@ const FormularioAgregar = ({
     if (validarFormulario()) {
       onSubmit(formData);
       setFormData({
-        nombre: "",
-        contacto: "",
+        nombreEmpresa: "",
+        correo: "",
         telefono: "",
-        tipoDocumento: "",
-        documento: "",
-        estado: true
+        Nit: "",
+        Representante: ""
+        // estado: true
       });
       setShow(false);
     }
@@ -102,39 +103,39 @@ const FormularioAgregar = ({
             <div className="space-y-5">
               {/* Nombre del Proveedor */}
               <div>
-                <label className="block text-gray-700 font-medium">Nombre del Proveedor *</label>
+                <label className="block text-gray-700 font-medium">Nombre de la Empresa *</label>
                 <input
                   type="text"
-                  name="nombre"
-                  value={formData.nombre}
+                  name="nombreEmpresa"
+                  value={formData.nombreEmpresa}
                   onChange={handleChange}
                   className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
-                    errores.nombre ? "border-red-500" : "border-gray-300"
+                    errores.nombreEmpresa ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="Nombre completo del proveedor"
+                  placeholder="Nombre de la empresa proveedora"
                 />
-                {errores.nombre && (
-                  <span className="text-red-500 text-sm mt-1 block">{errores.nombre}</span>
+                {errores.nombreEmpresa && (
+                  <span className="text-red-500 text-sm mt-1 block">{errores.nombreEmpresa}</span>
                 )}
               </div>
 
               {/* Correo de Contacto */}
               <div>
-                <label className="block text-gray-700 font-medium">Correo de Contacto *</label>
+                <label className="block text-gray-700 font-medium">Correo Electrónico *</label>
                 <input
                   type="email"
-                  name="contacto"
-                  value={formData.contacto}
+                  name="correo"
+                  value={formData.correo}
                   onChange={handleChange}
                   className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
-                    errores.contacto ? "border-red-500" : "border-gray-300"
+                    errores.correo ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="correo@ejemplo.com"
+                  placeholder="correo@empresa.com"
                 />
-                {errores.contacto && (
-                  <span className="text-red-500 text-sm mt-1 block">{errores.contacto}</span>
+                {errores.correo && (
+                  <span className="text-red-500 text-sm mt-1 block">{errores.correo}</span>
                 )}
-              </div>
+            </div>
 
               {/* Teléfono */}
               <div>
@@ -161,11 +162,11 @@ const FormularioAgregar = ({
               <div>
                 <label className="block text-gray-700 font-medium">Tipo de Documento *</label>
                 <select
-                  name="tipoDocumento"
-                  value={formData.tipoDocumento}
+                  name="Nit"
+                  value={formData.Nit}
                   onChange={handleChange}
                   className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
-                    errores.tipoDocumento ? "border-red-500" : "border-gray-300"
+                    errores.Nit ? "border-red-500" : "border-gray-300"
                   }`}
                 >
                   <option value="">Seleccionar</option>
@@ -175,8 +176,8 @@ const FormularioAgregar = ({
                   <option value="RUT">RUT</option>
                   <option value="DNI">DNI</option>
                 </select>
-                {errores.tipoDocumento && (
-                  <span className="text-red-500 text-sm mt-1 block">{errores.tipoDocumento}</span>
+                {errores.Nit && (
+                  <span className="text-red-500 text-sm mt-1 block">{errores.Nit}</span>
                 )}
               </div>
 
@@ -185,20 +186,20 @@ const FormularioAgregar = ({
                 <label className="block text-gray-700 font-medium">Número de Documento *</label>
                 <input
                   type="text"
-                  name="documento"
-                  value={formData.documento}
+                  name="Representante"
+                  value={formData.Representante}
                   onChange={handleChange}
                   className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
-                    errores.documento ? "border-red-500" : "border-gray-300"
+                    errores.Representante ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="Número de documento"
                 />
-                {errores.documento && (
-                  <span className="text-red-500 text-sm mt-1 block">{errores.documento}</span>
+                {errores.Representante && (
+                  <span className="text-red-500 text-sm mt-1 block">{errores.Representante}</span>
                 )}
               </div>
 
-              {/* Estado (Checkbox) */}
+              {/* Estado (Checkbox)
               <div className="flex items-center pt-6">
                 <input
                   type="checkbox"
@@ -208,7 +209,7 @@ const FormularioAgregar = ({
                   className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                 />
                 <label className="ml-2 block text-gray-700 font-medium">Proveedor Activo</label>
-              </div>
+              </div> */}
             </div>
           </div>
 

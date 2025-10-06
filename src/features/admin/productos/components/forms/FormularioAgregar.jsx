@@ -4,40 +4,32 @@ import {CrearProducto} from "../../../../../services/productoService";
 const FormularioAgregarProducto = ({
   show,
   setShow,
-  onSubmit,
-  nombreRef,
-  categoriaRef,
-  precioRef,
-  stockRef,
-  categorias,
-  imagenRef
+  categorias
 }) => {
-  // const [busquedaProveedor, setBusquedaProveedor] = useState("");
-  // const [mostrarOpcionesProveedor, setMostrarOpcionesProveedor] = useState(false);
-  
-  // if (!show) return null;
+  const nombreRef = useRef();
+  const categoriaRef = useRef();
+  const precioRef = useRef();
+  const stockRef = useRef();
+  const [imagen, setImagen] = useState(null);
 
-  // // Filtrar proveedores según búsqueda
-  // const proveedoresFiltrados = proveedores.filter(proveedor =>
-  //   proveedor.toLowerCase().includes(busquedaProveedor.toLowerCase())
-  // );
-
-  // const seleccionarProveedor = (proveedor) => {
-  //   proveedorRef.current.value = proveedor;
-  //   setBusquedaProveedor(proveedor);
-  //   setMostrarOpcionesProveedor(false);
-  // };
   if (!show) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validar que todos los campos requeridos tengan valores
+    if (!nombreRef.current.value || !categoriaRef.current.value || 
+        !precioRef.current.value || !stockRef.current.value) {
+      alert("Por favor, completa todos los campos requeridos");
+      return;
+    }
 
     const nuevoProducto = {
       NombreProducto: nombreRef.current.value,
       IdCategoria: categoriaRef.current.value,
       Precio: precioRef.current.value,
       Stock: stockRef.current.value,
-      Imagen: imagenRef?.current?.files[0] || null,
+      Imagen: imagen,
     };
 
     try {
@@ -46,10 +38,17 @@ const FormularioAgregarProducto = ({
 
       // cerrar modal y limpiar formulario
       setShow(false);
+      setImagen(null);
       e.target.reset();
     } catch (error) {
       console.error("❌ Error al guardar el producto:", error);
     }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImagen(file);
+    console.log("📸 Imagen seleccionada:", file);
   };
 
   return (
@@ -170,14 +169,20 @@ const FormularioAgregarProducto = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Imagen (opcional)
+              Imagen *
             </label>
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setImagen(e.target.files[0])}
+              onChange={handleImageChange} // ← Usar el manejador correcto
+              required
               className="w-full"
             />
+            {imagen && (
+              <p className="text-sm text-green-600 mt-1">
+                ✓ Imagen seleccionada: {imagen.name}
+              </p>
+            )}
           </div>
           
           <div className="flex justify-end gap-3 pt-4">

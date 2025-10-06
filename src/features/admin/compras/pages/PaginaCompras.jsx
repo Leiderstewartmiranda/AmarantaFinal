@@ -1,109 +1,40 @@
+// import { Icon } from "@iconify/react/dist/iconify.js";
+// import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
+// import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
+// import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
+// import Paginacion from "../../../../compartidos/paginacion/Paginacion";
+// import { useRef, useState, useMemo } from "react";
+// import FormularioAgregarCompra from "../components/forms/FormularioAgregarCompra";
+// import FormularioVerCompra from "../components/forms/FormularioVerCompra";
+// import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
+// import jsPDF from 'jspdf';
+
+// pages/compras/PaginaCompras.jsx
 import { Icon } from "@iconify/react/dist/iconify.js";
 import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
 import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
 import Paginacion from "../../../../compartidos/paginacion/Paginacion";
-import { useRef, useState, useMemo } from "react";
-import FormularioAgregarCompra from "../components/forms/FormularioAgregarCompra";
+import { useRef, useState, useMemo, useEffect } from "react";
+import FormularioCompra from "../components/forms/FormularioAgregarCompra";
 import FormularioVerCompra from "../components/forms/FormularioVerCompra";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
+import { 
+  GetCompras, 
+  AnularCompra,
+  GetProveedores,
+  GetProductos,
+  GetUsuarios 
+} from "../../../../services/compraService";
 import jsPDF from 'jspdf';
 
 const PaginaCompras = () => {
-  // Datos de ejemplo para compras
-  const [listaCompras, setListaCompras] = useState([
-    {
-      Id_Compra: 1,
-      Fecha: "2023-10-15",
-      Proveedor: "Tecnología Avanzada S.A.",
-      Total: 1500.75,
-      Estado: "Completado",
-      Documento: "factura_001.pdf",
-      Id_Cliente: 1,
-      Cliente: "Juan Pérez",
-      Productos: [
-        { nombre: "Laptop HP Pavilion", cantidad: 1, precio: 1200.00 },
-        { nombre: "Mouse inalámbrico", cantidad: 1, precio: 25.75 },
-        { nombre: "Impresora HP", cantidad: 1, precio: 275.00 }
-      ]
-    },
-    {
-      Id_Compra: 2,
-      Fecha: "2023-10-16",
-      Proveedor: "Suministros de Oficina Ltda.",
-      Total: 2300.50,
-      Estado: "Pendiente",
-      Documento: "factura_002.pdf",
-      Id_Cliente: 2,
-      Cliente: "María Gómez",
-      Productos: [
-        { nombre: "Silla ergonómica", cantidad: 2, precio: 800.00 },
-        { nombre: "Escritorio ejecutivo", cantidad: 1, precio: 450.50 },
-        { nombre: "Archivador metálico", cantidad: 1, precio: 250.00 }
-      ]
-    },
-    {
-      Id_Compra: 3,
-      Fecha: "2023-10-17",
-      Proveedor: "Materiales de Construcción XYZ",
-      Total: 875.25,
-      Estado: "Anulado", // Cambiado de "Cancelado" a "Anulado"
-      Documento: "factura_003.pdf",
-      Id_Cliente: 3,
-      Cliente: "Carlos López",
-      Productos: [
-        { nombre: "Cemento 50kg", cantidad: 5, precio: 150.25 },
-        { nombre: "Varilla corrugada", cantidad: 10, precio: 12.50 }
-      ]
-    },
-    {
-      Id_Compra: 4,
-      Fecha: "2023-10-18",
-      Proveedor: "Tecnología Avanzada S.A.",
-      Total: 3200.00,
-      Estado: "Completado",
-      Documento: "factura_004.pdf",
-      Id_Cliente: 1,
-      Cliente: "Juan Pérez",
-      Productos: [
-        { nombre: "Monitor 24\"", cantidad: 2, precio: 1200.00 },
-        { nombre: "Teclado mecánico", cantidad: 2, precio: 400.00 }
-      ]
-    },
-    {
-      Id_Compra: 5,
-      Fecha: "2023-10-19",
-      Proveedor: "Suministros de Oficina Ltda.",
-      Total: 1250.30,
-      Estado: "Pendiente",
-      Documento: "factura_005.pdf",
-      Id_Cliente: 4,
-      Cliente: "Ana Martínez",
-      Productos: [
-        { nombre: "Papel bond A4", cantidad: 10, precio: 75.30 },
-        { nombre: "Tóner impresora", cantidad: 2, precio: 500.00 },
-        { nombre: "Folders archivadores", cantidad: 5, precio: 15.00 }
-      ]
-    }
-  ]);
-
-  // Lista de clientes para el formulario de agregar
-  const [listaClientes] = useState([
-    { Id_Cliente: 1, Nombre: "Juan Pérez" },
-    { Id_Cliente: 2, Nombre: "María Gómez" },
-    { Id_Cliente: 3, Nombre: "Carlos López" },
-    { Id_Cliente: 4, Nombre: "Ana Martínez" },
-    { Id_Cliente: 5, Nombre: "Luis Hernández" }
-  ]);
-
-  // Lista de proveedores para el formulario de agregar
-  const [listaProveedores] = useState([
-    { Id_Proveedor: 1, Nombre: "Tecnología Avanzada S.A." },
-    { Id_Proveedor: 2, Nombre: "Suministros de Oficina Ltda." },
-    { Id_Proveedor: 3, Nombre: "Materiales de Construcción XYZ" },
-    { Id_Proveedor: 4, Nombre: "Electrodomésticos Modernos" },
-    { Id_Proveedor: 5, Nombre: "Ropa y Accesorios Fashion" }
-  ]);
+  // Estados reales conectados a API
+  const [listaCompras, setListaCompras] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [recarga, setRecarga] = useState(0);
 
   const [showAgregar, setShowAgregar] = useState(false);
   const [showDetalles, setShowDetalles] = useState(false);
@@ -114,13 +45,29 @@ const PaginaCompras = () => {
   const [compraAAnular, setCompraAAnular] = useState(null);
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
-  // Referencias para el formulario
-  const fechaRef = useRef();
-  const proveedorRef = useRef();
-  const totalRef = useRef();
-  const estadoRef = useRef();
-  const idClienteRef = useRef();
   const busquedaRef = useRef();
+
+  // Cargar datos de la API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [comprasData, proveedoresData, productosData] = await Promise.all([
+          GetCompras(),
+          GetProveedores(),
+          GetProductos()
+        ]);
+        setListaCompras(comprasData);
+        setProveedores(proveedoresData);
+        setProductos(productosData);
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [recarga]);
 
   // Filtrar compras basado en el término de búsqueda
   const comprasFiltradas = useMemo(() => {
@@ -131,32 +78,34 @@ const PaginaCompras = () => {
     const termino = terminoBusqueda.toLowerCase().trim();
     
     return listaCompras.filter((compra) => {
-      const fecha = compra.Fecha.toLowerCase();
-      const proveedor = compra.Proveedor.toLowerCase();
-      const total = compra.Total.toString().toLowerCase();
-      const estado = compra.Estado.toLowerCase();
-      const cliente = compra.Cliente.toLowerCase();
+      const fecha = compra.fechaCompra?.toLowerCase() || '';
+      const total = compra.precioTotal?.toString().toLowerCase() || '';
+      const estado = compra.estado?.toLowerCase() || '';
+      const codigo = compra.codigoCompra?.toString().toLowerCase() || '';
+      
+      // Buscar nombre del proveedor
+      const proveedor = proveedores.find(p => p.IdProveedor === compra.IdProveedor);
+      const nombreProveedor = proveedor?.nombreEmpresa?.toLowerCase() || '';
 
       return (
         fecha.includes(termino) ||
-        proveedor.includes(termino) ||
         total.includes(termino) ||
         estado.includes(termino) ||
-        cliente.includes(termino)
+        codigo.includes(termino) ||
+        nombreProveedor.includes(termino)
       );
     });
-  }, [listaCompras, terminoBusqueda]);
+  }, [listaCompras, terminoBusqueda, proveedores]);
 
   // Calcular datos de paginación
   const totalPaginas = Math.ceil(comprasFiltradas.length / comprasPorPagina);
   const indiceInicio = (paginaActual - 1) * comprasPorPagina;
-  const indiceFin = indiceInicio + comprasPorPagina;
-  const comprasPaginadas = comprasFiltradas.slice(indiceInicio, indiceFin);
+  const comprasPaginadas = comprasFiltradas.slice(indiceInicio, indiceInicio + comprasPorPagina);
 
   // Manejar cambios en la barra de búsqueda
   const handleBusquedaChange = (e) => {
     setTerminoBusqueda(e.target.value);
-    setPaginaActual(1); // Resetear a la primera página cuando se busca
+    setPaginaActual(1);
   };
 
   // Manejar cambio de página
@@ -164,49 +113,33 @@ const PaginaCompras = () => {
     setPaginaActual(nuevaPagina);
   };
 
-  // Manejar envío del formulario de agregar
-  const handleAgregarSubmit = (e) => {
-    e.preventDefault();
-
-    const compra = {
-      Id_Compra: listaCompras.length + 1,
-      Fecha: fechaRef.current.value,
-      Proveedor: proveedorRef.current.value,
-      Total: parseFloat(totalRef.current.value),
-      Estado: estadoRef.current.value,
-      Documento: `factura_${String(listaCompras.length + 1).padStart(3, '0')}.pdf`,
-      Id_Cliente: parseInt(idClienteRef.current.value),
-      Cliente: listaClientes.find(c => c.Id_Cliente === parseInt(idClienteRef.current.value))?.Nombre || "Cliente no encontrado",
-      Productos: [
-        { nombre: "Producto ejemplo", cantidad: 1, precio: parseFloat(totalRef.current.value) }
-      ]
-    };
-
-    setListaCompras([...listaCompras, compra]);
+  // Manejar compra creada exitosamente
+  const handleCompraCreada = () => {
+    setRecarga(prev => prev + 1);
     setShowAgregar(false);
   };
 
   // Manejar anulación de compra
-  const handleAnular = (id) => {
-    const compra = listaCompras.find((compra) => compra.Id_Compra === id);
-    
-    if (compra) {
-      setCompraAAnular(compra);
-      setShowConfirmacion(true);
+  const handleAnular = (compra) => {
+    if (compra.estado === "Anulada") {
+      alert("Esta compra ya está anulada y no se puede modificar");
+      return;
     }
+    setCompraAAnular(compra);
+    setShowConfirmacion(true);
   };
 
-  const confirmarAnulacion = () => {
+  const confirmarAnulacion = async () => {
     if (compraAAnular) {
-      setListaCompras(
-        listaCompras.map(compra => 
-          compra.Id_Compra === compraAAnular.Id_Compra 
-            ? {...compra, Estado: "Anulado"} 
-            : compra
-        )
-      );
-      setCompraAAnular(null);
-      setShowConfirmacion(false);
+      try {
+        await AnularCompra(compraAAnular.codigoCompra);
+        setRecarga(prev => prev + 1);
+        setCompraAAnular(null);
+        setShowConfirmacion(false);
+      } catch (error) {
+        console.error("Error anulando compra:", error);
+        alert("Error al anular la compra");
+      }
     }
   };
 
@@ -216,12 +149,9 @@ const PaginaCompras = () => {
   };
 
   // Mostrar detalles de la compra
-  const mostrarDetalles = (id) => {
-    const compra = listaCompras.find((compra) => compra.Id_Compra === id);
-    if (compra) {
-      setCompraSeleccionada(compra);
-      setShowDetalles(true);
-    }
+  const mostrarDetalles = (compra) => {
+    setCompraSeleccionada(compra);
+    setShowDetalles(true);
   };
 
   const closeDetalles = () => {
@@ -234,12 +164,17 @@ const PaginaCompras = () => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP'
-    }).format(valor);
+    }).format(valor || 0);
+  };
+
+  // Obtener nombre del proveedor
+  const getProveedorNombre = (idProveedor) => {
+    const proveedor = proveedores.find(p => p.idProveedor === idProveedor);
+    return proveedor?.nombreEmpresa;
   };
 
   // Función para generar y descargar factura PDF
   const descargarFactura = (compra) => {
-    // Crear un nuevo documento PDF
     const doc = new jsPDF();
     
     // Agregar logo o título
@@ -254,103 +189,58 @@ const PaginaCompras = () => {
     doc.text('Tel: +123 456 7890', 20, 40);
     
     // Información de la factura
-    doc.text(`Factura #: ${compra.Id_Compra}`, 150, 25);
-    doc.text(`Fecha: ${compra.Fecha}`, 150, 30);
+    doc.text(`Factura #: ${compra.codigoCompra}`, 150, 25);
+    doc.text(`Fecha: ${new Date(compra.fechaCompra).toLocaleDateString()}`, 150, 30);
     
     // Información del proveedor
     doc.setFontSize(14);
     doc.text('Proveedor:', 20, 55);
     doc.setFontSize(12);
-    doc.text(compra.Proveedor, 20, 60);
-    
-    // Información del cliente
-    doc.setFontSize(14);
-    doc.text('Cliente:', 20, 70);
-    doc.setFontSize(12);
-    doc.text(compra.Cliente, 20, 75);
+    doc.text(getProveedorNombre(compra.idProveedor), 20, 60);
     
     // Línea separadora
     doc.line(20, 80, 190, 80);
     
-    // Encabezado de la tabla de productos
+    // Información de la compra
     doc.setFontSize(12);
-    doc.text('Producto', 20, 90);
-    doc.text('Cantidad', 100, 90);
-    doc.text('Precio Unit.', 130, 90);
-    doc.text('Total', 170, 90);
-    
-    // Línea separadora
-    doc.line(20, 92, 190, 92);
-    
-    // Productos
-    let y = 100;
-    compra.Productos.forEach((producto, index) => {
-      if (y > 250) {
-        doc.addPage();
-        y = 20;
-      }
-      
-      doc.text(producto.nombre, 20, y);
-      doc.text(producto.cantidad.toString(), 100, y);
-      doc.text(formatoMoneda(producto.precio), 130, y);
-      doc.text(formatoMoneda(producto.cantidad * producto.precio), 170, y);
-      
-      y += 10;
-    });
-    
-    // Línea separadora
-    doc.line(20, y, 190, y);
-    y += 10;
-    
-    // Total
-    doc.setFontSize(14);
-    doc.text('TOTAL:', 130, y);
-    doc.text(formatoMoneda(compra.Total), 170, y);
-    
-    // Estado
-    doc.setFontSize(12);
-    doc.text(`Estado: ${compra.Estado}`, 20, y + 15);
+    doc.text(`Estado: ${compra.estado}`, 20, 90);
+    doc.text(`Total: ${formatoMoneda(compra.precioTotal)}`, 20, 100);
     
     // Si está anulada, agregar marca de agua
-    if (compra.Estado === "Anulado") {
+    if (compra.estado === "Anulada") {
       doc.setFontSize(60);
-      doc.setTextColor(200, 0, 0, 30); // Rojo transparente
+      doc.setTextColor(200, 0, 0, 30);
       doc.text('ANULADO', 105, 150, { align: 'center', angle: 45 });
-      doc.setTextColor(0, 0, 0); // Restaurar color negro
+      doc.setTextColor(0, 0, 0);
     }
     
     // Guardar el PDF
-    doc.save(`factura_${compra.Id_Compra}.pdf`);
+    doc.save(`factura_${compra.codigoCompra}.pdf`);
   };
 
   // Función para generar los números de página
   const generarNumerosPagina = () => {
     const numeros = [];
-    const maxVisible = 7; // Número máximo de páginas visibles
+    const maxVisible = 7;
     
     if (totalPaginas <= maxVisible) {
-      // Si hay pocas páginas, mostrar todas
       for (let i = 1; i <= totalPaginas; i++) {
         numeros.push(i);
       }
     } else {
-      // Lógica para mostrar páginas con puntos suspensivos
       if (paginaActual <= 4) {
-        // Mostrar las primeras páginas
         for (let i = 1; i <= 5; i++) {
           numeros.push(i);
         }
         numeros.push('...');
         numeros.push(totalPaginas);
       } else if (paginaActual >= totalPaginas - 3) {
-        // Mostrar las últimas páginas
         numeros.push(1);
         numeros.push('...');
         for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
           numeros.push(i);
         }
       } else {
-        // Mostrar páginas alrededor de la actual
         numeros.push(1);
         numeros.push('...');
         for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
@@ -363,6 +253,25 @@ const PaginaCompras = () => {
     
     return numeros;
   };
+
+  // Estilo para estado
+  const getEstadoColor = (estado) => {
+    return estado === "Anulada" 
+      ? "bg-red-100 text-red-800 border-red-300" 
+      : "bg-green-100 text-green-800 border-green-300";
+  };
+
+  const getEstadoTexto = (estado) => {
+    return estado === "Anulada" ? "Anulada" : "Activa";
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center col-span-2 h-64">
+        <p>Cargando compras...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -378,7 +287,7 @@ const PaginaCompras = () => {
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda 
             ref={busquedaRef}
-            placeholder="Buscar por proveedor, cliente o estado"
+            placeholder="Buscar por proveedor, código o estado"
             value={terminoBusqueda}
             onChange={handleBusquedaChange}
           />
@@ -393,48 +302,44 @@ const PaginaCompras = () => {
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
           <TablaAdmin
-            listaCabecera={["Fecha", "Proveedor", "Cliente", "Total", "Estado", "Acciones"]}
+            listaCabecera={["Código", "Fecha", "Proveedor", "Total", "Estado", "Acciones"]}
           >
             {comprasPaginadas.length > 0 ? (
-              comprasPaginadas.map((element) => (
+              comprasPaginadas.map((compra) => (
                 <tr
-                  key={element.Id_Compra}
+                  key={compra.codigoCompra}
                   className={`hover:bg-gray-100 border-t-2 border-gray-300 ${
-                    element.Estado === "Anulado" ? "bg-red-50 text-gray-500" : ""
+                    compra.estado === "Anulada" ? "bg-red-50 text-gray-500" : ""
                   }`}
                 >
-                  <td className="py-2 px-4">{element.Fecha}</td>
-                  <td className="py-2 px-4">{element.Proveedor}</td>
-                  <td className="py-2 px-4">{element.Cliente}</td>
-                  <td className="py-2 px-4">{formatoMoneda(element.Total)}</td>
+                  <td className="py-2 px-4 font-semibold">#{compra.codigoCompra}</td>
                   <td className="py-2 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      element.Estado === "Completado" 
-                        ? "bg-green-100 text-green-800" 
-                        : element.Estado === "Pendiente"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : element.Estado === "Anulado"
-                        ? "bg-red-100 text-red-800 line-through"
-                        : "bg-gray-100 text-gray-800"
-                    }`}>
-                      {element.Estado}
+                    {new Date(compra.fechaCompra).toLocaleDateString()}
+                  </td>
+                  <td className="py-2 px-4">{getProveedorNombre(compra.idProveedor)}</td>
+                  <td className="py-2 px-4 font-semibold">
+                    {formatoMoneda(compra.precioTotal)}
+                  </td>
+                  <td className="py-2 px-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getEstadoColor(compra.estado)}`}>
+                      {getEstadoTexto(compra.estado)}
                     </span>
                   </td>
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
-                      icon="mdi:eye-outline"
+                      icon="material-symbols:visibility-outline"
                       width="24"
                       height="24"
-                      className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
-                      onClick={() => mostrarDetalles(element.Id_Compra)}
+                      className="text-green-700 cursor-pointer hover:text-green-800"
+                      onClick={() => mostrarDetalles(compra)}
                       title="Ver detalles"
                     />
                     <Icon
                       icon="material-symbols:download"
                       width="24"
                       height="24"
-                      className="text-blue-700 cursor-pointer hover:text-blue-900 transition-colors"
-                      onClick={() => descargarFactura(element)}
+                      className="text-blue-700 cursor-pointer hover:text-blue-800"
+                      onClick={() => descargarFactura(compra)}
                       title="Descargar factura PDF"
                     />
                     <Icon
@@ -442,12 +347,12 @@ const PaginaCompras = () => {
                       width="24"
                       height="24"
                       className={`cursor-pointer transition-colors ${
-                        element.Estado === "Anulado" 
+                        compra.estado === "Anulada" 
                           ? "text-gray-400 cursor-not-allowed" 
-                          : "text-red-700 hover:text-red-900"
+                          : "text-red-700 hover:text-red-800"
                       }`}
-                      onClick={() => element.Estado !== "Anulado" && handleAnular(element.Id_Compra)}
-                      title={element.Estado === "Anulado" ? "Compra ya anulada" : "Anular compra"}
+                      onClick={() => compra.estado !== "Anulada" && handleAnular(compra)}
+                      title={compra.estado === "Anulada" ? "Compra ya anulada" : "Anular compra"}
                     />
                   </td>
                 </tr>
@@ -477,17 +382,12 @@ const PaginaCompras = () => {
       )}
 
       {/* Formulario para agregar compra */}
-      <FormularioAgregarCompra
+      <FormularioCompra
         show={showAgregar}
-        setShow={setShowAgregar}
-        onSubmit={handleAgregarSubmit}
-        fechaRef={fechaRef}
-        proveedorRef={proveedorRef}
-        totalRef={totalRef}
-        estadoRef={estadoRef}
-        idClienteRef={idClienteRef}
-        listaClientes={listaClientes}
-        listaProveedores={listaProveedores}
+        close={() => setShowAgregar(false)}
+        onCompraCreada={handleCompraCreada}
+        proveedores={proveedores}
+        productos={productos}
       />
 
       {/* Formulario para ver detalles de compra */}
@@ -497,6 +397,7 @@ const PaginaCompras = () => {
         compra={compraSeleccionada}
         formatoMoneda={formatoMoneda}
         descargarFactura={descargarFactura}
+        proveedores={proveedores}
       />
 
       {/* Modal de confirmación para anular */}
@@ -505,14 +406,13 @@ const PaginaCompras = () => {
         onClose={cerrarConfirmacion}
         onConfirm={confirmarAnulacion}
         titulo="Anular Compra"
-        mensaje="¿Estás seguro de que deseas anular esta compra?"
+        mensaje="¿Estás seguro de que deseas anular esta compra? Esta acción no se puede deshacer."
         detalles={compraAAnular && (
           <>
-            <div><strong>Fecha:</strong> {compraAAnular.Fecha}</div>
-            <div><strong>Proveedor:</strong> {compraAAnular.Proveedor}</div>
-            <div><strong>Cliente:</strong> {compraAAnular.Cliente}</div>
-            <div><strong>Total:</strong> {formatoMoneda(compraAAnular.Total)}</div>
-            <div><strong>Estado actual:</strong> {compraAAnular.Estado}</div>
+            <div><strong>Código:</strong> #{compraAAnular.codigoCompra}</div>
+            <div><strong>Fecha:</strong> {new Date(compraAAnular.fechaCompra).toLocaleDateString()}</div>
+            <div><strong>Proveedor:</strong> {getProveedorNombre(compraAAnular.IdProveedor)}</div>
+            <div><strong>Total:</strong> {formatoMoneda(compraAAnular.precioTotal)}</div>
           </>
         )}
         textoConfirmar="Anular"

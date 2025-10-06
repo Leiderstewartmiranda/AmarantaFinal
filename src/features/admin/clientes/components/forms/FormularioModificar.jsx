@@ -8,44 +8,46 @@ const FormularioModificar = ({
   titulo = "Modificar Cliente",
 }) => {
   const [formData, setFormData] = useState({
-    tipoDocumento: "",
-    documento: "",
-    nombreCompleto: "",
-    correo: "",
-    telefono: "",
-    direccion: "",
-    estado: "Activo"
+    TipoDocumento: "",
+    Documento: "",
+    Nombre: "",
+    Apellido: "",
+    Correo: "",
+    Telefono: "",
+    Direccion: "",
+    Estado: "Activo",
   });
 
   const [errores, setErrores] = useState({});
 
-  // Actualizar los valores de los campos cuando cambie initialData
+  // Cargar datos iniciales cuando se abre el modal
   useEffect(() => {
     if (show && initialData) {
       setFormData({
-        tipoDocumento: initialData.TipoDocumento || "",
-        documento: initialData.Documento || "",
-        nombreCompleto: initialData.NombreCompleto || "",
-        correo: initialData.Correo || "",
-        telefono: initialData.Telefono || "",
-        direccion: initialData.Direccion || "",
-        estado: initialData.Estado || "Activo"
+        IdCliente: initialData.IdCliente ?? null,
+        TipoDocumento: initialData.TipoDocumento ?? "",
+        Documento: initialData.Documento ?? "",
+        Nombre: initialData.Nombre ?? "",
+        Apellido: initialData.Apellido ?? "",
+        Correo: initialData.Correo ?? "",
+        Telefono: initialData.Telefono ?? "",
+        Direccion: initialData.Direccion ?? "",
+        Estado: initialData.Estado ?? "Activo",
       });
     }
   }, [show, initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
-    // Limpiar error del campo cuando se modifica
+
     if (errores[name]) {
-      setErrores(prev => ({
+      setErrores((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
@@ -53,63 +55,34 @@ const FormularioModificar = ({
   const validarFormulario = () => {
     const nuevosErrores = {};
 
-    if (!formData.tipoDocumento) {
-      nuevosErrores.tipoDocumento = "El tipo de documento es obligatorio";
+    if (!formData.TipoDocumento) {
+      nuevosErrores.TipoDocumento = "El tipo de documento es obligatorio";
     }
 
-    if (!formData.documento.trim()) {
-      nuevosErrores.documento = "El documento es obligatorio";
-    } else {
-      // Validaciones específicas según el tipo de documento
-      switch(formData.tipoDocumento) {
-        case "CC":
-          if (!/^\d{7,10}$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "La cédula debe tener entre 7 y 10 dígitos";
-          }
-          break;
-        case "CE":
-          if (!/^[a-zA-Z0-9]{5,20}$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "La cédula de extranjería debe tener entre 5 y 20 caracteres alfanuméricos";
-          }
-          break;
-        case "TI":
-          if (!/^\d{6,12}$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "La tarjeta de identidad debe tener entre 6 y 12 dígitos";
-          }
-          break;
-        case "PAS":
-          if (!/^[a-zA-Z0-9]{6,12}$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "El pasaporte debe tener entre 6 y 12 caracteres alfanuméricos";
-          }
-          break;
-        case "NIT":
-          if (!/^\d{9,10}-\d$/.test(formData.documento.trim())) {
-            nuevosErrores.documento = "El NIT debe tener el formato: 123456789-1";
-          }
-          break;
-        default:
-          break;
-      }
+    if (!formData.Documento.trim()) {
+      nuevosErrores.Documento = "El documento es obligatorio";
     }
 
-    if (!formData.nombreCompleto.trim()) {
-      nuevosErrores.nombreCompleto = "El nombre completo es obligatorio";
+    if (!formData.Nombre.trim()) {
+      nuevosErrores.Nombre = "El nombre es obligatorio";
     }
 
-    if (!formData.correo.trim()) {
-      nuevosErrores.correo = "El correo es obligatorio";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
-      nuevosErrores.correo = "El formato del email no es válido";
+    if (!formData.Apellido.trim()) {
+      nuevosErrores.Apellido = "El apellido es obligatorio";
     }
 
-    if (!formData.telefono.trim()) {
-      nuevosErrores.telefono = "El teléfono es obligatorio";
-    } else if (!/^\d{7,15}$/.test(formData.telefono.trim())) {
-      nuevosErrores.telefono = "El teléfono debe contener entre 7 y 15 dígitos";
+    if (!formData.Correo.trim()) {
+      nuevosErrores.Correo = "El correo es obligatorio";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.Correo)) {
+      nuevosErrores.Correo = "El formato del email no es válido";
     }
 
-    if (!formData.estado) {
-      nuevosErrores.estado = "El estado es obligatorio";
+    if (!formData.Telefono.trim()) {
+      nuevosErrores.Telefono = "El teléfono es obligatorio";
+    }
+
+    if (!formData.Estado) {
+      nuevosErrores.Estado = "El estado es obligatorio";
     }
 
     setErrores(nuevosErrores);
@@ -123,17 +96,6 @@ const FormularioModificar = ({
     }
   };
 
-  const getDocumentoPlaceholder = () => {
-    switch(formData.tipoDocumento) {
-      case "CC": return "Ej: 1234567890";
-      case "CE": return "Ej: AB123456";
-      case "TI": return "Ej: 1012345678";
-      case "PAS": return "Ej: AB123456";
-      case "NIT": return "Ej: 900123456-1";
-      default: return "Seleccione tipo de documento primero";
-    }
-  };
-
   if (!show) return null;
 
   return (
@@ -141,130 +103,132 @@ const FormularioModificar = ({
       <div className="bg-white rounded shadow-md p-6 w-full max-w-2xl mx-4 overflow-auto max-h-[90vh]">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">{titulo}</h2>
-          <button
-            onClick={close}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={close} className="text-gray-500 hover:text-gray-700">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded p-4">
-          {/* Tipo Documento y Documento en la misma fila */}
+          {/* Tipo Documento y Documento */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-gray-700 font-medium">Tipo Documento *</label>
               <select
-                name="tipoDocumento"
-                value={formData.tipoDocumento}
+                name="TipoDocumento"
+                value={formData.TipoDocumento}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.tipoDocumento ? 'border-red-500' : 'border-gray-300'}`}
-                required
+                className={`mt-1 block w-full border rounded p-2 ${errores.TipoDocumento ? "border-red-500" : "border-gray-300"}`}
               >
                 <option value="">Seleccionar tipo</option>
-                <option value="CC">Cédula de Ciudadanía</option>
-                <option value="CE">Cédula de Extranjería</option>
-                <option value="TI">Tarjeta de Identidad</option>
-                <option value="PAS">Pasaporte</option>
+                <option value="CC">CC</option>
+                <option value="CE">CE</option>
+                <option value="TI">TI</option>
+                <option value="PAS">PAS</option>
                 <option value="NIT">NIT</option>
               </select>
-              {errores.tipoDocumento && <p className="text-red-500 text-xs mt-1">{errores.tipoDocumento}</p>}
+              {errores.TipoDocumento && <p className="text-red-500 text-xs mt-1">{errores.TipoDocumento}</p>}
             </div>
 
             <div>
               <label className="block text-gray-700 font-medium">Número de Documento *</label>
               <input
                 type="text"
-                name="documento"
-                value={formData.documento}
+                name="Documento"
+                value={formData.Documento}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.documento ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder={getDocumentoPlaceholder()}
-                disabled={!formData.tipoDocumento}
+                className={`mt-1 block w-full border rounded p-2 ${errores.Documento ? "border-red-500" : "border-gray-300"}`}
                 required
               />
-              {errores.documento && <p className="text-red-500 text-xs mt-1">{errores.documento}</p>}
+              {errores.Documento && <p className="text-red-500 text-xs mt-1">{errores.Documento}</p>}
             </div>
           </div>
 
-          {/* Resto del formulario (sin cambios en la estructura pero con validación) */}
-          {/* Nombre Completo y Correo en la misma fila */}
+          {/* Nombre y Apellido */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-gray-700 font-medium">Nombre Completo *</label>
+              <label className="block text-gray-700 font-medium">Nombre *</label>
               <input
                 type="text"
-                name="nombreCompleto"
-                value={formData.nombreCompleto}
+                name="Nombre"
+                value={formData.Nombre}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.nombreCompleto ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Nombre completo del cliente"
-                required
+                className={`mt-1 block w-full border rounded p-2 ${errores.Nombre ? "border-red-500" : "border-gray-300"}`}
+                placeholder="Nombre"
               />
-              {errores.nombreCompleto && <p className="text-red-500 text-xs mt-1">{errores.nombreCompleto}</p>}
+              {errores.Nombre && <p className="text-red-500 text-xs mt-1">{errores.Nombre}</p>}
             </div>
 
+            <div>
+              <label className="block text-gray-700 font-medium">Apellido *</label>
+              <input
+                type="text"
+                name="Apellido"
+                value={formData.Apellido}
+                onChange={handleChange}
+                className={`mt-1 block w-full border rounded p-2 ${errores.Apellido ? "border-red-500" : "border-gray-300"}`}
+                placeholder="Apellido"
+              />
+              {errores.Apellido && <p className="text-red-500 text-xs mt-1">{errores.Apellido}</p>}
+            </div>
+          </div>
+
+          {/* Correo y Teléfono */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-gray-700 font-medium">Correo *</label>
               <input
                 type="email"
-                name="correo"
-                value={formData.correo}
+                name="Correo"
+                value={formData.Correo}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.correo ? 'border-red-500' : 'border-gray-300'}`}
+                className={`mt-1 block w-full border rounded p-2 ${errores.Correo ? "border-red-500" : "border-gray-300"}`}
                 placeholder="correo@ejemplo.com"
-                required
               />
-              {errores.correo && <p className="text-red-500 text-xs mt-1">{errores.correo}</p>}
+              {errores.Correo && <p className="text-red-500 text-xs mt-1">{errores.Correo}</p>}
             </div>
-          </div>
 
-          {/* Teléfono y Dirección en la misma fila */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-gray-700 font-medium">Teléfono *</label>
               <input
                 type="tel"
-                name="telefono"
-                value={formData.telefono}
+                name="Telefono"
+                value={formData.Telefono}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.telefono ? 'border-red-500' : 'border-gray-300'}`}
+                className={`mt-1 block w-full border rounded p-2 ${errores.Telefono ? "border-red-500" : "border-gray-300"}`}
                 placeholder="Número de teléfono"
-                required
               />
-              {errores.telefono && <p className="text-red-500 text-xs mt-1">{errores.telefono}</p>}
+              {errores.Telefono && <p className="text-red-500 text-xs mt-1">{errores.Telefono}</p>}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium">Dirección</label>
-              <input
-                type="text"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded p-2 focus:border-orange-500 focus:outline-none"
-                placeholder="Dirección del cliente"
-              />
-            </div>
+          {/* Dirección */}
+          <div className="mb-4">
+            <label className="block text-gray-700 font-medium">Dirección</label>
+            <input
+              type="text"
+              name="Direccion"
+              value={formData.Direccion}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded p-2"
+              placeholder="Dirección del cliente"
+            />
           </div>
 
           {/* Estado */}
           <div className="mb-4">
             <label className="block text-gray-700 font-medium">Estado *</label>
             <select
-              name="estado"
-              value={formData.estado}
+              name="Estado"
+              value={formData.Estado}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.estado ? 'border-red-500' : 'border-gray-300'}`}
-              required
+              className="mt-1 block w-full border rounded p-2"
             >
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
               <option value="Pendiente">Pendiente</option>
             </select>
-            {errores.estado && <p className="text-red-500 text-xs mt-1">{errores.estado}</p>}
           </div>
 
           {/* Botones */}

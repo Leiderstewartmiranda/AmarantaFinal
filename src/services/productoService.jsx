@@ -10,29 +10,37 @@ export async function GetProductos() {
 // Crear producto
 export async function CrearProducto(producto) {
   const formData = new FormData();
+  
   formData.append("NombreProducto", producto.NombreProducto);
-  formData.append("Precio", Number(producto.Precio));
-  formData.append("Stock", Number(producto.Stock));
-  formData.append("IdCategoria", Number(producto.IdCategoria));
-
+  formData.append("Precio", producto.Precio.toString());
+  formData.append("Stock", producto.Stock.toString());
+  formData.append("IdCategoria", producto.IdCategoria.toString());
+  
+  // IMAGEN OBLIGATORIA (temporalmente)
   if (producto.Imagen) {
-    formData.append("imagen", producto.Imagen); // 👈 este campo debe coincidir con el parámetro de tu API
+    formData.append("Imagen", producto.Imagen);
+  } else {
+    // Si no hay imagen, mostrar error
+    throw new Error("La imagen es requerida");
   }
 
+  console.log("📤 Campos enviados:");
   for (let [key, value] of formData.entries()) {
-    console.log(key, value);
+    console.log(`${key}:`, value);
   }
-
 
   const res = await fetch(API_URL, {
     method: "POST",
     body: formData,
   });
 
-  if (!res.ok) throw new Error("Error al crear producto");
+  if (!res.ok) {
+    const errorData = await res.text();
+    throw new Error(`Error ${res.status}: ${errorData}`);
+  }
+  
   return res.json();
 }
-
 // Actualizar producto
 export async function ActualizarProducto(id, producto) {
   const formData = new FormData();
