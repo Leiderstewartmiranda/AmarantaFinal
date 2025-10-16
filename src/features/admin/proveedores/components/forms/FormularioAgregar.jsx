@@ -35,10 +35,16 @@ const FormularioAgregar = ({
 
   const validarFormulario = () => {
     const nuevosErrores = {};
+    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+    
 
     if (!formData.nombreEmpresa.trim()) {
       nuevosErrores.nombreEmpresa = "El nombre es obligatorio";
+    } else if (!regexLetras.test(formData.nombreEmpresa.trim())) {
+      nuevosErrores.nombreEmpresa = "El nombre solo puede contener letras";
     }
+
+
 
     if (!formData.correo.trim()) {
       nuevosErrores.correo = "El contacto es obligatorio";
@@ -56,9 +62,14 @@ const FormularioAgregar = ({
       nuevosErrores.Nit = "Seleccione un tipo de documento";
     }
 
+
     if (!formData.Representante.trim()) {
       nuevosErrores.Representante = "El documento es obligatorio";
+    }else if (!/^\d{7,11}$/.test(formData.Representante.trim())) {
+      nuevosErrores.Representante = "El documento debe contener entre 7 y 11 dígitos";
     }
+
+    
 
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;

@@ -1,4 +1,4 @@
-const FormularioVerDetallesProducto = ({ show, close, producto }) => {
+const FormularioVerDetallesProducto = ({ show, close, producto, categorias = [] }) => {
   if (!show) return null;
 
   const formatearPrecio = (precio) => {
@@ -14,6 +14,8 @@ const FormularioVerDetallesProducto = ({ show, close, producto }) => {
     if (stock <= 15) return 'text-yellow-600 font-semibold';
     return 'text-green-600 font-semibold';
   };
+
+  const nombreCategoria = categorias.find(cat => Number(cat.idCategoria) === Number(producto?.idCategoria))?.nombreCategoria || "Sin categoría";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -36,7 +38,7 @@ const FormularioVerDetallesProducto = ({ show, close, producto }) => {
           
           <div className="flex justify-between">
             <span className="font-medium">Categoría:</span>
-            <span>{producto?.idCategoria}</span>
+            <span>{nombreCategoria}</span>
           </div>
           
           <div className="flex justify-between">
@@ -58,22 +60,9 @@ const FormularioVerDetallesProducto = ({ show, close, producto }) => {
             </span>
           </div>
           
-          <div className="flex justify-between">
-            <span className="font-medium">Proveedor:</span>
-            <span>{producto?.proveedor || 'No especificado'}</span>
-          </div>
+        
           
-          <div className="flex justify-between">
-            <span className="font-medium">Fecha de creación:</span>
-            <span>{producto?.fechaCreacion}</span>
-          </div>
           
-          <div>
-            <span className="font-medium block mb-1">Descripción:</span>
-            <p className="text-gray-700 bg-gray-50 p-3 rounded-md">
-              {producto?.descripcion}
-            </p>
-          </div>
         </div>
         
         <div className="flex justify-end pt-4">

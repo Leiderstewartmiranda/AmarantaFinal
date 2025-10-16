@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import AmaraLogo from "../../assets/AmaraLogo.png";
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 import "./log.css";
 
 export default function Login() {
@@ -25,18 +27,33 @@ export default function Login() {
         throw new Error(data?.mensaje || "❌ Error al iniciar sesión");
       }
 
-      // ✅ Siempre redirigir a verification después de login
-      alert("📩 Se ha enviado un código de verificación a tu correo.");
+      Swal.fire({
+        icon: 'info',
+        title: 'Código enviado',
+        text: 'Se ha enviado un código de verificación a tu correo.',
+        confirmButtonColor: '#a78bfa', // color del botón
+        background: '#1f1f1f',        // fondo oscuro
+        color: '#fff'                 // texto blanco
+      });
       navigate("/verification", { state: { correo } });
     } catch (err) {
       console.error(err);
       setError(err.message);
-      alert("❌ " + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message,
+        confirmButtonColor: '#a78bfa',
+        background: '#fff',
+        color: '#1f1f1f'
+      });
     }
   };
 
   return (
     <div className="login-container">
+      <h1>Amaranta</h1>
+      <img src={AmaraLogo} alt="logo" />
       <h2>Iniciar Sesión</h2>
       <form onSubmit={handleSubmit} className="login-form">
         <label>

@@ -6,7 +6,7 @@ body {
 /* Contenedor */
 .login-container {
   max-width: 420px;
-  margin: 10% auto;
+  margin: 2% auto;
   padding: 30px;
   background: #fff;
   border-radius: 15px;
@@ -15,6 +15,21 @@ body {
 }
 
 /* Título */
+.login-container h1 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: bold;
+  color: #2c3d1e;
+}
+
+.login-container img {
+  display: block;
+  margin: 0 auto 20px auto;
+  width: 100px;
+  height: auto;
+}
+
 .login-container h2 {
   text-align: center;
   margin-bottom: 25px;

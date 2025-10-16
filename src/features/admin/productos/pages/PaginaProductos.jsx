@@ -64,6 +64,8 @@ const PaginaProductos = () => {
   const estadoRef = useRef();
   const busquedaRef = useRef();
 
+  
+
   // --- CRUD ---
   const handleAgregarSubmit = async (e) => {
     e.preventDefault();
@@ -199,7 +201,7 @@ const PaginaProductos = () => {
               productosPaginados.map((producto) => (
                 <tr key={producto.codigoProducto} className="hover:bg-gray-100 border-t-2 border-gray-300">
                   <td className="py-2 px-4">{producto.nombreProducto}</td>
-                  <td className="py-2 px-4">{producto.idCategoria}</td>
+                  <td className="py-2 px-4">{categorias.find(cat => cat.idCategoria === producto.idCategoria)?.nombreCategoria || "-"}</td>
                   <td className="py-2 px-4 font-semibold">{formatearPrecio(producto.precio)}</td>
                   <td className={`py-2 px-4 ${getStockClass(producto.stock)}`}>
                     {producto.stock} unidades
@@ -272,27 +274,25 @@ const PaginaProductos = () => {
         stockRef={stockRef}
         imagenRef={imagenRef} 
         categorias={categorias}
+        setListaProductos={setListaProductos}
+        listaProductos={listaProductos}
       />
 
       <FormularioModificarProducto
         show={showEditar}
         close={closeModal}
         producto={productoSeleccionado}
-        onSubmit={handleEditarSubmit}
-        nombreRef={nombreRef}
-        categoriaRef={categoriaRef}
-        precioRef={precioRef}
-        stockRef={stockRef}
-        estadoRef={estadoRef}
         categorias={categorias}
         setListaProductos={setListaProductos} 
         listaProductos={listaProductos}  
+        onSubmit={handleEditarSubmit}
       />
 
       <FormularioVerDetallesProducto
         show={showDetalles}
         close={closeDetalles}
         producto={productoSeleccionado}
+        categorias={categorias}
       />
 
       <ModalConfirmacion

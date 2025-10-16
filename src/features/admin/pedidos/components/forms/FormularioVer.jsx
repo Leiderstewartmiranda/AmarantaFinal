@@ -53,7 +53,6 @@ const FormularioVer = ({
         Correo: "", // Tu DTO no incluye correo
         Direccion: "Dirección no disponible", // Tu DTO no incluye dirección
         Estado: pedido.estado || pedido.Estado || "Pendiente",
-        Abonos: 0, // Tu modelo no tiene abonos
         Total: totalPedido,
         Productos: productosMapeados,
         FechaPedido: pedido.fechaPedido || pedido.FechaPedido
@@ -111,7 +110,6 @@ const FormularioVer = ({
     </div>
   );
 
-  const saldoPendiente = (formData.Total || 0) - (formData.Abonos || 0);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -157,26 +155,6 @@ const FormularioVer = ({
                 </p>
               </div>
               
-              {formData.Abonos > 0 && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Total Abonado</label>
-                    <p className="text-lg font-semibold text-blue-600">
-                      {formatearMoneda ? formatearMoneda(formData.Abonos) : formData.Abonos}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t">
-                    <label className="block text-sm font-medium text-gray-600">Saldo Pendiente</label>
-                    <p className={`text-lg font-bold ${saldoPendiente > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {formatearMoneda ? formatearMoneda(saldoPendiente) : saldoPendiente}
-                    </p>
-                    {saldoPendiente === 0 && (
-                      <span className="text-sm text-green-600 font-medium">✓ Pedido completamente pagado</span>
-                    )}
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>

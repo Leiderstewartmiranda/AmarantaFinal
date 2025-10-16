@@ -1,10 +1,13 @@
 import { useRef, useState } from "react";
 import {CrearProducto} from "../../../../../services/productoService";
 
+
 const FormularioAgregarProducto = ({
   show,
   setShow,
-  categorias
+  categorias,
+  setListaProductos,
+  listaProductos
 }) => {
   const nombreRef = useRef();
   const categoriaRef = useRef();
@@ -12,15 +15,61 @@ const FormularioAgregarProducto = ({
   const stockRef = useRef();
   const [imagen, setImagen] = useState(null);
 
+  const [errores, setErrores] = useState({});
+
   if (!show) return null;
+
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+
     // Validar que todos los campos requeridos tengan valores
-    if (!nombreRef.current.value || !categoriaRef.current.value || 
-        !precioRef.current.value || !stockRef.current.value) {
-      alert("Por favor, completa todos los campos requeridos");
+    if (!nombreRef.current.value || !categoriaRef.current.value || !precioRef.current.value || !stockRef.current.value || !imagen) {
+    alert("Por favor, completa todos los campos requeridos");
+    return;
+    }
+
+    if (!regexLetras.test(nombreRef.current.value.trim())) {
+      setErrores({ nombreRef: 'El nombre contiene caracteres no permitidos' });
+      return;
+    } else {
+      setErrores({}); // Limpiar errores si es válido
+    }
+
+    if (nombreRef.current.value.length < 3) {
+      alert("El nombre debe tener al menos 3 caracteres");
+      return;
+    }
+
+    if (isNaN(precioRef.current.value) || precioRef.current.value <= 0) {
+      alert("El precio debe ser un número positivo");
+      return;
+    } else if (precioRef.current.value < 1000) {
+      alert("El precio debe ser mayor o igual a 1000");
+      return;
+    } else if (precioRef.current.value > 1000000) {
+      alert("El precio debe ser menor o igual a 1,000,000");
+      return;
+    }
+
+    if (isNaN(stockRef.current.value) || stockRef.current.value < 0) {
+      alert("El stock debe ser un número igual o mayor a 0");
+      return;
+    } else if (stockRef.current.value > 1000) {
+      alert("El stock debe ser menor o igual a 1000");
+      return;
+    }
+
+    if (!["image/jpeg", "image/png"].includes(imagen.type)) {
+      alert("La imagen debe ser JPG o PNG");
+      return;
+    }
+
+    if (imagen.size > 2 * 1024 * 1024) { // 2MB
+      alert("La imagen no debe superar los 2MB");
       return;
     }
 
@@ -35,6 +84,8 @@ const FormularioAgregarProducto = ({
     try {
       const res = await CrearProducto(nuevoProducto);
       console.log("✅ Producto creado:", res);
+
+      setListaProductos([...listaProductos, res]);
 
       // cerrar modal y limpiar formulario
       setShow(false);
@@ -76,6 +127,7 @@ const FormularioAgregarProducto = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Nombre del producto"
             />
+            {errores.nombreRef && <span className="text-red-500 text-sm mt-1">{errores.nombreRef}</span>}
           </div>
           
           <div>

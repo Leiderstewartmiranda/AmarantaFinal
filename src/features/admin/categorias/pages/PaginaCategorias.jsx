@@ -103,14 +103,14 @@ const PaginaCategorias = () => {
     const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
 
     // Validar nombre
-    if (!categoria.nombre || categoria.nombre.trim() === '') {
-      nuevosErrores.nombre = 'El nombre es obligatorio';
-    } else if (!regexLetras.test(categoria.nombre.trim())) {
-      nuevosErrores.nombre = 'El nombre contiene caracteres no permitidos';
-    } else if (categoria.nombre.trim().length < 2) {
-      nuevosErrores.nombre = 'El nombre debe tener al menos 2 caracteres';
-    } else if (categoria.nombre.trim().length > 50) {
-      nuevosErrores.nombre = 'El nombre no puede exceder 50 caracteres';
+    if (!categoria.nombreCategoria || categoria.nombreCategoria.trim() === '') {
+      nuevosErrores.nombreCategoria = 'El nombre es obligatorio';
+    } else if (!regexLetras.test(categoria.nombreCategoria.trim())) {
+      nuevosErrores.nombreCategoria = 'El nombre contiene caracteres no permitidos';
+    } else if (categoria.nombreCategoria.trim().length < 2) {
+      nuevosErrores.nombreCategoria = 'El nombre debe tener al menos 2 caracteres';
+    } else if (categoria.nombreCategoria.trim().length > 50) {
+      nuevosErrores.nombreCategoria = 'El nombre no puede exceder 50 caracteres';
     }
 
     // Validar descripción

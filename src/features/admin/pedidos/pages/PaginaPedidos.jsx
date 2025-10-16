@@ -6,7 +6,6 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import FormularioAgregar from "../components/forms/FormularioAgregar";
 import FormularioModificar from "../components/forms/FormularioModificar";
 import FormularioVer from "../components/forms/FormularioVer";
-import FormularioAbono from "../components/forms/FormularioAbono";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
 import Paginacion from "../../../../compartidos/paginacion/Paginacion";
 import { 
@@ -32,7 +31,6 @@ const PaginaPedidos = () => {
   const [showAgregar, setShowAgregar] = useState(false);
   const [showEditar, setShowEditar] = useState(false);
   const [showVer, setShowVer] = useState(false);
-  const [showAbono, setShowAbono] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
@@ -49,7 +47,6 @@ const PaginaPedidos = () => {
     Productos: [],
     Correo: "",
     Estado: "",
-    Abonos: "",
   });
 
   // Refs
@@ -58,7 +55,6 @@ const PaginaPedidos = () => {
   const totalRef = useRef();
   const correoRef = useRef();
   const estadoRef = useRef();
-  const abonosRef = useRef();
   const busquedaRef = useRef();
   const productosRef = useRef();
 
@@ -103,7 +99,6 @@ const PaginaPedidos = () => {
       Total: pedido.precioTotal || pedido.PrecioTotal || 0, // Para compatibilidad
       Correo: "", // Tu DTO no incluye correo
       Estado: pedido.estado || pedido.Estado || "Pendiente",
-      Abonos: 0, // Tu modelo no tiene abonos
       FechaPedido: pedido.fechaPedido || pedido.FechaPedido,
       Productos: pedido.detalles || pedido.Detalles || [],
       Detalles: pedido.detalles || pedido.Detalles || [] // Para compatibilidad con formularios
@@ -181,38 +176,10 @@ const PaginaPedidos = () => {
     }
   };
 
-  // 💰 Función para manejar abonos
-  const handleAbonar = async (id, montoAbono) => {
-    try {
-      // Actualizar localmente (necesitarías un servicio para esto)
-      setListaPedidos(
-        listaPedidos.map((pedido) => {
-          if (pedido.CodigoPedido === id) {
-            const nuevosAbonos = (pedido.Abonos || 0) + montoAbono;
-            const nuevoEstado = nuevosAbonos >= pedido.PrecioTotal ? "Completado" : pedido.Estado;
-            return { 
-              ...pedido, 
-              Abonos: nuevosAbonos,
-              Estado: nuevoEstado
-            };
-          }
-          return pedido;
-        })
-      );
-    } catch (error) {
-      console.error("Error procesando abono:", error);
-      alert("Error al procesar el abono");
-    }
-  };
+  
+  
 
-  // 💰 Mostrar modal de abono
-  const mostrarAbono = (id) => {
-    const pedido = listaPedidos.find((pedido) => pedido.CodigoPedido === id);
-    if (pedido) {
-      setPedidoSeleccionado(pedido);
-      setShowAbono(true);
-    }
-  };
+
 
   // 🛍️ Función para encontrar y agregar productos
   const encontrarProducto = () => {
@@ -470,7 +437,6 @@ const PaginaPedidos = () => {
   const closeModal = () => {
     setShowEditar(false);
     setShowVer(false);
-    setShowAbono(false);
     setPedidoSeleccionado(null);
     setClienteSeleccionado(null);
     setFormData({
@@ -479,8 +445,7 @@ const PaginaPedidos = () => {
       Direccion: "",
       PrecioTotal: "",
       Correo: "",
-      Estado: "",
-      Abonos: "",
+        Estado: "",
       Productos: [],
     });
   };
@@ -643,15 +608,7 @@ const PaginaPedidos = () => {
                     onClick={() => mostrarVer(element.CodigoPedido)}
                     title="Ver detalles"
                   />
-                  <Icon
-                    icon="material-symbols:edit-outline"
-                    width="24"
-                    height="24"
-                    className="text-blue-700 cursor-pointer hover:text-blue-800"
-                    onClick={() => mostrarEditar(element.CodigoPedido)}
-                    title="Editar pedido"
-                    disabled={element.Estado === "Completado" || element.Estado === "Cancelado"}
-                  />
+
                   <Icon
                     icon="tabler:trash"
                     width="24"
@@ -710,7 +667,6 @@ const PaginaPedidos = () => {
         limpiarProductos={limpiarProductos}
         correoRef={correoRef}
         estadoRef={estadoRef}
-        abonosRef={abonosRef}
         estadosDisponibles={estadosDisponibles}
         titulo="Agregar Nuevo Pedido"
         formatearMoneda={formatearMoneda}
@@ -730,7 +686,6 @@ const PaginaPedidos = () => {
         totalRef={totalRef}
         correoRef={correoRef}
         estadoRef={estadoRef}
-        abonosRef={abonosRef}
         estadosDisponibles={estadosDisponibles}
         titulo="Modificar Pedido"
         formatearMoneda={formatearMoneda}
@@ -745,13 +700,7 @@ const PaginaPedidos = () => {
         formatearMoneda={formatearMoneda}
       />
 
-      <FormularioAbono
-        show={showAbono}
-        close={closeModal}
-        pedido={pedidoSeleccionado}
-        onAbonar={handleAbonar}
-        formatearMoneda={formatearMoneda}
-      />
+      
 
       <ModalConfirmacion
         show={showConfirmacion}

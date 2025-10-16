@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 import "./verifi.css"
 
 export default function Verification() {
@@ -20,14 +21,35 @@ export default function Verification() {
       });
 
       if (response.ok) {
-        alert("✅ Usuario verificado con éxito");
+        Swal.fire({
+          icon: 'success',
+          title: 'Verificación exitosa',
+          text: "Usuario verificado con éxito",
+          confirmButtonColor: '#a78bfa',
+          background: '#fff',
+          color: '#1f1f1f'
+        });
         navigate("/admin/productos");
       } else {
-        alert("❌ Código inválido o expirado");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: "Código inválido o expirado",
+          confirmButtonColor: '#a78bfa',
+          background: '#fff',
+          color: '#1f1f1f'
+        });
       }
     } catch (error) {
       console.error(error);
-      alert("⚠️ Error en la conexión con el servidor");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Error en la conexión con el servidor",
+        confirmButtonColor: '#a78bfa',
+        background: '#fff',
+        color: '#1f1f1f'
+      });
     }
   };
 
@@ -40,13 +62,34 @@ export default function Verification() {
       });
 
       if (response.ok) {
-        alert("📩 Código reenviado al correo");
+        Swal.fire({
+          icon: 'info',
+          title: 'Código reenviado',
+          text: "📩 Código reenviado al correo",
+          confirmButtonColor: '#a78bfa',
+          background: '#fff',
+          color: '#1f1f1f'
+        });
       } else {
-        alert("❌ Error al reenviar código");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: "Error al reenviar código",
+          confirmButtonColor: '#a78bfa',
+          background: '#fff',
+          color: '#1f1f1f'
+        });
       }
     } catch (error) {
       console.error(error);
-      alert("⚠️ Error en la conexión con el servidor");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Error en la conexión con el servidor",
+        confirmButtonColor: '#a78bfa',
+        background: '#fff',
+        color: '#1f1f1f'
+      });
     }
   };
 
@@ -55,7 +98,7 @@ export default function Verification() {
       <h2>Verificación</h2>
       <p>Se envió un código a: <b>{correo}</b></p>
 
-      <form onSubmit={handleVerify}>
+      <form className="verification-form" onSubmit={handleVerify}>
         <input
           type="text"
           placeholder="Ingrese el código"

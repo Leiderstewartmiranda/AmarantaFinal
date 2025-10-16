@@ -35,11 +35,11 @@ const FormularioAgregar = ({
             <input 
               type="text"
               ref={nombreRef}
-              onChange={() => setErrores({...errores, nombre: ''})}
-              className={`w-full border ${errores.nombre ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none`}
+              onChange={() => setErrores({...errores, nombreCategoria: ''})}
+              className={`w-full border ${errores.nombreCategoria ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none`}
               placeholder="Nombre de la categoría"
             />
-            {errores.nombre && <span className="text-red-500 text-sm mt-1">{errores.nombre}</span>}
+            {errores.nombreCategoria && <span className="text-red-500 text-sm mt-1">{errores.nombreCategoria}</span>}
           </div>
 
           <div>

@@ -85,8 +85,12 @@ const FormularioModificarProveedor = ({
       }
     }
 
+    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+
     if (!formData.nombreEmpresa.trim()) {
       nuevosErrores.nombreEmpresa = "El nombre es obligatorio";
+    } else if (!regexLetras.test(formData.nombreEmpresa.trim())) {
+      nuevosErrores.nombreEmpresa = "El nombre solo puede contener letras"; 
     }
 
     if (!formData.correo.trim()) {
@@ -100,6 +104,12 @@ const FormularioModificarProveedor = ({
     } else if (!/^\d{7,15}$/.test(formData.telefono.trim())) {
       nuevosErrores.telefono = "El teléfono debe contener entre 7 y 15 dígitos";
     }
+
+    // if (!formData.Representante.trim()) {
+    //   nuevosErrores.Representante = "El documento es obligatorio";
+    // }else if (!/^\d{7,11}$/.test(formData.Representante.trim())) {
+    //   nuevosErrores.Representante = "El documento debe contener entre 7 y 11 dígitos";
+    // }
 
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;

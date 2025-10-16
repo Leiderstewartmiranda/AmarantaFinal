@@ -16,7 +16,6 @@ const FormularioAgregar = ({
   limpiarProductos,
   correoRef,
   estadoRef,
-  abonosRef,
   estadosDisponibles,
   titulo = "Agregar Nuevo Pedido",
   formatearMoneda,
@@ -294,13 +293,6 @@ const FormularioAgregar = ({
                 </div>
               </div>
 
-              {/* Nota sobre abonos */}
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="text-sm text-yellow-800">
-                  <strong>Nota:</strong> El sistema de abonos no está disponible actualmente. 
-                  Los pagos se gestionan por fuera de la plataforma.
-                </p>
-              </div>
 
               {/* Botones */}
               <div className="flex justify-evenly gap-3 mt-6">

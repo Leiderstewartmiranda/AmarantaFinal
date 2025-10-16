@@ -76,12 +76,18 @@ const FormularioAgregar = ({
       }
     }
 
+    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+
     if (!formData.nombre.trim()) {
       nuevosErrores.nombre = "El nombre es obligatorio";
+    } else if (!regexLetras.test(formData.nombre.trim())) {
+      nuevosErrores.nombre = "El nombre solo puede contener letras";
     }
 
     if (!formData.apellido.trim()) {
       nuevosErrores.apellido = "El apellido es obligatorio";
+    } else if (!regexLetras.test(formData.apellido.trim())) {
+      nuevosErrores.apellido = "El apellido solo puede contener letras";
     }
 
     if (!formData.correo.trim()) {
@@ -98,6 +104,22 @@ const FormularioAgregar = ({
 
     if (!formData.estado) {
       nuevosErrores.estado = "El estado es obligatorio";
+    }
+
+    if (!formData.clave.trim()) {
+      nuevosErrores.clave = "La contraseña es obligatoria";
+    } else if (formData.clave.length < 6) {
+      nuevosErrores.clave = "La contraseña debe tener al menos 6 caracteres";
+    } else if (formData.clave.length > 30) {
+      nuevosErrores.clave = "La contraseña no debe exceder los 30 caracteres";
+    }
+
+    if (!formData.direccion.trim()) {
+      nuevosErrores.direccion = "La dirección es obligatoria";
+    } else if (formData.direccion.trim().length < 5) {
+      nuevosErrores.direccion = "La dirección debe tener al menos 5 caracteres";
+    } else if (formData.direccion.trim().length > 100) {
+      nuevosErrores.direccion = "La dirección no debe exceder los 100 caracteres";
     }
 
     setErrores(nuevosErrores);
@@ -300,14 +322,14 @@ const FormularioAgregar = ({
               </div>
               {/*Clave*/}
               <div>
-                <label className="block text-gray-700 font-medium">Clave</label>
+                <label className="block text-gray-700 font-medium">Contraseña</label>
                 <input
                   type="password"
                   name="clave"
                   value={formData.clave}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded p-2 focus:border-orange-500 focus:outline-none"
-                  placeholder="Clave"
+                  placeholder="Contraseña"
                 />
               </div>
             </div>
