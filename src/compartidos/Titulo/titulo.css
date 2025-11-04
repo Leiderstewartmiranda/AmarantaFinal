@@ -1,0 +1,60 @@
+:root {
+  --color-accent: #b45309;
+  --color-accent-dark: #7c3607;
+  --color-text: #201e1c;
+  --color-muted: #78716c;
+  --color-bg: #fdfaf5;
+  --font-display: "Playfair Display", serif;
+  --verde: #4a4b2f;
+}
+/* ====== CONTENEDOR DEL TÍTULO ====== */
+
+
+.section-title-ad {
+  display: inline-block;
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 650;
+  color: var(--verde);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+}
+
+/* Línea decorativa inferior */
+.section-title-ad::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 65px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-accent) , var(--color-accent-dark));
+  transition: width 0.4s ease, opacity 0.4s ease;
+}
+
+/* Efecto hover (solo decorativo) */
+.section-title-ad:hover::after {
+  width: 120px;
+  opacity: 0.9;
+}
+
+/* Sombra de texto sutil al pasar el mouse */
+.section-title-ad:hover {
+  color: var(--color-accent-dark);
+  text-shadow: 0 2px 6px rgba(180, 83, 9, 0.25);
+}
+
+
+/* Adaptación responsive */
+@media (max-width: 640px) {
+  .section-title-ad {
+    font-size: 1.5rem;
+  }
+  .section-title-ad::after {
+    width: 45px;
+  }
+}

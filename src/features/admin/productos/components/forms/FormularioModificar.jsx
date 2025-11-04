@@ -1,181 +1,272 @@
 import { useState, useEffect } from "react";
-import { ActualizarProducto } from "../../../../../services/productoService";
+import ModalBase from "../../../../../compartidos/modal/modalbase";
+import { ActualizarProducto, GetProductos } from "../../../../../services/productoService";
+import { Icon } from "@iconify/react";
 
 const FormularioModificarProducto = ({
   show,
   close,
   producto,
   setListaProductos,
-  listaProductos,
-  categorias = []
+  categorias = [],
 }) => {
-  const [nombre, setNombre] = useState("");
-  const [categoria, setCategoria] = useState("");
-  const [precio, setPrecio] = useState(0);
-  const [stock, setStock] = useState(0);
-  const [estado, setEstado] = useState(false);
-  const [imagen, setImagen] = useState(null);
-  const [errores, setErrores] = useState({});
-  const [updateFlag, setUpdateFlag] = useState(false);
+  const [form, setForm] = useState({
+    nombre: "",
+    categoria: "",
+    precio: "",
+    stock: "",
+    estado: false,
+    imagen: null,
+  });
 
-  // Cargar datos del producto seleccionado al abrir el modal
+  const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
+  const [productosExistentes, setProductosExistentes] = useState([]);
+
+  // 🔹 Cargar los productos y datos actuales al abrir
   useEffect(() => {
-    if (producto) {
-      setNombre(producto.nombreProducto || "");
-      setCategoria(producto.idCategoria || 0);
-      setPrecio(producto.precio || 0);
-      setStock(producto.stock || 0);
-      setEstado(producto.estado || false);
-      setImagen(null); // Imagen nueva opcional
+    const fetchProductos = async () => {
+      try {
+        const data = await GetProductos();
+        setProductosExistentes(data);
+      } catch (error) {
+        console.error("Error al obtener productos:", error);
+      }
+    };
+    fetchProductos();
+  }, []);
+
+  useEffect(() => {
+    if (producto && show) {
+      setForm({
+        nombre: producto.nombreProducto || "",
+        categoria: producto.idCategoria || "",
+        precio: producto.precio || "",
+        stock: producto.stock || "",
+        estado: producto.estado || false,
+        imagen: null,
+      });
       setErrores({});
     }
-  }, [producto]);
+  }, [producto, show]);
 
-  if (!show) return null;
+  const validar = () => {
+    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/;
+    const nuevosErrores = {};
+
+    if (!form.nombre.trim()) nuevosErrores.nombre = "El nombre es obligatorio";
+    else if (!regexLetras.test(form.nombre.trim()))
+      nuevosErrores.nombre = "Solo se permiten letras y espacios";
+    else if (form.nombre.length < 3)
+      nuevosErrores.nombre = "Debe tener al menos 3 caracteres";
+
+    if (!form.categoria) nuevosErrores.categoria = "Selecciona una categoría";
+    if (!form.precio || form.precio <= 0)
+      nuevosErrores.precio = "Debe ser un valor positivo";
+    if (form.stock < 0) nuevosErrores.stock = "Debe ser igual o mayor a 0";
+
+    if (form.imagen && !["image/jpeg", "image/png"].includes(form.imagen.type))
+      nuevosErrores.imagen = "Solo se permiten imágenes JPG o PNG";
+    if (form.imagen && form.imagen.size > 2 * 1024 * 1024)
+      nuevosErrores.imagen = "No debe superar los 2MB";
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked, files } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "file"
+          ? files[0]
+          : value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/; // solo letras y espacios
-    let newErrores = {};
-
-    if (!nombre.trim()) newErrores.nombre = "El nombre es obligatorio";
-    else if (!regexLetras.test(nombre.trim())) newErrores.nombre = "El nombre contiene caracteres no permitidos";
-    else if (nombre.trim().length < 3) newErrores.nombre = "El nombre debe tener al menos 3 caracteres";
-
-    if (!categoria) newErrores.categoria = "Selecciona una categoría";
-
-    if (!precio || precio <= 0) newErrores.precio = "El precio debe ser positivo";
-    if (!stock || stock < 0) newErrores.stock = "El stock debe ser igual o mayor a 0";
-
-    if (imagen && !["image/jpeg", "image/png"].includes(imagen.type))
-      newErrores.imagen = "La imagen debe ser JPG o PNG";
-    if (imagen && imagen.size > 2 * 1024 * 1024)
-      newErrores.imagen = "La imagen no debe superar los 2MB";
-
-    if (Object.keys(newErrores).length > 0) {
-      setErrores(newErrores);
-      return;
-    }
+    if (!validar()) return;
+    setCargando(true);
 
     try {
+      // 🔸 Verificar si ya existe otro producto con el mismo nombre
+      const existeDuplicado = productosExistentes.some(
+        (p) =>
+          p.nombreProducto.toLowerCase() === form.nombre.trim().toLowerCase() &&
+          p.codigoProducto !== producto.codigoProducto
+      );
+
+      if (existeDuplicado) {
+        setErrores({ nombre: "Ya existe un producto con ese nombre" });
+        setCargando(false);
+        return;
+      }
+
       const productoEditado = {
-        NombreProducto: nombre,
-        IdCategoria: parseInt(categoria),
-        Precio: parseFloat(precio),
-        Stock: parseInt(stock),
-        Imagen: imagen, // archivo opcional
-        Estado: estado
+        NombreProducto: form.nombre.trim(),
+        IdCategoria: parseInt(form.categoria),
+        Precio: parseFloat(form.precio),
+        Stock: parseInt(form.stock),
+        Imagen: form.imagen,
+        Estado: form.estado,
       };
 
-      const actualizado = await ActualizarProducto(producto.codigoProducto, productoEditado);
+      await ActualizarProducto(producto.codigoProducto, productoEditado);
 
-      setListaProductos(prev =>
-        prev.map(p =>
+      // 🔹 Actualizar lista visual sin recargar
+      setListaProductos((prev) =>
+        prev.map((p) =>
           p.codigoProducto === producto.codigoProducto
             ? { ...p, ...productoEditado }
             : p
         )
       );
-      
-      setUpdateFlag(!updateFlag); // Forzar re-render si es necesario
-      
 
       close();
     } catch (error) {
-      console.error("❌ Error editando producto:", error);
+      console.error("❌ Error al editar producto:", error);
       alert("Hubo un error al editar el producto");
+    } finally {
+      setCargando(false);
     }
   };
 
+  const handleCancelar = () => {
+    setErrores({});
+    close();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Editar Producto</h3>
-          <button onClick={close} className="text-gray-500 hover:text-gray-700">✕</button>
+    <ModalBase show={show} setShow={close} titulo="Editar producto">
+      <form onSubmit={handleSubmit} className="formulario-modal">
+        {/* Nombre */}
+        <div className="campo">
+          <label>Nombre *</label>
+          <input
+            name="nombre"
+            value={form.nombre}
+            onChange={handleChange}
+            placeholder="Ej. Shampoo herbal"
+            className={errores.nombre ? "error" : ""}
+          />
+          {errores.nombre && (
+            <span className="mensaje-error">{errores.nombre}</span>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-            <input
-              type="text"
-              value={nombre || ""}
-              onChange={(e) => setNombre(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.nombre ? 'border-red-500' : 'border-gray-300'}`}
-            />
-            {errores.nombre && <span className="text-red-500 text-sm mt-1">{errores.nombre}</span>}
-          </div>
+        {/* Categoría */}
+        <div className="campo">
+          <label>Categoría *</label>
+          <select
+            name="categoria"
+            value={form.categoria}
+            onChange={handleChange}
+            className={errores.categoria ? "error" : ""}
+          >
+            <option value="">Seleccionar categoría</option>
+            {categorias.map((cat) => (
+              <option key={cat.idCategoria} value={cat.idCategoria}>
+                {cat.nombreCategoria}
+              </option>
+            ))}
+          </select>
+          {errores.categoria && (
+            <span className="mensaje-error">{errores.categoria}</span>
+          )}
+        </div>
 
-          {/* Categoría */}
+        {/* Precio y Stock */}
+        <div className="campo-doble">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
-            <select
-              value={categoria || ""}
-              onChange={(e) => setCategoria(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`}
-            >
-              <option value="">Seleccionar categoría</option>
-              {categorias.map(cat => (
-                <option key={cat.idCategoria} value={cat.idCategoria}>{cat.nombreCategoria}</option>
-              ))}
-            </select>
-            {errores.categoria && <span className="text-red-500 text-sm mt-1">{errores.categoria}</span>}
-          </div>
-
-          {/* Precio */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
+            <label>Precio *</label>
             <input
+              name="precio"
               type="number"
-              min="1"
-              value={precio || 0}
-              onChange={(e) => setPrecio(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.precio ? 'border-red-500' : 'border-gray-300'}`}
+              value={form.precio}
+              onChange={handleChange}
+              className={errores.precio ? "error" : ""}
             />
-            {errores.precio && <span className="text-red-500 text-sm mt-1">{errores.precio}</span>}
+            {errores.precio && (
+              <span className="mensaje-error">{errores.precio}</span>
+            )}
           </div>
-
-          {/* Stock */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
+            <label>Stock *</label>
             <input
+              name="stock"
               type="number"
-              min="0"
-              value={stock || 0}
-              onChange={(e) => setStock(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errores.stock ? 'border-red-500' : 'border-gray-300'}`}
+              value={form.stock}
+              onChange={handleChange}
+              className={errores.stock ? "error" : ""}
             />
-            {errores.stock && <span className="text-red-500 text-sm mt-1">{errores.stock}</span>}
+            {errores.stock && (
+              <span className="mensaje-error">{errores.stock}</span>
+            )}
           </div>
+        </div>
 
-          {/* Imagen */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Imagen (opcional)</label>
-            <input type="file" accept="image/*" onChange={(e) => setImagen(e.target.files[0])} className="w-full" />
-            {errores.imagen && <span className="text-red-500 text-sm mt-1">{errores.imagen}</span>}
-          </div>
+        {/* Imagen */}
+        <div className="campo">
+          <label>Imagen (opcional)</label>
+          <input
+            name="imagen"
+            type="file"
+            accept="image/*"
+            onChange={handleChange}
+          />
+          {errores.imagen && (
+            <span className="mensaje-error">{errores.imagen}</span>
+          )}
+        </div>
 
-          {/* Estado */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked={estado} onChange={(e) => setEstado(e.target.checked)} className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-              <span className="ml-3 text-sm font-medium text-gray-900">{estado ? "Activo" : "Inactivo"}</span>
-            </label>
-          </div>
+        {/* Estado */}
+        <div className="campo flex items-center gap-3">
+          <label>Estado</label>
+          <label className="switch">
+            <input
+              type="checkbox"
+              name="estado"
+              checked={form.estado}
+              onChange={handleChange}
+            />
+            <span className="slider"></span>
+          </label>
+          <span className="texto-estado">
+            {form.estado ? "Activo" : "Inactivo"}
+          </span>
+        </div>
 
-          {/* Botones */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={close} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
-            <button type="submit" className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700">Guardar</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Botones */}
+        <div className="modal-footer">
+          <button
+            type="button"
+            onClick={handleCancelar}
+            className="btn btn-secondary"
+          >
+             Cancelar
+          </button>
+          <button
+            type="submit"
+            className="btn"
+            disabled={cargando}
+          >
+            {cargando ? (
+              <span className="flex items-center gap-2">
+                <Icon icon="mdi:loading" className="animate-spin" /> Guardando...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Icon icon="mdi:content-save" /> Guardar
+              </span>
+            )}
+          </button>
+        </div>
+      </form>
+    </ModalBase>
   );
 };
 

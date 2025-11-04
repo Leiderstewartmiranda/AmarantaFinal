@@ -1,0 +1,122 @@
+:root {
+  --color-accent: #b45309;
+  --color-accent-hover: #92400e;
+  --color-bg: #fdfaf5;
+  --color-surface: #ffffff;
+  --color-border: #e7e5e4;
+  --color-text: #1c1917;
+  --color-muted: #78716c;
+  --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.08);
+  --radius-md: 10px;
+}
+
+/* ====== CONTENEDOR GENERAL ====== */
+.search-bar {
+  position: relative;
+  width: 280px;
+  max-width: 100%;
+  transition: all 0.3s ease;
+}
+
+.search-bar:focus-within {
+  transform: translateY(-2px);
+}
+
+/* ====== INPUT DE BÚSQUEDA ====== */
+.search-input {
+  width: 100%;
+  padding: 0.65rem 2.5rem;
+  padding-left: 2.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--color-muted);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.15);
+}
+
+/* ====== ICONO DE BÚSQUEDA ====== */
+.icon-search {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.icon-search:hover {
+  color: var(--color-accent);
+}
+
+.icon-loading {
+  color: var(--color-accent);
+  animation: spin 1s linear infinite;
+}
+
+/* ====== ICONO DE LIMPIAR ====== */
+.icon-clear {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-clear:hover {
+  color: var(--color-text);
+  transform: translateY(-50%) scale(1.15);
+}
+
+/* ====== ESTADOS ====== */
+.search-input:disabled {
+  background-color: #f5f5f4;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+@keyframes spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* ====== MODO OSCURO (opcional para combinar con sidebar) ====== */
+@media (prefers-color-scheme: dark) {
+  .search-input {
+    background-color: #292524;
+    color: #e7e5e4;
+    border-color: #44403c;
+  }
+
+  .search-input::placeholder {
+    color: #a8a29e;
+  }
+
+  .icon-search,
+  .icon-clear {
+    color: #a8a29e;
+  }
+
+  .icon-search:hover,
+  .icon-clear:hover {
+    color: var(--color-accent);
+  }
+}

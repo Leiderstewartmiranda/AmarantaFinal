@@ -1,90 +1,142 @@
-import {PostCProducto} from "../../../../../services/categoriaService";
+// FormularioAgregar.jsx (Categorías - con ModalBase moderno)
+import React, { useState, useEffect } from "react";
+import ModalBase from "../../../../../compartidos/modal/modalbase";
+import { PostCProducto, GetCProductos } from "../../../../../services/categoriaService";
 
-const validarSoloLetras = (valor) => {
-  const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
-  return regex.test(valor);
-};
+const validarSoloLetras = (valor) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/.test(valor);
+
 const FormularioAgregar = ({
-  show, 
-  setShow, 
-  onSubmit, 
-  nombreRef, 
-  descripcionRef, 
-  //estadoRef, // Nueva referencia para el estado
+  show,
+  setShow,
+  onSubmit,
+  nombreRef,
+  descripcionRef,
   errores,
-  setErrores
+  setErrores,
 }) => {
-  if (!show) return null;
+  const [categorias, setCategorias] = useState([]);
+
+  // Cargar todas las categorías existentes para validar duplicados
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const data = await GetCProductos();
+        setCategorias(data);
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+      }
+    };
+    fetchCategorias();
+  }, []);
+
+  const close = () => setShow(false);
+
+  // Función de envío con validación adicional
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const nombre = nombreRef.current.value.trim();
+    const descripcion = descripcionRef.current.value.trim();
+
+    // Validaciones locales
+    if (!nombre) {
+      setErrores({ ...errores, nombreCategoria: "El nombre es obligatorio" });
+      return;
+    }
+    if (!descripcion) {
+      setErrores({ ...errores, descripcion: "La descripción es obligatoria" });
+      return;
+    }
+    if (!validarSoloLetras(nombre)) {
+      setErrores({
+        ...errores,
+        nombreCategoria: "Solo se permiten letras y espacios",
+      });
+      return;
+    }
+
+    // 🔍 Validación de nombre duplicado
+    const existeCategoria = categorias.some(
+      (cat) => cat.nombreCategoria.toLowerCase() === nombre.toLowerCase()
+    );
+
+    if (existeCategoria) {
+      setErrores({
+        ...errores,
+        nombreCategoria: "Ya existe una categoría con este nombre",
+      });
+      return;
+    }
+
+    // Si pasa todas las validaciones, ejecutar el submit original
+    await onSubmit(e);
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" onClick={() => setShow(false)}>
-      <div className="bg-white rounded shadow-md p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Agregar Categoría</h2>
-          <button 
-            onClick={() => setShow(false)}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
-            ×
-          </button>
-        </div>
+    <ModalBase show={show} close={close} title={"Agregar Categoría"}>
+      <form onSubmit={handleSubmit}>
         
-        <form onSubmit={onSubmit} className="space-y-4">
+
+        <div className="detalle-categoria">
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Nombre *</label>
-            <input 
+            <label className="detalle-label">Nombre *</label>
+            <input
               type="text"
               ref={nombreRef}
-              onChange={() => setErrores({...errores, nombreCategoria: ''})}
-              className={`w-full border ${errores.nombreCategoria ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none`}
               placeholder="Nombre de la categoría"
+              onChange={(e) => {
+                const valor = e.target.value;
+                if (validarSoloLetras(valor)) {
+                  setErrores({ ...errores, nombreCategoria: "" });
+                } else {
+                  setErrores({
+                    ...errores,
+                    nombreCategoria: "Solo se permiten letras y espacios",
+                  });
+                }
+              }}
+              className={`w-full border rounded p-2 ${
+                errores.nombreCategoria ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errores.nombreCategoria && <span className="text-red-500 text-sm mt-1">{errores.nombreCategoria}</span>}
+            {errores.nombreCategoria && (
+              <span className="error-text">{errores.nombreCategoria}</span>
+            )}
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Descripción *</label>
+            <label className="detalle-label">Descripción *</label>
             <textarea
               ref={descripcionRef}
-              onChange={() => setErrores({...errores, descripcion: ''})}
-              className={`w-full border ${errores.descripcion ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none resize-none`}
               rows="3"
               placeholder="Descripción de la categoría"
+              onChange={() => setErrores({ ...errores, descripcion: "" })}
+              className={`w-full border rounded p-2 resize-none ${
+                errores.descripcion ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errores.descripcion && <span className="text-red-500 text-sm mt-1">{errores.descripcion}</span>}
+            {errores.descripcion && (
+              <span className="error-text">{errores.descripcion}</span>
+            )}
           </div>
+        </div>
 
-          {/* <div>
-            <label className="block text-gray-700 font-medium mb-1">Estado</label>
-            <select 
-              ref={estadoRef}
-              defaultValue={true} // Valor por defecto: Activo
-              className="w-full border border-gray-300 rounded p-2 focus:border-orange-500 focus:outline-none"
-            >
-              <option value={true}>Activo</option>
-              <option value={false}>Inactivo</option>
-            </select>
-          </div> */}
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button 
-              type="submit"
-              className="bg-[var(--naranjado)] text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition duration-300"
-            >
-              Agregar
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setShow(false)}
-              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300"
-            >
-              Cancelar
-            </button>
-            
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="modal-footer">
+          <button
+            type="button"
+            onClick={close}
+            className="btn btn-secondary"
+          >
+            Cancelar
+          </button>
+          <button type="submit" className="btn">
+            Agregar
+          </button>
+          
+        </div>
+      </form>
+    </ModalBase>
   );
 };
+
 export default FormularioAgregar;

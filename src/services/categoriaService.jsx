@@ -42,25 +42,24 @@ export async function PostCProducto(categoria) {
 // PUT - Actualizar categoría existente
 export async function PutCategoria(id, categoria) {
   const datosActualizados = {
-    IdCategoria: parseInt(id),
     NombreCategoria: categoria.NombreCategoria,
-    Descripcion: categoria.Descripcion
-    // Estado: categoria.Estado
+    Descripcion: categoria.Descripcion,
+    Estado: categoria.Estado, // 👈 ya corregido
   };
 
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(datosActualizados)
+    body: JSON.stringify(datosActualizados),
   });
 
   if (!res.ok) {
     const errorData = await res.text();
     throw new Error(`Error ${res.status}: ${errorData}`);
   }
-  
+
   return res.json();
 }
 

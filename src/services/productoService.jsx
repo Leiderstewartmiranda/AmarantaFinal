@@ -48,6 +48,7 @@ export async function ActualizarProducto(id, producto) {
   if (producto.Precio) formData.append("Precio", producto.Precio);
   if (producto.Stock) formData.append("Stock", producto.Stock);
   if (producto.IdCategoria) formData.append("IdCategoria", producto.IdCategoria);
+  if (producto.Estado !== undefined) formData.append("Estado", producto.Estado);
   if (producto.Imagen) formData.append("nuevaImagen", producto.Imagen); // 👈 parámetro "nuevaImagen" en tu API
 
   const res = await fetch(`${API_URL}/${id}`, {

@@ -1,62 +1,95 @@
-nav {
+.sidebar {
+  width: 250px;
+  background-color: #1c1917;
+  color: #e7e5e4;
+  display: flex;
+  /* position: relative; */
+  height: 100vh;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+}
+
+.sidebar.fixed {
+  position: fixed;
   top: 0;
   left: 0;
-  width: 250px;
-  height: 100%;
-  background-color: #4a4b2f;
-  height: 100dvh;
+  height: 100vh;
+  z-index: 100;
 }
 
-ul {
+.sidebar.relative {
+  position: relative;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #292524;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sidebar-logo {
+  width: 40px;
+  height: 54px;
+}
+
+
+
+.sidebar-title {
+  font-family: "Playfair Display", serif;
+  font-size: 1.25rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  margin-top: 10px;
+}
+
+.sidebar-menu {
+  padding: 1rem 0;
   display: flex;
   flex-direction: column;
-  align-items: left;
-  justify-content: left;
-  list-style-type: none;
 }
 
-li {
-  font-size: x-large;
-  margin-right: 30px;
-  text-align: left;
-  /* border-radius: 1ch; */
-  padding: 10px;
-  color: white;
-  /* margin: auto; */
-  margin-top: 10%;
-  text-decoration: none;
-  z-index: 2;
-}
-
-nav a {
-  text-decoration: none;
-  color: white;
-}
-
-li:hover {
-  transform: rotate(30px);
-  transition: 0.8s;
-  padding: 10px;
-  background: #6f7048;
-}
-
-img {
+.menu-item {
+  padding: 0.75rem 1.5rem;
   display: flex;
-  align-content: center;
-  margin-top: 10%;
-  margin-left: 40px;
-  height: 110px;
-  width: 80px;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #a8a29e;
+  transition: all 0.3s;
+  border-left: 3px solid transparent;
+  font-family: Georgia, "Times New Roman", serif;
 }
 
-.link-route-admin:hover {
-  color: white;
+.menu-item:hover,
+.menu-item.active {
+  background-color: #292524;
+  color: #fef3c7;
+  border-left-color: #b45309;
 }
 
-.titulo {
-  color: white;
-  margin-left: -7%;
-  margin-top: 15%;
-  font-size: 25px;
-  font-family: papyrus, sans-serif;
+.sidebar-footer {
+  margin-top: 45%;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #292524;
+}
+
+.logout-btn {
+  font-family: Georgia, "Times New Roman", serif;
+  width: 100%;
+  background: #1c191700;
+  border: none;
+  color: #a8a29e;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  color: #fef3c7;
 }

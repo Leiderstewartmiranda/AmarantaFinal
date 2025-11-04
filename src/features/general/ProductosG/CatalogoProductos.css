@@ -1,0 +1,126 @@
+/* =============================
+   CATÁLOGO DE PRODUCTOS
+   ============================= */
+.catalogo-section {
+  background-color: #111;
+  padding: 6rem 4rem;
+  text-align: center;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-subtitle {
+  color: #d4a574;
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  font-style: italic;
+}
+
+.catalogo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.producto-catalogo-card {
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #333;
+}
+
+.producto-catalogo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(212, 165, 116, 0.2);
+}
+
+.producto-imagen {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  border: 2px solid #333;
+}
+
+.imagen-placeholder {
+  font-size: 3rem;
+  color: #d4a574;
+  font-weight: bold;
+}
+
+.producto-info h3 {
+  color: #d4a574;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.producto-descripcion {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.producto-precio {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.btn-agregar-carrito {
+  background: #b45309;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.btn-agregar-carrito:hover {
+  background: #92400e;
+}
+
+.loading-products {
+  color: #d4a574;
+  font-size: 1.2rem;
+  padding: 2rem;
+}
+
+/* =============================
+   RESPONSIVE
+   ============================= */
+@media (max-width: 768px) {
+  .catalogo-section {
+    padding: 4rem 2rem;
+  }
+
+  .catalogo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .producto-catalogo-card {
+    padding: 1rem;
+  }
+
+  .producto-imagen {
+    height: 150px;
+  }
+
+  .imagen-placeholder {
+    font-size: 2rem;
+  }
+}

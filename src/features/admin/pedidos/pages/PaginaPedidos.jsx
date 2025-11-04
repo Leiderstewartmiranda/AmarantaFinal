@@ -16,6 +16,8 @@ import {
   GetClientes,
   GetProductos 
 } from "../../../../services/pedidoService";
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos"; 
+import Swal from "sweetalert2";
 
 const PaginaPedidos = () => {
   // Estados para datos
@@ -47,6 +49,8 @@ const PaginaPedidos = () => {
     Productos: [],
     Correo: "",
     Estado: "",
+    Municipio: "",
+    Departamento: ""
   });
 
   // Refs
@@ -79,9 +83,25 @@ const PaginaPedidos = () => {
       setListaPedidos(pedidosMapeados);
       setListaClientes(clientesData);
       setListaProductos(productosData);
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Datos cargados",
+        text: "Pedidos, clientes y productos cargados correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (err) {
       console.error("Error cargando datos:", err);
       setError("Error al cargar los datos");
+      
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al cargar",
+        text: "No se pudieron cargar los datos iniciales",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } finally {
       setLoading(false);
     }
@@ -170,65 +190,82 @@ const PaginaPedidos = () => {
       if (nuevoEstado === "Cancelado") {
         await cargarDatosIniciales();
       }
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Estado actualizado",
+        text: `El pedido ha sido ${nuevoEstado.toLowerCase()} correctamente`,
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
       console.error("Error cambiando estado:", error);
-      alert("Error al cambiar el estado del pedido");
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al cambiar estado",
+        text: "No se pudo cambiar el estado del pedido",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
-  
-  
-
-
+  const getCodigo = (p) => 
+    (p.codigoProducto ?? p.id ?? p.idProducto)?.toString();
 
   // 🛍️ Función para encontrar y agregar productos
   const encontrarProducto = () => {
-    const productId = productosRef.current.value;
-    if (!productId) return;
+    const productId = productosRef.current.value?.toString();
+    if (!productId) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Campo vacío",
+        text: "Por favor ingresa un código de producto",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
 
-    const product = listaProductos.find(p => 
-      p.codigoProducto == productId || 
-      p.id == productId ||
-      p.codigoProducto?.toString() === productId
-    );
-    
-    if (product) {
-      setProductosAgregados(prev => {
-        const productoExistente = prev.find(p => 
-          p.codigoProducto === product.codigoProducto || 
-          p.id === product.id
-        );
-        
-        if (productoExistente) {
-          const nuevaLista = prev.map(p => 
-            (p.codigoProducto === product.codigoProducto || p.id === product.id)
-              ? { 
-                  ...p, 
-                  cantidad: p.cantidad + 1, 
-                  subtotal: (p.cantidad + 1) * (p.precio || p.precioVenta || 0) 
+    const product = listaProductos.find(p => getCodigo(p) === productId);
+    if (!product) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Producto no encontrado",
+        text: "No se encontró ningún producto con ese código",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
+
+    setProductosAgregados(prev => {
+      const existe = prev.find(p => getCodigo(p) === productId);
+
+      const nuevaLista = existe
+        ? prev.map(p =>
+            getCodigo(p) === productId
+              ? {
+                  ...p,
+                  cantidad: p.cantidad + 1,
+                  subtotal: (p.cantidad + 1) * (p.precio || p.precioVenta || 0)
                 }
               : p
-          );
-          calcularTotal(nuevaLista);
-          return nuevaLista;
-        } else {
-          const nuevoProducto = { 
-            ...product, 
-            cantidad: 1, 
-            subtotal: product.precio || product.precioVenta || 0,
-            CodigoProducto: product.codigoProducto || product.id,
-            NombreProducto: product.nombreProducto || product.nombre || "Producto sin nombre"
-          };
-          const nuevaLista = [...prev, nuevoProducto];
-          calcularTotal(nuevaLista);
-          return nuevaLista;
-        }
-      });
-      
-      productosRef.current.value = "";
-    } else {
-      alert("Producto no encontrado");
-    }
+          )
+        : [
+            ...prev,
+            {
+              ...product,
+              cantidad: 1,
+              subtotal: product.precio || product.precioVenta || 0,
+            },
+          ];
+
+      calcularTotal(nuevaLista);
+      return nuevaLista;
+    });
+
+    productosRef.current.value = "";
   };
 
   // 🧮 Función para calcular el total
@@ -240,28 +277,26 @@ const PaginaPedidos = () => {
   // ❌ Función para eliminar producto de la lista
   const eliminarProducto = (productId) => {
     setProductosAgregados(prev => {
-      const nuevaLista = prev.filter(p => 
-        p.codigoProducto !== productId && p.id !== productId
-      );
-      calcularTotal(nuevaLista);
-      return nuevaLista;
-    });
-  };
+        const nuevaLista = prev.filter(p => getCodigo(p) !== productId.toString());
+        calcularTotal(nuevaLista);
+        return nuevaLista;
+      });
+    };
 
-  // 🔢 Función para cambiar cantidad de un producto
-  const cambiarCantidad = (productId, nuevaCantidad) => {
+    // 🔢 Función para cambiar cantidad de un producto
+    const cambiarCantidad = (productId, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarProducto(productId);
       return;
     }
 
     setProductosAgregados(prev => {
-      const nuevaLista = prev.map(p => 
-        (p.codigoProducto === productId || p.id === productId)
-          ? { 
-              ...p, 
-              cantidad: nuevaCantidad, 
-              subtotal: nuevaCantidad * (p.precio || p.precioVenta || 0) 
+      const nuevaLista = prev.map(p =>
+        getCodigo(p) === productId.toString()
+          ? {
+              ...p,
+              cantidad: nuevaCantidad,
+              subtotal: nuevaCantidad * (p.precio || p.precioVenta || 0),
             }
           : p
       );
@@ -276,65 +311,142 @@ const PaginaPedidos = () => {
     setTotalCalculado(0);
   };
 
- // ➕ Manejar agregar pedido - VERSIÓN CORREGIDA
-  const handleAgregarSubmit = async (e) => {
+  // ➕ Manejar agregar pedido - VERSIÓN CORREGIDA
+  const handleAgregarSubmit = async (e, formDataAdicional) => {
     e.preventDefault();
 
-    if (!clienteSeleccionado) {
-      alert("Por favor selecciona un cliente");
+    console.log("📝 HandleAgregarSubmit llamado", { formDataAdicional });
+
+    // 🔥 USAR formDataAdicional si viene, sino usar los estados existentes
+    const datos = formDataAdicional || {
+      clienteSeleccionado,
+      productosAgregados,
+      totalCalculado,
+      direccion: direccionRef.current?.value || "",
+      correo: correoRef.current?.value || "",
+      estado: estadoRef.current?.value || "Pendiente",
+      municipio: "", 
+      departamento: ""
+    };
+
+    console.log("📦 Datos a procesar:", datos);
+
+    if (!datos.clienteSeleccionado) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Cliente requerido",
+        text: "Por favor selecciona un cliente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       return;
     }
 
-    if (productosAgregados.length === 0) {
-      alert("Por favor agrega al menos un producto");
+    if (datos.productosAgregados.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Productos requeridos",
+        text: "Por favor agrega al menos un producto",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
+
+    // 🔥 VALIDAR CAMPOS NUEVOS
+    if (!datos.direccion.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Dirección requerida",
+        text: "Por favor ingresa la dirección de entrega",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
+
+    if (!datos.municipio.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Municipio requerido",
+        text: "Por favor ingresa el municipio",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
+
+    if (!datos.departamento.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Departamento requerido",
+        text: "Por favor ingresa el departamento",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       return;
     }
 
     try {
-      // Obtener el ID del cliente correctamente
-      const clienteId = clienteSeleccionado.idCliente || 
-                      clienteSeleccionado.codigoCliente || 
-                      clienteSeleccionado.Id_Cliente || 
-                      clienteSeleccionado.id;
+      const clienteId = datos.clienteSeleccionado.idCliente || 
+                      datos.clienteSeleccionado.codigoCliente || 
+                      datos.clienteSeleccionado.Id_Cliente || 
+                      datos.clienteSeleccionado.id;
 
-      console.log("👤 Cliente seleccionado:", clienteSeleccionado);
-      console.log("🆔 ID Cliente a usar:", clienteId);
+      console.log("👤 Cliente seleccionado:", datos.clienteSeleccionado);
+      console.log("📍 Datos de envío:", {
+        direccion: datos.direccion,
+        municipio: datos.municipio,
+        departamento: datos.departamento,
+        correo: datos.correo
+      });
 
-      // Preparar los detalles correctamente
-      const detalles = productosAgregados.map(producto => {
+      const detalles = datos.productosAgregados.map(producto => {
         const codigoProducto = producto.codigoProducto || producto.CodigoProducto || producto.id;
-        console.log(`📦 Producto: ${producto.nombre || producto.nombreProducto}, ID: ${codigoProducto}, Cantidad: ${producto.cantidad}`);
-        
         return {
           CodigoProducto: parseInt(codigoProducto),
           Cantidad: parseInt(producto.cantidad)
         };
       });
 
-      console.log("📋 Detalles preparados:", detalles);
-
       const nuevoPedido = {
         IdCliente: parseInt(clienteId),
         FechaPedido: new Date().toISOString().split("T")[0],
-        Detalles: detalles
+        Detalles: detalles,
+        // 🔥 INCLUIR TODOS LOS CAMPOS REQUERIDOS
+        Correo: datos.correo,
+        Direccion: datos.direccion,
+        Municipio: datos.municipio,
+        Departamento: datos.departamento,
+        Estado: datos.estado
       };
 
       console.log("🚀 Enviando pedido completo:", nuevoPedido);
       
       const resultado = await PostPedido(nuevoPedido);
       
-      // Recargar la lista de pedidos
       await cargarDatosIniciales();
-      
       setShowAgregar(false);
       limpiarProductos();
       setClienteSeleccionado(null);
       
-      alert("Pedido creado exitosamente");
+      Swal.fire({
+        icon: "success",
+        title: "✅ Pedido creado",
+        text: "El pedido se ha creado exitosamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       
     } catch (error) {
       console.error("Error creando pedido:", error);
-      alert("Error al crear el pedido: " + error.message);
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al crear pedido",
+        text: "No se pudo crear el pedido",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
@@ -358,10 +470,23 @@ const PaginaPedidos = () => {
       );
       
       closeModal();
-      alert("Pedido actualizado exitosamente");
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Pedido actualizado",
+        text: "El pedido se ha actualizado exitosamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
       console.error("Error actualizando pedido:", error);
-      alert("Error al actualizar el pedido");
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al actualizar",
+        text: "No se pudo actualizar el pedido",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
@@ -369,29 +494,57 @@ const PaginaPedidos = () => {
   const handleEliminar = (id) => {
     const pedido = listaPedidos.find((pedido) => pedido.CodigoPedido === id);
     if (pedido) {
-      setPedidoAEliminar(pedido);
-      setShowConfirmacion(true);
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Confirmar cancelación",
+        html: `¿Estás seguro de que deseas cancelar este pedido?<br><br>
+               <div class="text-left">
+                 <p><strong>Cliente:</strong> ${pedido.Cliente}</p>
+                 <p><strong>Total:</strong> ${formatearMoneda(pedido.PrecioTotal)}</p>
+                 <p><strong>Estado:</strong> ${pedido.Estado}</p>
+                 <p><strong>Fecha:</strong> ${pedido.FechaPedido ? new Date(pedido.FechaPedido).toLocaleDateString('es-CO') : 'N/A'}</p>
+               </div>`,
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+        showCancelButton: true,
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Sí, cancelar",
+        cancelButtonText: "Mantener"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          confirmarEliminacion(pedido);
+        }
+      });
     }
   };
 
   // ✅ Confirmar eliminación
-  const confirmarEliminacion = async () => {
-    if (pedidoAEliminar) {
-      try {
-        // Cancelar en lugar de eliminar
-        await CancelarPedido(pedidoAEliminar.CodigoPedido);
-        
-        // Recargar datos
-        await cargarDatosIniciales();
-        
-        alert("Pedido cancelado exitosamente");
-      } catch (error) {
-        console.error("Error cancelando pedido:", error);
-        alert("Error al cancelar el pedido");
-      } finally {
-        setPedidoAEliminar(null);
-        setShowConfirmacion(false);
-      }
+  const confirmarEliminacion = async (pedido) => {
+    if (!pedido) return;
+
+    try {
+      // Cancelar en lugar de eliminar
+      await CancelarPedido(pedido.CodigoPedido);
+      
+      // Recargar datos
+      await cargarDatosIniciales();
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Pedido cancelado",
+        text: "El pedido se ha cancelado exitosamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+    } catch (error) {
+      console.error("Error cancelando pedido:", error);
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al cancelar",
+        text: "No se pudo cancelar el pedido",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
@@ -411,7 +564,13 @@ const PaginaPedidos = () => {
       
     } catch (error) {
       console.error("Error cargando detalles:", error);
-      alert("Error al cargar los detalles del pedido");
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al cargar",
+        text: "No se pudieron cargar los detalles del pedido",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
@@ -429,7 +588,13 @@ const PaginaPedidos = () => {
       }
     } catch (error) {
       console.error("Error cargando detalles:", error);
-      alert("Error al cargar los detalles del pedido");
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al cargar",
+        text: "No se pudieron cargar los detalles del pedido",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
@@ -537,9 +702,7 @@ const PaginaPedidos = () => {
 
   return (
     <>
-      <section className="flex justify-center col-span-2">
-        <h2 className="text-2xl font-bold">Pedidos</h2>
-      </section>
+      <TituloSeccion titulo="Gestión de Pedidos" />
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
@@ -567,7 +730,9 @@ const PaginaPedidos = () => {
             pedidosPaginados.map((element) => (
               <tr
                 key={element.CodigoPedido}
-                className="hover:bg-gray-100 border-t-2 border-gray-300"
+                className={`hover:bg-gray-100 border-t-2 border-gray-300 ${
+                  element.Estado === "Cancelado" ? "bg-red-50 text-gray-500" : ""
+                }`}
               >
                 <td className="py-2 px-4 font-medium">{element.Cliente}</td>
                 <td className="py-2 px-4 text-sm text-black">
@@ -576,7 +741,7 @@ const PaginaPedidos = () => {
                 <td className="py-2 px-4 text-black">
                   {formatearMoneda(element.PrecioTotal)}
                 </td>
-                <td className="py-2 px-4">
+                <td className="py-1 px-4">
                   <select
                     value={element.Estado}
                     onChange={(e) => handleCambiarEstado(element.CodigoPedido, e.target.value)}
@@ -674,6 +839,8 @@ const PaginaPedidos = () => {
         clienteSeleccionado={clienteSeleccionado}
         onClienteChange={handleClienteChange}
         productos={listaProductos}
+        onMunicipioChange={(municipio) => setFormData(prev => ({...prev, Municipio: municipio}))}
+        onDepartamentoChange={(departamento) => setFormData(prev => ({...prev, Departamento: departamento}))}
       />
 
       <FormularioModificar
@@ -698,28 +865,6 @@ const PaginaPedidos = () => {
         codigoPedido={pedidoSeleccionado?.CodigoPedido} // Pasa solo el ID
         titulo="Detalles del Pedido"
         formatearMoneda={formatearMoneda}
-      />
-
-      
-
-      <ModalConfirmacion
-        show={showConfirmacion}
-        onClose={cerrarConfirmacion}
-        onConfirm={confirmarEliminacion}
-        titulo="Cancelar Pedido"
-        mensaje="¿Estás seguro de que deseas cancelar este pedido?"
-        detalles={pedidoAEliminar && (
-          <>
-            <div><strong>Cliente:</strong> {pedidoAEliminar.Cliente}</div>
-            <div><strong>Total:</strong> {formatearMoneda(pedidoAEliminar.PrecioTotal)}</div>
-            <div><strong>Estado:</strong> {pedidoAEliminar.Estado}</div>
-            <div><strong>Fecha:</strong> {pedidoAEliminar.FechaPedido ? new Date(pedidoAEliminar.FechaPedido).toLocaleDateString('es-CO') : 'N/A'}</div>
-          </>
-        )}
-        textoConfirmar="Cancelar Pedido"
-        textoCancelar="Mantener"
-        tipoIcono="warning"
-        colorConfirmar="red"
       />
     </>
   );

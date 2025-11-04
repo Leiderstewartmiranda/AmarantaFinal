@@ -1,0 +1,314 @@
+.perfilAd-container {
+  min-height: 100vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6) ),
+    url("https://static.excelenciasgourmet.com/cdn/ff/eZQ9zND5l2cqH3HmqytZ0fznNT6Mit7ml1xVYpQaWJQ/1721683343/public/2019-10/habanos-ron.jpg")
+      no-repeat center center/cover;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #fffbe6;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-left: 250px;
+  border-radius: 1ch;
+}
+
+/* Capa de desenfoque */
+.perfilAd-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 0;
+}
+
+/* .perfil-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("https://static.excelenciasgourmet.com/cdn/ff/eZQ9zND5l2cqH3HmqytZ0fznNT6Mit7ml1xVYpQaWJQ/1721683343/public/2019-10/habanos-ron.jpg")
+      no-repeat center center / cover;
+  filter: blur(10px);
+  z-index: 0;
+} */
+
+.header-decor,
+.footer-decor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #d4a574, transparent);
+}
+
+.header-decor {
+  top: 0;
+}
+
+.footer-decor {
+  bottom: 0;
+}
+
+.perfil-card {
+  background: #ffffff;
+  border: 2px solid #d4a574;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(212, 165, 116, 0.2),
+    inset 0 0 30px rgba(212, 165, 116, 0.05);
+  max-width: 600px;
+  width: 100%;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  animation: fadeInUp 0.6s ease-out;
+  position: relative;
+}
+
+.foto-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+}
+
+.foto-wrapper {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  padding: 5px;
+  background: linear-gradient(135deg, #d4a574, #b45309);
+  box-shadow: 0 10px 30px rgba(212, 165, 116, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.foto-usuario {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #0a0a0a;
+}
+
+.foto-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #1a1a1a;
+  border: 4px solid #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #d4a574;
+}
+
+.status-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: #b45309;
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.4);
+}
+
+.nombre-completo {
+  color: #d4a574;
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.correo-subtitle {
+  color: #999;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+  gap: 1rem;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d4a574, transparent);
+}
+
+.divider-diamond {
+  color: #d4a574;
+  font-size: 0.8rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.info-card {
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  border-color: #d4a574;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(212, 165, 116, 0.2);
+}
+
+.info-icon {
+  font-size: 1.8rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(212, 165, 116, 0.1);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.info-label {
+  color: #999;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-value {
+  color: #fffbe6;
+  font-size: 1.05rem;
+}
+
+.actions-container {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-editar,
+.btn-cerrar {
+  flex: 1;
+  min-width: 200px;
+  padding: 1rem 2rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-editar {
+  background: transparent;
+  border: 2px solid #d4a574;
+  color: #d4a574;
+}
+
+.btn-editar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+}
+
+.btn-cerrar {
+  background: #b45309;
+  border: 2px solid #b45309;
+  color: #fff;
+}
+
+.btn-cerrar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(180, 83, 9, 0.4);
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #333;
+  border-top: 4px solid #d4a574;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #000, #1a1a1a);
+  color: #d4a574;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.loading-text {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

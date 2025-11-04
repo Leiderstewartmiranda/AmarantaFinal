@@ -1,73 +1,187 @@
-.register-container {
-  max-width: 500px;
-  margin: 50px auto;
-  padding: 25px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: #fdfdfd;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.jiji {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.register-container h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #2c3d1e;
-}
-.register-container button {
+.register-page {
+  font-family: Georgia, "Times New Roman", serif;
+  background-color: #ffffff;
+  color: #1c1917;
+  line-height: 1.6;
+  min-height: 100vh;
   display: flex;
-  text-decoration: none;
+  flex-direction: column;
+}
+
+/* ===========================
+   ESTILOS DEL REGISTRO
+   =========================== */
+
+.register-section {
+  display: flex;
   justify-content: center;
+  padding: 8rem 2rem 4rem;
   align-items: center;
-  margin: 0 auto;
-
+  min-height: 100vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("https://static.excelenciasgourmet.com/cdn/ff/eZQ9zND5l2cqH3HmqytZ0fznNT6Mit7ml1xVYpQaWJQ/1721683343/public/2019-10/habanos-ron.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+  overflow: hidden;
 }
-.register-form {
-  justify-content: center;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+
+.register-container {
+  background-color: #fff;
+  padding: 3rem 4rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(180, 83, 9, 0.3);
+  width: 100%;
+  max-width: 850px;
+  margin-top: -5%;
 }
 
-.register-form label {
+.register-title {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #92400e;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.register-subtitle {
+  text-align: center;
+  color: #444;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+/* ===== Secciones ===== */
+.form-section-title {
+  color: #14532d;
   font-weight: bold;
-  color: #333;
+  font-size: 1.2rem;
+  border-left: 4px solid #b45309;
+  padding-left: 8px;
+  margin: 2rem 0 1rem 0;
+}
+
+/* ===== Grillas y campos ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.8rem 2rem;
+  margin-bottom: -2rem;
+}
+
+.form-group {
   display: flex;
   flex-direction: column;
+  margin-bottom: 5rem; /* Espacio entre grupos */
 }
 
-.register-form input,
-.register-form select {
-  padding: 10px;
-  border: 1px solid #ccc;
+.form-group .labelregister {
+  font-weight: 600;
+  color: #1c1917;
+  font-size: 1rem;
+}
+
+.form-group input,
+.form-group select {
+  margin-bottom: 1rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid #d6d3d1;
   border-radius: 6px;
-  margin-top: 5px;
+  font-size: 1rem;
+  background-color: #fff;
+  transition: all 0.25s ease;
 }
 
-.register-form button {
-  
-  width: 80%;
-  background-color: #2c3d1e;
+.form-group input{
+  margin-bottom: 1rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #b45309;
+  box-shadow: 0 0 5px rgba(180, 83, 9, 0.4);
+}
+
+/* ===== Placeholder ===== */
+.form-group input::placeholder {
+  color: #a8a29e;
+  font-style: italic;
+}
+
+/* ===== Botón ===== */
+.register-button {
+  width: 100%;
+  background-color: #b45309;
   color: white;
-  padding: 12px;
+  padding: 1rem;
+  font-weight: bold;
   border: none;
   border-radius: 6px;
+  margin-top: 2.5rem;
   cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
 }
 
-.register-form button:hover {
-  background-color: #496135;
+.register-button:hover {
+  background-color: #92400e;
+  transform: translateY(-2px);
 }
 
-
-p{
+/* ===== Link de inicio ===== */
+.register-link {
   text-align: center;
-  font-size: 16px;
-  color: #dd5211;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #444;
 }
 
-span{
-  cursor: pointer;
+.register-link .link {
+  color: #b45309;
+  font-weight: bold;
   text-decoration: none;
+}
+
+.register-link .link:hover {
+  text-decoration: underline;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem; /* Espacio entre grupos */
+}
+
+.error {
+  color: #e63946;          /* rojo elegante */
+  font-size: 0.85rem;      /* texto más pequeño */
+  font-weight: 600;
+  margin-top: 10px;         /* espacio debajo del input */
+  text-align: left;        /* alineado a la izquierda */
+  display: block;
+}
+
+/* ===== Responsividad ===== */
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .register-container {
+    padding: 2rem;
+  }
+
+  .register-title {
+    font-size: 2rem;
+  }
 }

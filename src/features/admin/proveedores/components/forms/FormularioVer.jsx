@@ -1,96 +1,94 @@
-// FormularioVer.jsx
-const FormularioVerProveedor = ({ show, close, formData, titulo }) => {
-  if (!show) return null;
+// FormularioVerProveedor.jsx
+import React from "react";
+import ModalBase from "../../../../../compartidos/modal/modalbase";
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{titulo}</h2>
+const FormularioVerProveedor = ({ show, close, formData, titulo }) => {
+  // Si no hay formData o está vacío, no renderizar el contenido
+  if (!formData) {
+    return (
+      <ModalBase 
+        show={show} 
+        title={titulo || "Ver Información"} 
+        onClose={close}
+        footerButtons={
           <button
             onClick={close}
-            className="text-gray-500 hover:text-gray-700"
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            Cerrar
           </button>
+        }
+      >
+        <div className="text-center py-8 text-gray-500">
+          No hay información disponible para mostrar
         </div>
+      </ModalBase>
+    );
+  }
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre
-              </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                {formData.nombreEmpresa}
-              </div>
+  return (
+    <ModalBase 
+      show={show} 
+      title={titulo || "Ver Proveedor"} 
+      onClose={close}
+      footerButtons={
+        <button
+          onClick={close}
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          Cerrar
+        </button>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre
+            </label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+              {formData.nombreEmpresa || "No especificado"}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de Documento
-              </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                {formData.nit}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Documento
-              </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                {formData.representante}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contacto (Email)
-              </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                {formData.correo}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono
-              </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                {formData.telefono || "No especificado"}
-              </div>
-            </div>
-
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Estado
-              </label>
-              <div className={`w-full px-3 py-2 border rounded-md text-center ${
-                formData.estado 
-                  ? "bg-green-100 text-green-800 border-green-300" 
-                  : "bg-red-100 text-red-800 border-red-300"
-              }`}>
-                {formData.estado ? "Activo" : "Inactivo"}
-              </div>
-            </div> */}
           </div>
 
-          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tipo de Documento
+            </label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+              {formData.nit || "No especificado"}
+            </div>
+          </div>
 
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={close}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-            >
-              Cerrar
-            </button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Documento
+            </label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+              {formData.representante || "No especificado"}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contacto (Email)
+            </label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+              {formData.correo || "No especificado"}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Teléfono
+            </label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+              {formData.telefono || "No especificado"}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </ModalBase>
   );
 };
 

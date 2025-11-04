@@ -9,6 +9,8 @@ import FormularioModificar from "../components/forms/FormularioModificar";
 import FormularioVerDetalles from "../components/forms/FormularioVerDetalles";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
 import { GetCProductos, PostCProducto, PutCategoria, DeleteCProducto } from "../../../../services/categoriaService";
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
+import Swal from "sweetalert2";
 
 const PaginaCategorias = () => {
   // Estados principales
@@ -18,8 +20,7 @@ const PaginaCategorias = () => {
     idCategoria: 0,
     nombreCategoria: "",
     descripcion: "",
-    //estado: true,
-    fechaCreacion: ""
+    estado: true,
   });
 
   // Estados de UI
@@ -54,13 +55,28 @@ const PaginaCategorias = () => {
       setLoading(true);
       const data = await GetCProductos();
       setListaCategorias(data);
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Categorías cargadas",
+        text: "Las categorías se han cargado correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
       console.error("Error cargando las categorías:", error);
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al cargar",
+        text: "No se pudieron cargar las categorías",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } finally {
       setLoading(false);
     }
   };
-
+ 
   // Filtrar categorías basado en el término de búsqueda
   const categoriasFiltradas = useMemo(() => {
     if (!terminoBusqueda.trim()) {
@@ -141,6 +157,13 @@ const PaginaCategorias = () => {
       nombreCategoria: nuevaCategoria.NombreCategoria,
       descripcion: nuevaCategoria.Descripcion
     })) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Validación requerida",
+        text: "Por favor corrige los errores en el formulario",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       return;
     }
 
@@ -149,7 +172,21 @@ const PaginaCategorias = () => {
       await cargarCategorias();
       setShowAgregar(false);
       setErrores({});
+      Swal.fire({
+        icon: "success",
+        title: "✅ Categoría agregada",
+        text: "La categoría se ha agregado correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al agregar",
+        text: "No se pudo agregar la categoría",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       console.error("Error al agregar categoría:", error);
     }
   };
@@ -164,10 +201,36 @@ const PaginaCategorias = () => {
       Estado: formData.estado
     };
 
+    const existeDuplicado = listaCategorias.some(
+      (c) =>
+        c.nombreCategoria?.toLowerCase() === updatedCategoria.NombreCategoria.trim().toLowerCase() &&
+        c.idCategoria !== formData.idCategoria
+    );
+
+    if (existeDuplicado) {
+      setErrores({ nombreCategoria: "Ya existe una categoría con ese nombre" });
+      nombreRef.current.focus();
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Categoría duplicada",
+        text: "Ya existe una categoría con ese nombre",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
+
     if (!validarCategoria({
       nombreCategoria: updatedCategoria.NombreCategoria,
       descripcion: updatedCategoria.Descripcion
     })) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Validación requerida",
+        text: "Por favor corrige los errores en el formulario",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       return;
     }
 
@@ -176,7 +239,21 @@ const PaginaCategorias = () => {
       await cargarCategorias();
       closeModal();
       setErrores({});
+      Swal.fire({
+        icon: "success",
+        title: "✅ Categoría actualizada",
+        text: "Los cambios se guardaron correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al actualizar",
+        text: "No se pudo actualizar la categoría",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
       console.error("Error al editar categoría:", error);
     }
   };
@@ -186,21 +263,76 @@ const PaginaCategorias = () => {
     const categoria = listaCategorias.find((c) => c.idCategoria === id);
     
     if (categoria) {
-      setCategoriaAEliminar(categoria);
-      setShowConfirmacion(true);
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Confirmar eliminación",
+        text: "¿Estás seguro de eliminar esta categoría?",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+        showCancelButton: true,
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        html: `
+          <div class="text-left">
+            <p><strong>Nombre:</strong> ${categoria.nombreCategoria}</p>
+            <p><strong>Descripción:</strong> ${categoria.descripcion}</p>
+            <p><strong>Estado:</strong> ${categoria.estado ? "Activo" : "Inactivo"}</p>
+          </div>
+        `
+      }).then((result) => {
+        if (result.isConfirmed) {
+          confirmarEliminacion(categoria);
+        }
+      });
     }
   };
 
-  const confirmarEliminacion = async () => {
-    if (categoriaAEliminar) {
-      try {
-        await DeleteCProducto(categoriaAEliminar.idCategoria);
-        await cargarCategorias();
-        setCategoriaAEliminar(null);
-        setShowConfirmacion(false);
-      } catch (error) {
-        console.error("Error al eliminar categoría:", error);
+  const confirmarEliminacion = async (categoria) => {
+    if (!categoria) {
+      console.error("❌ Categoría es null/undefined");
+      return;
+    }
+
+    try {
+      await DeleteCProducto(categoria.idCategoria);
+      await cargarCategorias();
+      Swal.fire({
+        icon: "success",
+        title: "✅ Categoría eliminada",
+        text: "La categoría se ha eliminado correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      setCategoriaAEliminar(null);
+      setShowConfirmacion(false);
+    } catch (error) {
+      console.error("💥 Error al eliminar categoría:", error);
+      
+      // Manejar específicamente el error de integridad referencial
+      if (error.message.includes("REFERENCE constraint") || 
+          error.message.includes("FK_Productos_Categorias") ||
+          error.message.includes("Error 500")) {
+        
+        Swal.fire({
+          icon: "error",
+          title: "❌ No se puede eliminar",
+          html: `No se puede eliminar la categoría <strong>"${categoria.nombreCategoria}"</strong> porque tiene productos asociados.<br><br>Primero debes eliminar o reasignar los productos de esta categoría.`,
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "❌ Error al eliminar",
+          text: "Ocurrió un error al eliminar la categoría",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
       }
+      
+      setCategoriaAEliminar(null);
+      setShowConfirmacion(false);
     }
   };
 
@@ -209,25 +341,60 @@ const PaginaCategorias = () => {
     const categoria = listaCategorias.find(c => c.idCategoria === id);
     
     if (categoria) {
-      setCategoriaCambioEstado(categoria);
-      setShowConfirmacionEstado(true);
+      Swal.fire({
+        icon: "question",
+        title: "🔄 Cambiar estado",
+        html: `¿Estás seguro de que deseas <strong>${categoria.estado ? 'desactivar' : 'activar'}</strong> esta categoría?<br><br>
+               <div class="text-left">
+                 <p><strong>Nombre:</strong> ${categoria.nombreCategoria}</p>
+                 <p><strong>Descripción:</strong> ${categoria.descripcion}</p>
+                 <p><strong>Estado actual:</strong> ${categoria.estado ? "Activo" : "Inactivo"}</p>
+                 <p><strong>Nuevo estado:</strong> ${categoria.estado ? "Inactivo" : "Activo"}</p>
+               </div>`,
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+        showCancelButton: true,
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: categoria.estado ? 'Desactivar' : 'Activar',
+        cancelButtonText: "Cancelar"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          confirmarCambioEstado(categoria);
+        }
+      });
     }
   };
 
-  const confirmarCambioEstado = async () => {
-    if (categoriaCambioEstado) {
+  const confirmarCambioEstado = async (categoria) => {
+    if (categoria) {
       try {
-        const nuevoEstado = !categoriaCambioEstado.estado;
-        await PutCategoria(categoriaCambioEstado.idCategoria, {
-          NombreCategoria: categoriaCambioEstado.nombreCategoria,
-          Descripcion: categoriaCambioEstado.descripcion,
+        const nuevoEstado = !categoria.estado;
+        await PutCategoria(categoria.idCategoria, {
+          NombreCategoria: categoria.nombreCategoria,
+          Descripcion: categoria.descripcion,
           Estado: nuevoEstado
         });
         await cargarCategorias();
+        
+        Swal.fire({
+          icon: "success",
+          title: "✅ Estado actualizado",
+          text: `La categoría ha sido ${nuevoEstado ? 'activada' : 'desactivada'} correctamente`,
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+        
         setCategoriaCambioEstado(null);
         setShowConfirmacionEstado(false);
       } catch (error) {
         console.error("Error al cambiar estado:", error);
+        Swal.fire({
+          icon: "error",
+          title: "❌ Error al cambiar estado",
+          text: "No se pudo cambiar el estado de la categoría",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
       }
     }
   };
@@ -237,13 +404,24 @@ const PaginaCategorias = () => {
     const categoria = listaCategorias.find((c) => c.idCategoria === id);
 
     if (categoria) {
+      if (!categoria.estado) {
+        Swal.fire({
+          icon: "warning",
+          title: "⚠️ Categoría inactiva",
+          text: "No se puede editar una categoría inactiva",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+        return;
+      }
+
       setFormData({
         idCategoria: categoria.idCategoria,
         nombreCategoria: categoria.nombreCategoria,
         descripcion: categoria.descripcion,
-        estado: categoria.estado,
-        fechaCreacion: categoria.fechaCreacion
+        estado: categoria.estado
       });
+      setErrores({}); 
       setShowEditar(true);
     }
   };
@@ -263,8 +441,7 @@ const PaginaCategorias = () => {
       idCategoria: 0,
       nombreCategoria: "",
       descripcion: "",
-      estado: true,
-      fechaCreacion: ""
+      estado: true
     });
     setErrores({});
   };
@@ -330,9 +507,7 @@ const PaginaCategorias = () => {
 
   return (
     <>
-      <section className="flex justify-center col-span-2">
-        <h2 className="text-2xl font-bold">Categorías</h2>
-      </section>
+      <TituloSeccion titulo="Categorías" />
       
       {/* Sección de botón y búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">
@@ -375,23 +550,28 @@ const PaginaCategorias = () => {
                       : element.descripcion
                     }
                   </td>
-                  <td className="py-2 px-4">
-                    {/* Switch para cambiar estado */}
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={element.estado || false}
-                        onChange={() => cambiarEstado(element.idCategoria)}
-                      />
-                      <div className={`w-11 h-6 rounded-full peer ${element.estado ? 'bg-green-500' : 'bg-gray-300'} peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}>
-                        <div className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${element.estado ? 'transform translate-x-5' : ''}`}></div>
-                      </div>
-                      <span className="ml-2 text-sm font-medium text-gray-900">
-                        {element.estado ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </label>
-                  </td>
+                 <td className="py-1 px-4">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={element.estado || false}
+                      onChange={() => cambiarEstado(element.idCategoria)}
+                    />
+                    <div
+                      className={`w-11 h-6 rounded-full peer ${
+                        element.estado ? "bg-green-500" : "bg-gray-300"
+                      } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                    >
+                      <div
+                        className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${
+                          element.estado ? "transform translate-x-5" : ""
+                        }`}
+                      ></div>
+                    </div>
+                  </label>
+                </td>
+
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
                       icon="mdi:eye-outline"
@@ -405,7 +585,11 @@ const PaginaCategorias = () => {
                       icon="material-symbols:edit-outline"
                       width="24"
                       height="24"
-                      className="text-blue-700 cursor-pointer hover:text-blue-900 transition-colors"
+                      className={`cursor-pointer transition-colors ${
+                        element.estado 
+                          ? "text-blue-700 hover:text-blue-900" 
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
                       onClick={() => mostrarEditar(element.idCategoria)}
                       title={element.estado ? "Editar" : "No editable (inactivo)"}
                     />
@@ -465,53 +649,14 @@ const PaginaCategorias = () => {
         errores={errores}
         setErrores={setErrores}
         setFormData={setFormData}
+        categorias={listaCategorias}
+        categoriaActual={listaCategorias.find(c => c.idCategoria === formData.idCategoria)}
       />
 
       <FormularioVerDetalles
         show={showDetalles}
         close={closeDetalles}
         categoria={categoriaSeleccionada}
-      />
-
-      {/* Modal de confirmación para eliminar */}
-      <ModalConfirmacion
-        show={showConfirmacion}
-        onClose={cerrarConfirmacion}
-        onConfirm={confirmarEliminacion}
-        titulo="Eliminar Categoría"
-        mensaje="¿Estás seguro de que deseas eliminar esta categoría?"
-        detalles={categoriaAEliminar && (
-          <>
-            <div><strong>Nombre:</strong> {categoriaAEliminar.nombreCategoria}</div>
-            <div><strong>Descripción:</strong> {categoriaAEliminar.descripcion}</div>
-            <div><strong>Estado:</strong> {categoriaAEliminar.estado ? "Activo" : "Inactivo"}</div>
-          </>
-        )}
-        textoConfirmar="Eliminar"
-        textoCancelar="Cancelar"
-        tipoIcono="danger"
-        colorConfirmar="red"
-      />
-
-      {/* Modal de confirmación para cambiar estado */}
-      <ModalConfirmacion
-        show={showConfirmacionEstado}
-        onClose={cerrarConfirmacionEstado}
-        onConfirm={confirmarCambioEstado}
-        titulo="Cambiar Estado"
-        mensaje={`¿Estás seguro de que deseas ${categoriaCambioEstado?.estado ? 'desactivar' : 'activar'} esta categoría?`}
-        detalles={categoriaCambioEstado && (
-          <>
-            <div><strong>Nombre:</strong> {categoriaCambioEstado.nombreCategoria}</div>
-            <div><strong>Descripción:</strong> {categoriaCambioEstado.descripcion}</div>
-            <div><strong>Estado actual:</strong> {categoriaCambioEstado.estado ? "Activo" : "Inactivo"}</div>
-            <div><strong>Nuevo estado:</strong> {categoriaCambioEstado.estado ? "Inactivo" : "Activo"}</div>
-          </>
-        )}
-        textoConfirmar={categoriaCambioEstado?.estado ? 'Desactivar' : 'Activar'}
-        textoCancelar="Cancelar"
-        tipoIcono="warning"
-        colorConfirmar="blue"
       />
     </>
   );

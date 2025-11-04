@@ -1,104 +1,243 @@
-/* log.css */
-body {
-  background-color: var(--beige);
+/* ===============================
+   RESET Y CONFIGURACIÓN GLOBAL
+   =============================== */
+.hola {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Contenedor */
-.login-container {
-  max-width: 420px;
-  margin: 2% auto;
-  padding: 30px;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
-  font-family: "Segoe UI", sans-serif;
-}
-
-/* Título */
-.login-container h1 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 32px;
-  font-weight: bold;
-  color: #2c3d1e;
-}
-
-.login-container img {
-  display: block;
-  margin: 0 auto 20px auto;
-  width: 100px;
-  height: auto;
-}
-
-.login-container h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 26px;
-  font-weight: bold;
-  color: #333;
-}
-
-/* Formulario */
-.login-form {
+.login-page {
+  font-family: Georgia, "Times New Roman", serif;
+  background-color: #ffffff;
+  color: #1c1917;
+  line-height: 1.6;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
 
-/* Label */
-.login-form label {
-  font-weight: 600;
-  color: #444;
-  font-size: 14px;
+/* ===============================
+   SECCIÓN DE LOGIN
+   =============================== */
+.login-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rem 2rem 4rem;
+  height: 100vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("https://static.excelenciasgourmet.com/cdn/ff/eZQ9zND5l2cqH3HmqytZ0fznNT6Mit7ml1xVYpQaWJQ/1721683343/public/2019-10/habanos-ron.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Inputs */
-.login-form input {
+/* Patrón decorativo sutil */
+.login-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a574' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.05;
+  z-index: 1;
+}
+
+/* ===============================
+   CONTENEDOR PRINCIPAL
+   =============================== */
+.login-container {
+  margin-top: -3.4%;
+  max-width: 450px;
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #bbb;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: #ffffff;
+  padding: 3rem;
+  border-radius: 9px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 10;
 }
 
-.login-form input:focus {
-  border-color: #4a90e2;
-  box-shadow: 0 0 6px rgba(74, 144, 226, 0.4);
+.login-form {
+  gap: 0.1rem;
 }
 
-/* Botón principal */
-.login-form button {
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  background: #2c3d1e;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.login-form button:hover {
-  background: #3d552afb;
-}
-
-/* Botón secundario (registrarse) */
-.login-form .secondary-btn {
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #ccc;
-}
-
-.login-form .secondary-btn:hover {
-  background: #e0e0e0;
-}
-
-/* Mensajes de error */
-.error {
-  color: #d9534f;
-  font-size: 13px;
+/* ===============================
+   TITULOS Y TEXTOS
+   =============================== */
+.login-title {
+  font-size: 2rem;
+  font-weight: bold;
   text-align: center;
+  margin-bottom: 0.2rem;
+  color: #1c1917;
+  letter-spacing: 0.1em;
 }
+
+.login-subtitle {
+  text-align: center;
+  color: #57534e;
+  margin-bottom: 1rem;
+}
+
+/* ===============================
+   CAMPOS DEL FORMULARIO
+   =============================== */
+.form-group {
+  margin-bottom: 1%;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-weight: bold;
+  color: #1c1917;
+}
+
+.form-input {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #e7e5e4;
+  border-radius: 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #b45309;
+}
+
+/* ===============================
+   OPCIONES (recordarme, olvidar)
+   =============================== */
+.form-options {
+  margin-top: -8%;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.remember-me input {
+  accent-color: #b45309;
+}
+
+.forgot-password {
+  color: #b45309;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+  color: #92400e;
+}
+
+/* ===============================
+   BOTÓN PRINCIPAL
+   =============================== */
+.login-button {
+  display: block;
+  width: 100%;
+  background-color: #b45309;
+  color: #ffffff;
+  padding: 1rem;
+  font-size: 1.125rem;
+  letter-spacing: 0.1em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 0.1rem;
+}
+
+.login-button:hover {
+  background-color: #92400e;
+}
+
+/* ===============================
+   ENLACE DE REGISTRO
+   =============================== */
+.register-link {
+  text-align: center;
+  color: #57534e;
+  font-size: 0.95rem;
+}
+
+.register-link a {
+  color: #b45309;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.register-link a:hover {
+  color: #92400e;
+}
+
+/* ===============================
+   MENSAJE DE ERROR
+   =============================== */
+.error {
+  color: #e53935;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+}
+
+/* ===============================
+   RESPONSIVE
+   =============================== */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 2rem;
+  }
+
+  .login-title {
+    font-size: 1.75rem;
+  }
+
+  .login-button {
+    font-size: 1rem;
+  }
+}
+
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+.form-group .labellogin {
+  font-weight: 600;
+  color: #1c1917;
+  margin-bottom: 0.4rem; /* 🔹 Espacio entre etiqueta e input */
+  font-size: 0.95rem;
+}
+
+
+
+
+
+/* ===== Mejor espaciado general ===== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+

@@ -1,15 +1,4 @@
-// import { Icon } from "@iconify/react/dist/iconify.js";
-// import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
-// import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
-// import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
-// import Paginacion from "../../../../compartidos/paginacion/Paginacion";
-// import { useRef, useState, useMemo } from "react";
-// import FormularioAgregarCompra from "../components/forms/FormularioAgregarCompra";
-// import FormularioVerCompra from "../components/forms/FormularioVerCompra";
-// import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
-// import jsPDF from 'jspdf';
 
-// pages/compras/PaginaCompras.jsx
 import { Icon } from "@iconify/react/dist/iconify.js";
 import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
@@ -24,8 +13,9 @@ import {
   AnularCompra,
   GetProveedores,
   GetProductos,
-  GetUsuarios 
+  GetDetallesByCompra
 } from "../../../../services/compraService";
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos"; 
 import jsPDF from 'jspdf';
 
 const PaginaCompras = () => {
@@ -174,49 +164,133 @@ const PaginaCompras = () => {
   };
 
   // Función para generar y descargar factura PDF
-  const descargarFactura = (compra) => {
-    const doc = new jsPDF();
-    
-    // Agregar logo o título
-    doc.setFontSize(20);
-    doc.text('FACTURA DE COMPRA', 105, 15, { align: 'center' });
-    
-    // Información de la empresa
-    doc.setFontSize(12);
-    doc.text('Mi Empresa S.A.', 20, 25);
-    doc.text('Calle Principal #123', 20, 30);
-    doc.text('Ciudad, País', 20, 35);
-    doc.text('Tel: +123 456 7890', 20, 40);
-    
-    // Información de la factura
-    doc.text(`Factura #: ${compra.codigoCompra}`, 150, 25);
-    doc.text(`Fecha: ${new Date(compra.fechaCompra).toLocaleDateString()}`, 150, 30);
-    
-    // Información del proveedor
-    doc.setFontSize(14);
-    doc.text('Proveedor:', 20, 55);
-    doc.setFontSize(12);
-    doc.text(getProveedorNombre(compra.idProveedor), 20, 60);
-    
-    // Línea separadora
-    doc.line(20, 80, 190, 80);
-    
-    // Información de la compra
-    doc.setFontSize(12);
-    doc.text(`Estado: ${compra.estado}`, 20, 90);
-    doc.text(`Total: ${formatoMoneda(compra.precioTotal)}`, 20, 100);
-    
-    // Si está anulada, agregar marca de agua
-    if (compra.estado === "Anulada") {
-      doc.setFontSize(60);
-      doc.setTextColor(200, 0, 0, 30);
-      doc.text('ANULADO', 105, 150, { align: 'center', angle: 45 });
-      doc.setTextColor(0, 0, 0);
-    }
-    
-    // Guardar el PDF
-    doc.save(`factura_${compra.codigoCompra}.pdf`);
-  };
+const descargarFactura = async (compra) => {
+  try {
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+    // Colores institucionales Amaranta
+    const verde = [74, 75, 47]; // #4a4b2f
+    const naranjado = [209, 81, 19]; // #d15113
+
+    // Obtener detalles con nombres de productos
+    const detallesData = await GetDetallesByCompra(compra.codigoCompra);
+    const detalles = Array.isArray(detallesData) ? detallesData : [];
+
+    // Cargar logo
+    const logo = new Image();
+    logo.src = `${window.location.origin}/AmaraLogo.png`; // ✅ debe estar en public/
+
+    logo.onload = () => {
+      // === ENCABEZADO ===
+      doc.addImage(logo, "PNG", 15, 10, 25, 25);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(...verde);
+      doc.text("AMARANTA", 45, 20);
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text("Reporte de Compra", 45, 28);
+      doc.setDrawColor(...verde);
+      doc.line(15, 38, 195, 38);
+
+      // === DATOS DE COMPRA ===
+      doc.setTextColor(0);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Detalles de la Compra", 15, 48);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Código: ${compra.codigoCompra}`, 15, 55);
+      doc.text(`Fecha: ${new Date(compra.fechaCompra).toLocaleDateString()}`, 15, 60);
+      doc.text(`Estado: ${compra.estado}`, 15, 65);
+
+      // === PROVEEDOR ===
+      const proveedor = proveedores.find(p => p.idProveedor === compra.idProveedor);
+      if (proveedor) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Proveedor:", 15, 75);
+        doc.setFont("helvetica", "normal");
+        doc.text(proveedor.nombreEmpresa || "", 15, 80);
+        doc.text(`${proveedor.nit || ""}: ${proveedor.representante || ""}`, 15, 85);
+        doc.text(`Tel: ${proveedor.telefono || "N/A"}`, 15, 90);
+      }
+
+      // === TABLA DE PRODUCTOS ===
+      let y = 100;
+      doc.setFont("helvetica", "bold");
+      doc.setFillColor(...naranjado);
+      doc.setTextColor(255);
+      doc.rect(15, y, 180, 8, "F");
+      doc.text("Producto", 20, y + 6);
+      doc.text("Cantidad", 90, y + 6);
+      doc.text("Precio Unitario", 125, y + 6);
+      doc.text("Subtotal", 165, y + 6);
+
+      // === FILAS DE PRODUCTOS ===
+      y += 14;
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0);
+
+      if (detalles.length === 0) {
+        doc.text("No hay productos registrados para esta compra.", 20, y + 5);
+      } else {
+        detalles.forEach((d) => {
+          const producto = productos.find(p => p.codigoProducto === d.codigoProducto);
+          const nombre = producto?.nombre || d.nombreProducto || "Producto desconocido";
+          const cantidad = d.cantidad || 0;
+          const precio = d.precioUnitario || 0;
+          const subtotal = cantidad * precio;
+
+          // Celdas de texto
+          doc.text(nombre, 20, y);
+          doc.text(String(cantidad), 95, y, { align: "right" });
+          doc.text(`$${precio.toLocaleString("es-CO")}`, 145, y, { align: "right" });
+          doc.text(`$${subtotal.toLocaleString("es-CO")}`, 190, y, { align: "right" });
+
+          y += 8;
+          if (y > 260) { // Salto de página automático
+            doc.addPage();
+            y = 20;
+          }
+        });
+      }
+
+      // === TOTAL ===
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.setTextColor(...verde);
+      doc.text(
+        `TOTAL: $${(compra.precioTotal || 0).toLocaleString("es-CO")}`,
+        190,
+        y + 10,
+        { align: "right" }
+      );
+
+      // === MARCA DE AGUA SI ESTÁ ANULADA ===
+      if (compra.estado === "Anulada") {
+        doc.setFontSize(60);
+        doc.setTextColor(255, 0, 0, 30);
+        doc.text("ANULADA", 105, 160, { align: "center", angle: 45 });
+      }
+
+      // === PIE DE PÁGINA ===
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.setTextColor(120);
+      doc.text("Generado automáticamente por el sistema Amaranta", 105, 285, {
+        align: "center",
+      });
+
+      // === DESCARGAR ===
+      doc.save(`Factura_Compra_${compra.codigoCompra}.pdf`);
+    };
+  } catch (error) {
+    console.error("Error generando PDF:", error);
+    alert("❌ No se pudo generar el PDF.");
+  }
+};
+
+
+
 
   // Función para generar los números de página
   const generarNumerosPagina = () => {
@@ -275,9 +349,8 @@ const PaginaCompras = () => {
 
   return (
     <>
-      <section className="flex justify-center col-span-2">
-        <h2 className="text-2xl font-bold">Gestión de Compras</h2>
-      </section>
+      <TituloSeccion 
+      titulo="Gestión de Compras" />
       
       {/* Sección para botón y búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">

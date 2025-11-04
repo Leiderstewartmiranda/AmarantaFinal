@@ -1,260 +1,180 @@
 import { useRef, useState } from "react";
-import {CrearProducto} from "../../../../../services/productoService";
-
+import { CrearProducto } from "../../../../../services/productoService";
+import ModalBase from "../../../../../compartidos/modal/modalbase";
+// import "./formProducto.css"; // si deseas estilos extra
 
 const FormularioAgregarProducto = ({
   show,
   setShow,
   categorias,
   setListaProductos,
-  listaProductos
+  listaProductos,
 }) => {
   const nombreRef = useRef();
   const categoriaRef = useRef();
   const precioRef = useRef();
   const stockRef = useRef();
   const [imagen, setImagen] = useState(null);
-
   const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
 
-  if (!show) return null;
-
-  
+  const handleCancelar = () => {
+    setErrores({});
+    setImagen(null);
+    setShow(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setCargando(true);
 
     const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+    const nuevosErrores = {};
 
-    // Validar que todos los campos requeridos tengan valores
-    if (!nombreRef.current.value || !categoriaRef.current.value || !precioRef.current.value || !stockRef.current.value || !imagen) {
-    alert("Por favor, completa todos los campos requeridos");
-    return;
+    const nombreIngresado = nombreRef.current.value.trim();
+
+    // Validaciones básicas
+    if (!nombreIngresado) nuevosErrores.nombre = "El nombre es obligatorio";
+    else if (!regexLetras.test(nombreIngresado))
+      nuevosErrores.nombre = "Solo se permiten letras y espacios";
+    else if (nombreIngresado.length < 3)
+      nuevosErrores.nombre = "Debe tener al menos 3 caracteres";
+
+    // Validación de nombre duplicado
+    const nombreExiste = listaProductos.some(
+      (p) => p.nombreProducto.toLowerCase() === nombreIngresado.toLowerCase()
+    );
+    if (nombreExiste) {
+      nuevosErrores.nombre = "Ya existe un producto con este nombre";
     }
 
-    if (!regexLetras.test(nombreRef.current.value.trim())) {
-      setErrores({ nombreRef: 'El nombre contiene caracteres no permitidos' });
-      return;
-    } else {
-      setErrores({}); // Limpiar errores si es válido
-    }
+    if (!categoriaRef.current.value)
+      nuevosErrores.categoria = "Selecciona una categoría";
 
-    if (nombreRef.current.value.length < 3) {
-      alert("El nombre debe tener al menos 3 caracteres");
-      return;
-    }
+    const precio = parseFloat(precioRef.current.value);
+    if (isNaN(precio) || precio < 1000 || precio > 1000000)
+      nuevosErrores.precio = "El precio debe estar entre 1,000 y 1,000,000";
 
-    if (isNaN(precioRef.current.value) || precioRef.current.value <= 0) {
-      alert("El precio debe ser un número positivo");
-      return;
-    } else if (precioRef.current.value < 1000) {
-      alert("El precio debe ser mayor o igual a 1000");
-      return;
-    } else if (precioRef.current.value > 1000000) {
-      alert("El precio debe ser menor o igual a 1,000,000");
+    const stock = parseInt(stockRef.current.value);
+    if (isNaN(stock) || stock < 0 || stock > 1000)
+      nuevosErrores.stock = "El stock debe estar entre 0 y 1000";
+
+    if (!imagen) nuevosErrores.imagen = "Debes subir una imagen";
+
+    setErrores(nuevosErrores);
+    if (Object.keys(nuevosErrores).length > 0) {
+      setCargando(false);
       return;
     }
-
-    if (isNaN(stockRef.current.value) || stockRef.current.value < 0) {
-      alert("El stock debe ser un número igual o mayor a 0");
-      return;
-    } else if (stockRef.current.value > 1000) {
-      alert("El stock debe ser menor o igual a 1000");
-      return;
-    }
-
-    if (!["image/jpeg", "image/png"].includes(imagen.type)) {
-      alert("La imagen debe ser JPG o PNG");
-      return;
-    }
-
-    if (imagen.size > 2 * 1024 * 1024) { // 2MB
-      alert("La imagen no debe superar los 2MB");
-      return;
-    }
-
-    const nuevoProducto = {
-      NombreProducto: nombreRef.current.value,
-      IdCategoria: categoriaRef.current.value,
-      Precio: precioRef.current.value,
-      Stock: stockRef.current.value,
-      Imagen: imagen,
-    };
 
     try {
+      const nuevoProducto = {
+        NombreProducto: nombreIngresado,
+        IdCategoria: categoriaRef.current.value,
+        Precio: precio,
+        Stock: stock,
+        Imagen: imagen,
+      };
+
       const res = await CrearProducto(nuevoProducto);
       console.log("✅ Producto creado:", res);
 
-      setListaProductos([...listaProductos, res]);
-
-      // cerrar modal y limpiar formulario
-      setShow(false);
-      setImagen(null);
-      e.target.reset();
+      if (res) {
+        setListaProductos([...listaProductos, res]);
+        setShow(false);
+      } else {
+        alert("Error al crear el producto (sin respuesta)");
+      }
     } catch (error) {
-      console.error("❌ Error al guardar el producto:", error);
+      console.error("❌ Error al crear producto:", error);
+      alert("Error al crear el producto");
+    } finally {
+      setCargando(false);
     }
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImagen(file);
-    console.log("📸 Imagen seleccionada:", file);
+    setImagen(e.target.files[0]);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Agregar Producto</h3>
-          <button
-            onClick={() => setShow(false)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            ✕
-          </button>
+    <ModalBase show={show} setShow={setShow} title="Agregar Producto">
+      <form onSubmit={handleSubmit} className="formulario-producto">
+        {/* Nombre */}
+        <div className="campo">
+          <label>Nombre *</label>
+          <input
+            ref={nombreRef}
+            type="text"
+            placeholder="Nombre del producto"
+            className={errores.nombre ? "input-error" : ""}
+          />
+          {errores.nombre && <p className="error-text">{errores.nombre}</p>}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre *
-            </label>
-            <input
-              ref={nombreRef}
-              type="text"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Nombre del producto"
-            />
-            {errores.nombreRef && <span className="text-red-500 text-sm mt-1">{errores.nombreRef}</span>}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Categoría *
-            </label>
-            <select
-              ref={categoriaRef}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Seleccionar categoría</option>
-              {categorias.map(cat => (
-                <option key={cat.idCategoria} value={cat.idCategoria}>{cat.nombreCategoria}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Precio *
-            </label>
-            <input
-              ref={precioRef}
-              type="number"
-              min="1"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Precio"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Stock *
-            </label>
-            <input
-              ref={stockRef}
-              type="number"
-              min="0"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Cantidad en stock"
-            />
-          </div>
-          
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descripción *
-            </label>
-            <textarea
-              ref={descripcionRef}
-              required
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Descripción del producto"
-            ></textarea>
-          </div> */}
-          
-          {/* <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proveedor
-            </label>
-            <input
-              ref={proveedorRef}
-              type="text"
-              value={busquedaProveedor}
-              onChange={(e) => {
-                setBusquedaProveedor(e.target.value);
-                setMostrarOpcionesProveedor(true);
-              }}
-              onFocus={() => setMostrarOpcionesProveedor(true)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Buscar o ingresar proveedor"
-            /> */}
-            
-            {/* {mostrarOpcionesProveedor && proveedoresFiltrados.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {proveedoresFiltrados.map((proveedor, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                    onClick={() => seleccionarProveedor(proveedor)}
-                  >
-                    {proveedor}
-                  </div>
-                ))}
-              </div> 
-            )}
-          </div>*/}
+        {/* Categoría */}
+        <div className="campo">
+          <label>Categoría *</label>
+          <select ref={categoriaRef} defaultValue="">
+            <option value="">Seleccionar categoría</option>
+            {categorias.map((cat) => (
+              <option key={cat.idCategoria} value={cat.idCategoria}>
+                {cat.nombreCategoria}
+              </option>
+            ))}
+          </select>
+          {errores.categoria && <p className="error-text">{errores.categoria}</p>}
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Imagen *
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange} // ← Usar el manejador correcto
-              required
-              className="w-full"
-            />
-            {imagen && (
-              <p className="text-sm text-green-600 mt-1">
-                ✓ Imagen seleccionada: {imagen.name}
-              </p>
-            )}
-          </div>
-          
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setShow(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
-            >
-              Agregar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Precio */}
+        <div className="campo">
+          <label>Precio *</label>
+          <input
+            ref={precioRef}
+            type="number"
+            min="1000"
+            max="1000000"
+            placeholder="Precio del producto"
+            className={errores.precio ? "input-error" : ""}
+          />
+          {errores.precio && <p className="error-text">{errores.precio}</p>}
+        </div>
+
+        {/* Stock */}
+        <div className="campo">
+          <label>Stock *</label>
+          <input
+            ref={stockRef}
+            type="number"
+            min="0"
+            max="1000"
+            placeholder="Cantidad disponible"
+            className={errores.stock ? "input-error" : ""}
+          />
+          {errores.stock && <p className="error-text">{errores.stock}</p>}
+        </div>
+
+        {/* Imagen */}
+        <div className="campo">
+          <label>Imagen *</label>
+          <input type="file" accept="image/*" onChange={handleImageChange} />
+          {errores.imagen && <p className="error-text">{errores.imagen}</p>}
+          {imagen && (
+            <p className="imagen-seleccionada">✓ {imagen.name}</p>
+          )}
+        </div>
+
+        {/* Botones */}
+        <div className="modal-footer">
+          <button type="button" className="btn btn-secondary" onClick={handleCancelar}>
+            Cancelar
+          </button>
+          <button type="submit" className="btn " disabled={cargando}>
+            {cargando ? "Guardando..." : "Agregar"}
+          </button>
+        </div>
+      </form>
+    </ModalBase>
   );
 };
 

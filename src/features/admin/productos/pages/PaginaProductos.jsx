@@ -10,40 +10,14 @@ import { GetCProductos } from "../../../../services/categoriaService";
 import FormularioAgregarProducto from "../components/forms/FormularioAgregar";
 import FormularioModificarProducto from "../components/forms/FormularioModificar";
 import FormularioVerDetallesProducto from "../components/forms/FormularioVerDetalles";
-import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
+import Swal from "sweetalert2";
 
 const PaginaProductos = () => {
   
   const [categorias, setCategorias] = useState([]);
-  useEffect(() => {
-    const cargarCategorias = async () => {
-      try {
-        const data = await GetCProductos();
-        setCategorias(data);
-      } catch (error) {
-        console.error("❌ Error al cargar categorías:", error);
-      }
-    };
-    
-    cargarCategorias();
-  }, []);
-
   const [listaProductos, setListaProductos] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await GetProductos();
-        setListaProductos(data);
-      } catch (error) {
-        console.error("Error cargando productos:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
 
   const [showAgregar, setShowAgregar] = useState(false);
   const [showEditar, setShowEditar] = useState(false);
@@ -51,8 +25,6 @@ const PaginaProductos = () => {
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const productosPorPagina = 5;
-  const [showConfirmacion, setShowConfirmacion] = useState(false);
-  const [productoAEliminar, setProductoAEliminar] = useState(null);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
   // refs
@@ -61,10 +33,116 @@ const PaginaProductos = () => {
   const categoriaRef = useRef();
   const precioRef = useRef();
   const stockRef = useRef();
-  const estadoRef = useRef();
   const busquedaRef = useRef();
 
-  
+  // Cargar categorías
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const data = await GetCProductos();
+        setCategorias(data);
+      } catch (error) {
+        console.error("❌ Error al cargar categorías:", error);
+        Swal.fire({
+          icon: "error",
+          title: "❌ Error al cargar",
+          text: "No se pudieron cargar las categorías",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+      }
+    };
+    
+    cargarCategorias();
+  }, []);
+
+  // Cargar productos
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await GetProductos();
+        setListaProductos(data);
+      } catch (error) {
+        console.error("Error cargando productos:", error);
+        Swal.fire({
+          icon: "error",
+          title: "❌ Error al cargar",
+          text: "No se pudieron cargar los productos",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Función para cambiar estado del producto
+  const cambiarEstado = async (codigoProducto) => {
+    const producto = listaProductos.find(p => p.codigoProducto === codigoProducto);
+    if (producto) {
+      const nuevoEstado = !producto.estado;
+      
+      Swal.fire({
+        icon: "question",
+        title: "🔄 Cambiar estado",
+        html: `¿Estás seguro de que deseas <strong>${producto.estado ? 'desactivar' : 'activar'}</strong> este producto?<br><br>
+               <div class="text-left">
+                 <p><strong>Producto:</strong> ${producto.nombreProducto}</p>
+                 <p><strong>Categoría:</strong> ${categorias.find(cat => cat.idCategoria === producto.idCategoria)?.nombreCategoria || "-"}</p>
+                 <p><strong>Precio:</strong> ${formatearPrecio(producto.precio)}</p>
+                 <p><strong>Stock:</strong> ${producto.stock} unidades</p>
+                 <p><strong>Estado actual:</strong> ${producto.estado ? "Activo" : "Inactivo"}</p>
+                 <p><strong>Nuevo estado:</strong> ${producto.estado ? "Inactivo" : "Activo"}</p>
+               </div>`,
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+        showCancelButton: true,
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: producto.estado ? 'Desactivar' : 'Activar',
+        cancelButtonText: "Cancelar"
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await ActualizarProducto(producto.codigoProducto, {
+              NombreProducto: producto.nombreProducto,
+              Precio: producto.precio,
+              Stock: producto.stock,
+              IdCategoria: producto.idCategoria,
+              Estado: nuevoEstado
+            });
+
+            setListaProductos(prev =>
+              prev.map(p =>
+                p.codigoProducto === producto.codigoProducto
+                  ? { ...p, estado: nuevoEstado }
+                  : p
+              )
+            );
+
+            Swal.fire({
+              icon: "success",
+              title: "✅ Estado actualizado",
+              text: `El producto ha sido ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`,
+              confirmButtonColor: "#b45309",
+              background: "#fff8e7",
+            });
+          } catch (error) {
+            console.error("Error al cambiar el estado del producto:", error);
+            Swal.fire({
+              icon: "error",
+              title: "❌ Error al cambiar estado",
+              text: "No se pudo cambiar el estado del producto",
+              confirmButtonColor: "#b45309",
+              background: "#fff8e7",
+            });
+          }
+        }
+      });
+    }
+  };
 
   // --- CRUD ---
   const handleAgregarSubmit = async (e) => {
@@ -75,14 +153,29 @@ const PaginaProductos = () => {
         Precio: parseFloat(precioRef.current.value),
         Stock: parseInt(stockRef.current.value),
         IdCategoria: parseInt(categoriaRef.current.value),
-        Imagen: null, // si tienes input file, reemplaza aquí
+        Imagen: null,
       };
 
       const creado = await CrearProducto(nuevoProducto);
       setListaProductos([...listaProductos, creado]);
       setShowAgregar(false);
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Producto agregado",
+        text: "El producto se ha agregado correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
       console.error("Error creando producto:", error);
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al agregar",
+        text: "No se pudo agregar el producto",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
@@ -106,22 +199,87 @@ const PaginaProductos = () => {
             : p
         )
       );
+      
       closeModal();
+      
+      Swal.fire({
+        icon: "success",
+        title: "✅ Producto actualizado",
+        text: "Los cambios se guardaron correctamente",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     } catch (error) {
       console.error("Error editando producto:", error);
+      Swal.fire({
+        icon: "error",
+        title: "❌ Error al actualizar",
+        text: "No se pudo actualizar el producto",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
     }
   };
 
-  const confirmarEliminacion = async () => {
-    if (productoAEliminar) {
-      try {
-        await DeleteProducto(productoAEliminar.codigoProducto);
-        setListaProductos(listaProductos.filter((p) => p.codigoProducto !== productoAEliminar.codigoProducto));
-        setProductoAEliminar(null);
-        setShowConfirmacion(false);
-      } catch (error) {
-        console.error("Error eliminando producto:", error);
-      }
+  const handleEliminar = (producto) => {
+    if (producto) {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Confirmar eliminación",
+        html: `¿Estás seguro de eliminar este producto?<br><br>
+               <div class="text-left">
+                 <p><strong>Producto:</strong> ${producto.nombreProducto}</p>
+                 <p><strong>Categoría:</strong> ${categorias.find(cat => cat.idCategoria === producto.idCategoria)?.nombreCategoria || "-"}</p>
+                 <p><strong>Precio:</strong> ${formatearPrecio(producto.precio)}</p>
+                 <p><strong>Stock:</strong> ${producto.stock} unidades</p>
+                 <p><strong>Estado:</strong> ${producto.estado ? "Activo" : "Inactivo"}</p>
+               </div>`,
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+        showCancelButton: true,
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await DeleteProducto(producto.codigoProducto);
+            setListaProductos(listaProductos.filter((p) => p.codigoProducto !== producto.codigoProducto));
+            
+            Swal.fire({
+              icon: "success",
+              title: "✅ Producto eliminado",
+              text: "El producto se ha eliminado correctamente",
+              confirmButtonColor: "#b45309",
+              background: "#fff8e7",
+            });
+          } catch (error) {
+            console.error("Error eliminando producto:", error);
+            
+            // Manejar específicamente el error de integridad referencial
+            if (error.message.includes("REFERENCE constraint") || 
+                error.message.includes("FK_") ||
+                error.message.includes("Error 500")) {
+              
+              Swal.fire({
+                icon: "error",
+                title: "❌ No se puede eliminar",
+                html: `No se puede eliminar el producto <strong>"${producto.nombreProducto}"</strong> porque tiene registros asociados.<br><br>Primero debes eliminar los registros relacionados.`,
+                confirmButtonColor: "#b45309",
+                background: "#fff8e7",
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "❌ Error al eliminar",
+                text: "Ocurrió un error al eliminar el producto",
+                confirmButtonColor: "#b45309",
+                background: "#fff8e7",
+              });
+            }
+          }
+        }
+      });
     }
   };
 
@@ -169,11 +327,53 @@ const PaginaProductos = () => {
     setProductoSeleccionado(null);
   };
 
+  // Función para generar los números de página
+  const generarNumerosPagina = () => {
+    const numeros = [];
+    const maxVisible = 7;
+    
+    if (totalPaginas <= maxVisible) {
+      for (let i = 1; i <= totalPaginas; i++) {
+        numeros.push(i);
+      }
+    } else {
+      if (paginaActual <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          numeros.push(i);
+        }
+        numeros.push('...');
+        numeros.push(totalPaginas);
+      } else if (paginaActual >= totalPaginas - 3) {
+        numeros.push(1);
+        numeros.push('...');
+        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
+          numeros.push(i);
+        }
+      } else {
+        numeros.push(1);
+        numeros.push('...');
+        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
+          numeros.push(i);
+        }
+        numeros.push('...');
+        numeros.push(totalPaginas);
+      }
+    }
+    
+    return numeros;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Cargando productos...</div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <section className="flex justify-center col-span-2">
-        <h2 className="text-2xl font-bold">Productos</h2>
-      </section>
+      <TituloSeccion titulo="Productos" />
 
       {/* buscar y agregar */}
       <section className="col-span-2 flex justify-between items-center gap-4">
@@ -196,7 +396,7 @@ const PaginaProductos = () => {
       {/* tabla */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <TablaAdmin listaCabecera={["Nombre", "Categoría", "Precio", "Stock", "Acciones"]}>
+          <TablaAdmin listaCabecera={["Nombre", "Categoría", "Precio", "Stock", "Estado", "Acciones"]}>
             {productosPaginados.length > 0 ? (
               productosPaginados.map((producto) => (
                 <tr key={producto.codigoProducto} className="hover:bg-gray-100 border-t-2 border-gray-300">
@@ -206,6 +406,28 @@ const PaginaProductos = () => {
                   <td className={`py-2 px-4 ${getStockClass(producto.stock)}`}>
                     {producto.stock} unidades
                   </td>
+                  <td className="py-1 px-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={producto.estado || false}
+                        onChange={() => cambiarEstado(producto.codigoProducto)}
+                      />
+                      <div
+                        className={`w-11 h-6 rounded-full peer ${
+                          producto.estado ? "bg-green-500" : "bg-gray-300"
+                        } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                      >
+                        <div
+                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${
+                            producto.estado ? "transform translate-x-5" : ""
+                          }`}
+                        ></div>
+                      </div>
+                    </label>
+                  </td>
+
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
                       icon="mdi:eye-outline"
@@ -221,28 +443,40 @@ const PaginaProductos = () => {
                       icon="material-symbols:edit-outline"
                       width="24"
                       height="24"
-                      className="text-blue-700 cursor-pointer hover:text-blue-900 transition-colors"
+                      className={`cursor-pointer transition-colors ${
+                        producto.estado 
+                          ? "text-blue-700 hover:text-blue-900" 
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
                       onClick={() => {
+                        if (!producto.estado) {
+                          Swal.fire({
+                            icon: "warning",
+                            title: "⚠️ Producto inactivo",
+                            text: "No se puede editar un producto inactivo",
+                            confirmButtonColor: "#b45309",
+                            background: "#fff8e7",
+                          });
+                          return;
+                        }
                         setProductoSeleccionado(producto);
                         setShowEditar(true);
                       }}
+                      title={producto.estado ? "Editar producto" : "No editable (inactivo)"}
                     />
                     <Icon
                       icon="tabler:trash"
                       width="24"
                       height="24"
                       className="text-red-700 hover:text-red-900 cursor-pointer"
-                      onClick={() => {
-                        setProductoAEliminar(producto);
-                        setShowConfirmacion(true);
-                      }}
+                      onClick={() => handleEliminar(producto)}
                     />
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="py-8 px-4 text-center text-gray-500">
+                <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
                   {terminoBusqueda
                     ? `No se encontraron productos que coincidan con "${terminoBusqueda}"`
                     : "No hay productos disponibles"}
@@ -259,7 +493,7 @@ const PaginaProductos = () => {
           paginaActual={paginaActual}
           totalPaginas={totalPaginas}
           handleCambioPagina={setPaginaActual}
-          generarNumerosPagina={() => Array.from({ length: totalPaginas }, (_, i) => i + 1)}
+          generarNumerosPagina={generarNumerosPagina}
         />
       )}
 
@@ -293,14 +527,6 @@ const PaginaProductos = () => {
         close={closeDetalles}
         producto={productoSeleccionado}
         categorias={categorias}
-      />
-
-      <ModalConfirmacion
-        show={showConfirmacion}
-        onClose={() => setShowConfirmacion(false)}
-        onConfirm={confirmarEliminacion}
-        titulo="Eliminar Producto"
-        mensaje="¿Estás seguro de que deseas eliminar este producto?"
       />
     </>
   );

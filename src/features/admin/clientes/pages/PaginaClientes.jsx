@@ -14,6 +14,7 @@ import {
   EditarCliente,
   DeleteCliente,
 } from "../../../../services/clienteService";
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
 
 const PaginaClientes = () => {
   const [listaClientes, setListaClientes] = useState([]);
@@ -232,9 +233,7 @@ const PaginaClientes = () => {
 
   return (
     <>
-      <section className="flex justify-center col-span-2">
-        <h2 className="text-2xl font-bold">Clientes</h2>
-      </section>
+      <TituloSeccion titulo="Clientes" />
 
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
@@ -351,7 +350,7 @@ const PaginaClientes = () => {
 
       <FormularioVerDetalles
         show={showDetalles}
-        close={() => setShowDetalles(false)}
+        setShow={setShowDetalles}
         cliente={clienteSeleccionado}
       />
 

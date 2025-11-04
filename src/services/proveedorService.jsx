@@ -1,3 +1,5 @@
+//La variable representante es la que utilizo como documento JAJAJAJA. y la de nit como tipo de documento
+
 const API_URL = "http://localhost:5201/api/Proveedores"; // 👈 tu endpoint real
 
 export async function GetProveedores() {
@@ -17,6 +19,25 @@ export async function PostProveedor(proveedor) {
 }
 
 export async function PutProveedor(id, proveedor) {
+  const proveedores = await GetProveedores();
+
+  const tipoDocNuevo = (proveedor.nit ?? "").toString().trim().toLowerCase();
+  const docNuevo = (proveedor.representante ?? "").toString().trim().toLowerCase();
+
+  const existe = proveedores.some((p) => {
+    const tipoDocExistente = (p.nit ?? "").toString().trim().toLowerCase();
+    const docExistente = (p.representante ?? "").toString().trim().toLowerCase();
+    return (
+      tipoDocExistente === tipoDocNuevo &&
+      docExistente === docNuevo &&
+      p.idProveedor !== id
+    );
+  });
+
+  if (existe) {
+    throw new Error("⚠️ No se permite actualizar a un documento ya existente.");
+  }
+
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

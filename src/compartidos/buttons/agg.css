@@ -1,0 +1,92 @@
+/* ====== BOTÓN AGREGAR ====== */
+.btn-agregar {
+  --btn-color: var(--color-accent);
+  --btn-color-hover: var(--color-accent-hover);
+  --btn-shadow: 0 4px 15px rgba(180, 83, 9, 0.3);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.8rem;
+
+  background: linear-gradient(135deg, var(--btn-color) 0%, var(--btn-color-hover) 100%);
+  color: #fffbea;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  font-family: "Georgia", "Playfair Display", serif;
+
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--btn-shadow);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* 🔹 Efecto de brillo diagonal */
+.btn-agregar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  z-index: 1;
+}
+
+.btn-agregar:hover::before {
+  left: 120%;
+}
+
+/* 🔹 Hover elegante */
+.btn-agregar:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(180, 83, 9, 0.45);
+  background: linear-gradient(135deg, #c05b0c 0%, #8c3e0c 100%);
+}
+
+/* 🔹 Click */
+.btn-agregar:active {
+  transform: scale(0.98);
+  box-shadow: 0 3px 10px rgba(180, 83, 9, 0.2);
+}
+
+/* 🔹 Focus accesible */
+.btn-agregar:focus-visible {
+  outline: 2.5px solid rgba(255, 230, 200, 0.6);
+  outline-offset: 3px;
+}
+
+/* 🔹 Disabled */
+.btn-agregar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #b8b1a8 0%, #a8a29e 100%);
+  box-shadow: none;
+}
+
+/* 🔹 Iconos dentro del botón */
+.btn-agregar svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  transition: transform 0.3s ease;
+}
+
+.btn-agregar:hover svg {
+  transform: rotate(90deg) scale(1.1);
+}

@@ -1,12 +1,28 @@
 import React from "react";
+import "./agg.css";
 
-const BotonAgregar = ({ action }) => {
+const BotonAgregar = ({ action, texto = "AGREGAR", icono = true }) => {
   return (
     <button
       onClick={action}
-      className="bg-[var(--naranjado)] text-white font-bold py-2 px-4 rounded hover:bg-orange-700 transition duration-300"
+      className="btn-agregar group"
     >
-      Agregar
+      {icono && (
+        <svg 
+          className="w-5 h-5 transition-transform group-hover:rotate-90 duration-300" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2.5} 
+            d="M12 4v16m8-8H4" 
+          />
+        </svg>
+      )}
+      <span>{texto}</span>
     </button>
   );
 };

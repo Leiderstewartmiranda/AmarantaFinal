@@ -37,6 +37,10 @@ export async function PostPedido(pedido) {
         CodigoProducto: d.CodigoProducto,
         Cantidad: d.Cantidad,
       })),
+      Correo: pedido.Correo || "",
+      Direccion: pedido.Direccion || "",
+      Municipio: pedido.Municipio || "",
+      Departamento: pedido.Departamento || ""
     };
 
     console.log("📦 Pedido a enviar:", pedidoData);

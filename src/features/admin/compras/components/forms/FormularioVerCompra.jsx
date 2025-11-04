@@ -1,5 +1,6 @@
 // components/forms/FormularioVerCompra.jsx
 import React, { useState, useEffect } from "react";
+import ModalBase from "../../../../../compartidos/modal/modalbase.jsx";
 import { GetDetallesByCompra } from "../../../../../services/compraService";
 import { GetProveedores } from "../../../../../services/compraService";
 
@@ -35,124 +36,97 @@ const FormularioVerCompra = ({
 
   
 
-  const getProveedorNombre = () => {
+  const getProveedorInfo = () => {
+    if (!compra || !compra.idProveedor) {
+      return { nombre: "Desconocido", tipoDocumento: "-", documento: "-" };
+    }
+
     const proveedor = proveedores.find(p => p.idProveedor === compra.idProveedor);
-    return proveedor?.nombreEmpresa;
+
+    return proveedor
+      ? {
+          nombre: proveedor.nombreEmpresa,
+          tipoDocumento: proveedor.nit || "No especificado",
+          documento: proveedor.representante || "N/A"
+        }
+      : { nombre: "Desconocido", tipoDocumento: "-", documento: "-" };
   };
+
+  const proveedor = getProveedorInfo();
 
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold">Detalles de la Compra #{compra.codigoCompra}</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => descargarFactura(compra)}
-              className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Descargar PDF
-            </button>
-            <button
-              onClick={close}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
+    <ModalBase
+      show={show}
+      title={`Detalles de la Compra #${compra?.codigoCompra}`}
+      onClose={close}
+      footerButtons={
+        <>
+          <button
+            className="btn-secundary"
+            onClick={close}
+          >
+            Cerrar
+          </button>
+          <button
+            className="btn"
+            onClick={() => descargarFactura(compra)}
+          >
+            Descargar PDF
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <p>
+          <b>Fecha:</b>{" "}
+          {new Date(compra.fechaCompra).toLocaleDateString("es-CO")}
+        </p>
+        <p>
+          <b>Proveedor:</b> {proveedor.nombre}
+        </p>
+        <p>
+          <b>{proveedor.tipoDocumento}:</b> {proveedor.documento}
+        </p>
+        
+        <p>
+          <b>Total:</b> {formatoMoneda(compra.precioTotal)}
+        </p>
 
-        {/* Información general */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="space-y-3">
-            <h4 className="font-semibold text-lg border-b pb-2">Información General</h4>
-            <div>
-              <span className="font-medium">Código:</span> #{compra.codigoCompra}
-            </div>
-            <div>
-              <span className="font-medium">Fecha:</span> {new Date(compra.fechaCompra).toLocaleDateString()}
-            </div>
-            <div>
-              <span className="font-medium">Proveedor:</span> {getProveedorNombre()}
-            </div>
-            <div>
-              <span className="font-medium">Estado:</span> 
-              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${
-                compra.estado === "Anulada" 
-                  ? "bg-red-100 text-red-800" 
-                  : "bg-green-100 text-green-800"
-              }`}>
-                {compra.estado}
-              </span>
-            </div>
-          </div>
+        <hr className="my-3 border-gray-300" />
 
-          <div className="space-y-3">
-            <h4 className="font-semibold text-lg border-b pb-2">Información de Pago</h4>
-            <div>
-              <span className="font-medium">Total:</span> {formatoMoneda(compra.precioTotal)}
-            </div>
-            <div>
-              <span className="font-medium">ID Usuario:</span> {compra.idUsuario || "N/A"}
-            </div>
-          </div>
-        </div>
-
-        {/* Detalles de productos */}
-        <div>
-          <h4 className="font-semibold text-lg border-b pb-2 mb-4">Productos Comprados</h4>
-          {loading ? (
-            <div className="text-center py-4">Cargando detalles...</div>
-          ) : detalles.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Unitario</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {detalles.map((detalle, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {detalle.nombreProducto || `Producto ${detalle.codigoProducto}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {detalle.cantidad}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatoMoneda(detalle.precioUnitario)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                        {formatoMoneda(detalle.subtotal)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-gray-50">
-                  <tr>
-                    <td colSpan="3" className="px-6 py-4 text-right text-sm font-medium text-gray-900">
-                      Total:
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                      {formatoMoneda(compra.precioTotal)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-4 text-gray-500">
-              No hay detalles disponibles para esta compra
-            </div>
-          )}
-        </div>
+        <h4 className="font-semibold text-lg mb-2">Productos</h4>
+        {detalles.length > 0 ? (
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-[var(--naranjado)] text-white">
+              <tr>
+                <th className="py-2 px-4 text-left">Producto</th>
+                <th className="py-2 px-4 text-center">Cantidad</th>
+                <th className="py-2 px-4 text-center">Precio</th>
+                <th className="py-2 px-4 text-center">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detalles.map((d, i) => (
+                <tr key={i} className="border-t">
+                  <td className="py-2 px-4">{d.nombreProducto}</td>
+                  <td className="py-2 px-4 text-center">{d.cantidad}</td>
+                  <td className="py-2 px-4 text-center">
+                    {formatoMoneda(d.precioUnitario)}
+                  </td>
+                  <td className="py-2 px-4 text-center font-semibold">
+                    {formatoMoneda(d.cantidad * d.precioUnitario)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No hay detalles disponibles.</p>
+        )}
       </div>
-    </div>
+    </ModalBase>
   );
 };
 

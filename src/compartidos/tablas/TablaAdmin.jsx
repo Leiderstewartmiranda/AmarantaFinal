@@ -1,24 +1,27 @@
 import React, { Children } from "react";
+import "./tablaAdmin.css"; // nuevo archivo para el estilo
 
 const TablaAdmin = ({ listaCabecera, children }) => {
   return (
-    <table className="min-w-full bg-[var(--beige)] border border-gray-300">
-      <thead className="bg-[var(--naranjado)] text-white">
-        <tr>
-          {listaCabecera.map((element) => (
-            <th
-              key={element}
-              className={`py-2 px-4 text-${
-                element == "Acciones" ? "center" : "left"
-              } text-sm font-semibold tracking-wider`}
-            >
-              {element}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody className="bg-[var(--blanco)]">{Children.toArray(children)}</tbody>
-    </table>
+    <div className="table-container">
+      <table className="tabla-admin">
+        <thead>
+          <tr>
+            {listaCabecera.map((element) => (
+              <th
+                key={element}
+                className={`${
+                  element === "Acciones" ? "text-center" : "text-left"
+                }`}
+              >
+                {element}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{Children.toArray(children)}</tbody>
+      </table>
+    </div>
   );
 };
 

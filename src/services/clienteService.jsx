@@ -25,3 +25,17 @@ export async function EditarCliente(id, cliente) {
 export async function DeleteCliente(id) {
   await fetch(`${API_URL}/${id}`, { method: "DELETE" });
 }
+
+export async function GetClienteById(idCliente) {
+  try {
+    const response = await fetch(`${API_URL}/${idCliente}`);
+    if (!response.ok) throw new Error("Cliente no encontrado");
+    const data = await response.json();
+    console.log("✅ Cliente encontrado:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error al obtener cliente:", error.message);
+    throw error; // importante para manejar el error arriba
+  }
+}
+

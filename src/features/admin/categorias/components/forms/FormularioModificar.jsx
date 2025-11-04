@@ -1,92 +1,114 @@
-// FormularioModificar.jsx (Categorías - Versión Mejorada)
-const FormularioModificar = ({
+// FormularioModificar.jsx
+import React from "react"; 
+import ModalBase from "../../../../../compartidos/modal/modalbase"; 
+
+const FormularioModificar = ({ 
   show, 
   close, 
   formData, 
   onSubmit, 
   nombreRef, 
   descripcionRef, 
-  errores,
-  setErrores,
-  setFormData
-}) => {
-  if (!show) return null;
+  errores, 
+  setErrores, 
+  setFormData,
+  categorias, // 👈 Nuevo prop para validar duplicados
+  categoriaActual // 👈 Nuevo prop para la categoría actual
+}) => { 
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" onClick={close}>
-      <div className="bg-white rounded shadow-md p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Editar Categoría</h2>
-          <button 
-            onClick={close}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
-            ×
-          </button>
-        </div>
-        
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Nombre *</label>
+  // 🔹 Función para validar nombre duplicado
+  const validarNombreDuplicado = (nombre) => {
+    if (!Array.isArray(categorias) || !nombre.trim()) return false;
+
+    return categorias.some(
+      (c) =>
+        c.nombreCategoria?.toLowerCase() === nombre.trim().toLowerCase() &&
+        c.idCategoria !== categoriaActual?.idCategoria // 👈 Excluir la categoría actual
+    );
+  };
+
+  // 🔹 Validación en tiempo real del nombre
+  const handleNombreChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, nombreCategoria: value });
+    
+    // Limpiar error anterior
+    const nuevosErrores = { ...errores, nombreCategoria: "" };
+    
+    // Validaciones
+    const regexLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/;
+    
+    if (!value.trim()) {
+      nuevosErrores.nombreCategoria = "El nombre es obligatorio";
+    } else if (!regexLetras.test(value.trim())) {
+      nuevosErrores.nombreCategoria = "Solo se permiten letras y espacios";
+    } else if (value.trim().length < 2) {
+      nuevosErrores.nombreCategoria = "Debe tener al menos 2 caracteres";
+    } else if (value.trim().length > 50) {
+      nuevosErrores.nombreCategoria = "No puede exceder 50 caracteres";
+    } else if (validarNombreDuplicado(value)) {
+      nuevosErrores.nombreCategoria = "Ya existe una categoría con ese nombre";
+    }
+    
+    setErrores(nuevosErrores);
+  };
+
+  return ( 
+    <ModalBase show={show} close={close} title={"Editar Categoría"}> 
+      <form onSubmit={onSubmit} className="w-full max-w-lg mx-auto"> 
+        <div className="space-y-6"> 
+          <div className="form-group"> 
+            <label className="block text-gray-700 text-sm font-bold mb-2">Nombre *</label> 
             <input 
-              type="text"
-              ref={nombreRef}
-              defaultValue={formData.nombreCategoria}
-              onChange={(e) => {
-                setFormData({...formData, nombreCategoria: e.target.value});
-                setErrores({...errores, nombreCategoria: ''});
-              }}
-              className={`w-full border ${errores.nombre ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none`}
-            />
-            {errores.nombre && <span className="text-red-500 text-sm mt-1">{errores.nombre}</span>}
-          </div>
+              type="text" 
+              ref={nombreRef} 
+              value={formData.nombreCategoria} 
+              onChange={handleNombreChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                errores.nombreCategoria ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-amber-200"
+              }`} 
+            /> 
+            {errores.nombreCategoria && ( 
+              <p className="text-red-500 text-xs italic mt-1">{errores.nombreCategoria}</p> 
+            )} 
+          </div> 
+          <div className="form-group"> 
+            <label className="block text-gray-700 text-sm font-bold mb-2">Descripción *</label> 
+            <textarea 
+              ref={descripcionRef} 
+              value={formData.descripcion} 
+              onChange={(e) => { 
+                setFormData({ ...formData, descripcion: e.target.value }); 
+                setErrores({ ...errores, descripcion: "" }); 
+              }} 
+              rows="3" 
+              className={`w-full px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 ${
+                errores.descripcion ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-amber-200"
+              }`} 
+            /> 
+            {errores.descripcion && ( 
+              <p className="text-red-500 text-xs italic mt-1">{errores.descripcion}</p> 
+            )} 
+          </div> 
+        </div> 
+        <div className="flex justify-end gap-4 mt-6"> 
+          <button 
+            type="button" 
+            onClick={close} 
+            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          > 
+            Cancelar 
+          </button> 
+          <button 
+            type="submit" 
+            className="btn"
+          > 
+            Guardar cambios 
+          </button> 
+        </div> 
+      </form> 
+    </ModalBase> 
+  ); 
+}; 
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Descripción *</label>
-            <textarea
-              ref={descripcionRef}
-              defaultValue={formData.descripcion}
-              onChange={(e) => {
-                setFormData({...formData, descripcion: e.target.value});
-                setErrores({...errores, descripcion: ''});
-              }}
-              className={`w-full border ${errores.descripcion ? 'border-red-500' : 'border-gray-300'} rounded p-2 focus:border-orange-500 focus:outline-none resize-none`}
-              rows="3"
-            />
-            {errores.descripcion && <span className="text-red-500 text-sm mt-1">{errores.descripcion}</span>}
-          </div>
-
-          {/* <div>
-            <label className="block text-gray-700 font-medium mb-1">Estado</label>
-            <select 
-              value={formData.estado} 
-              onChange={(e) => setFormData({...formData, estado: e.target.value === 'true'})}
-              className="w-full border border-gray-300 rounded p-2 focus:border-orange-500 focus:outline-none"
-            >
-              <option value={true}>Activo</option>
-              <option value={false}>Inactivo</option>
-            </select>
-          </div> */}
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button 
-              type="submit"
-              className="bg-[var(--naranjado)] text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition duration-300"
-            >
-              Guardar
-            </button>
-            <button 
-              type="button" 
-              onClick={close}
-              className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300"
-            >
-              Cancelar
-            </button>
-            
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 export default FormularioModificar;

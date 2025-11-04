@@ -1,0 +1,199 @@
+:root {
+  --color-bg: #e7ddd2;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8f5f1;
+  --color-accent: #b45309;
+  --color-accent-hover: #92400e;
+  --color-dark: #1c1917;
+  --color-dark-alt: #292524;
+  --color-text: #1c1917;
+  --color-muted: #78716c;
+  --color-border: #e5e0db;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.08);
+  /* --font-main: "Georgia", "Playfair Display", serif; */
+}
+
+/* ====== CONTENEDOR ====== */
+.table-container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.table-container:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ====== TABLA ====== */
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Georgia", "Playfair Display", serif;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+/* ====== CABECERA ====== */
+.tabla-admin thead {
+  background: linear-gradient(135deg, var(--color-dark), var(--color-dark-alt));
+  color: #fef3c7;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid var(--color-accent);
+}
+
+.tabla-admin th {
+  padding: 1rem 1.5rem;
+  font-size: 0.9rem;
+  text-align: left;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ====== FILAS ====== */
+.tabla-admin tbody tr {
+  background-color: var(--color-surface);
+  transition: all 0.25s ease;
+}
+
+.tabla-admin tbody tr:nth-child(even) {
+  background-color: var(--color-surface-alt);
+}
+
+.tabla-admin tbody tr:hover {
+  background-color: rgba(180, 83, 9, 0.05);
+  transform: translateX(3px);
+  box-shadow: inset 4px 0 0 var(--color-accent);
+}
+
+/* ====== CELDAS ====== */
+.tabla-admin td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.tabla-admin td.text-center,
+.tabla-admin th.text-center {
+  text-align: center;
+}
+
+/* ====== BOTONES DE ACCIÓN ====== */
+.action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-soft);
+}
+
+.action-btn.view {
+  color: #2563eb;
+}
+.action-btn.view:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.action-btn.edit {
+  color: var(--color-accent);
+}
+.action-btn.edit:hover {
+  background-color: rgba(180, 83, 9, 0.1);
+}
+
+.action-btn.delete {
+  color: #dc2626;
+}
+.action-btn.delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* ====== ETIQUETAS DE ESTADO ====== */
+.status {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.25s ease;
+}
+
+.status.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, 0.3);
+}
+
+.status.inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+  border: 1px solid rgba(185, 28, 28, 0.3);
+}
+
+.status.pending {
+  background: rgba(180, 83, 9, 0.15);
+  color: var(--color-accent);
+  border: 1px solid rgba(180, 83, 9, 0.3);
+}
+
+/* ====== ANIMACIÓN ====== */
+.tabla-admin tbody tr {
+  animation: fadeInUp 0.45s ease forwards;
+  opacity: 0;
+}
+.tabla-admin tbody tr:nth-child(1) { animation-delay: 0.1s; }
+.tabla-admin tbody tr:nth-child(2) { animation-delay: 0.2s; }
+.tabla-admin tbody tr:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ====== SCROLLBAR ====== */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.table-container::-webkit-scrollbar-thumb {
+  background-color: var(--color-accent);
+  border-radius: 10px;
+}
+.table-container::-webkit-scrollbar-track {
+  background: #f1ede8;
+}
