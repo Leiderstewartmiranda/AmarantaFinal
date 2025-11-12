@@ -68,7 +68,7 @@
   text-align: left;
 }
 
-label {
+.verification-form label {
   font-weight: 600;
   color: #1c1917;
   margin-bottom: 0rem;

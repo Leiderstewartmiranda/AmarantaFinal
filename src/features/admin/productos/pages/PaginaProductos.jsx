@@ -26,6 +26,7 @@ const PaginaProductos = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const productosPorPagina = 5;
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [orden, setOrden] = useState("alfabetico");
 
   // refs
   const imagenRef = useRef();
@@ -78,6 +79,37 @@ const PaginaProductos = () => {
     }
     fetchData();
   }, []);
+
+  const ordenarProductos = (lista) => {
+    const productosOrdenados = [...lista];
+
+    switch (orden) {
+      case "alfabetico":
+        return productosOrdenados.sort((a, b) =>
+          a.nombreProducto.localeCompare(b.nombreProducto, "es", { sensitivity: "base" })
+        );
+
+      case "recientes":
+        return productosOrdenados.sort((a, b) => {
+          const numA = parseInt(a.codigoProducto.replace(/\D/g, "")) || 0;
+          const numB = parseInt(b.codigoProducto.replace(/\D/g, "")) || 0;
+          return numB - numA; // mayor → más reciente
+        });
+
+      case "antiguos":
+        return productosOrdenados.sort((a, b) => {
+          const numA = parseInt(a.codigoProducto.replace(/\D/g, "")) || 0;
+          const numB = parseInt(b.codigoProducto.replace(/\D/g, "")) || 0;
+          return numA - numB; // menor → más antiguo
+        });
+
+      default:
+        return productosOrdenados;
+    }
+  };
+
+
+
 
   // Función para cambiar estado del producto
   const cambiarEstado = async (codigoProducto) => {
@@ -254,30 +286,43 @@ const PaginaProductos = () => {
               background: "#fff8e7",
             });
           } catch (error) {
-            console.error("Error eliminando producto:", error);
-            
-            // Manejar específicamente el error de integridad referencial
-            if (error.message.includes("REFERENCE constraint") || 
-                error.message.includes("FK_") ||
-                error.message.includes("Error 500")) {
-              
-              Swal.fire({
-                icon: "error",
-                title: "❌ No se puede eliminar",
-                html: `No se puede eliminar el producto <strong>"${producto.nombreProducto}"</strong> porque tiene registros asociados.<br><br>Primero debes eliminar los registros relacionados.`,
-                confirmButtonColor: "#b45309",
-                background: "#fff8e7",
-              });
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "❌ Error al eliminar",
-                text: "Ocurrió un error al eliminar el producto",
-                confirmButtonColor: "#b45309",
-                background: "#fff8e7",
-              });
+              console.error("Error eliminando producto:", error);
+
+              // Extraer mensaje o código de error si viene de la API
+              const errorMsg = error.message || error.toString();
+
+              console.log("🧠 Mensaje de error al eliminar producto:", errorMsg);
+
+              // 🧩 Detección más específica: si el producto está vinculado con una compra/pedido
+              if (
+                errorMsg.includes("REFERENCE constraint") ||
+                errorMsg.includes("FK_") ||
+                errorMsg.includes("compra") ||
+                errorMsg.includes("pedido") ||
+                errorMsg.includes("detalles") ||
+                errorMsg.includes("Error 500")
+              ) {
+                Swal.fire({
+                  icon: "error",
+                  title: "❌ No se puede eliminar el producto",
+                  html: `
+                    Este producto está vinculado a un <strong>pedido</strong> o una <strong>compra</strong> registrada.<br><br>
+                    Por motivos de integridad, no puede eliminarse directamente.<br><br>
+                    <small>Si deseas eliminarlo, primero elimina o actualiza los registros relacionados.</small>
+                  `,
+                  confirmButtonColor: "#b45309",
+                  background: "#fff8e7",
+                });
+              } else {
+                Swal.fire({
+                  icon: "error",
+                  title: "❌ Error al eliminar",
+                  text: "No se pudo eliminar el producto ya que se encuentra vinculado a otros registros.",
+                  confirmButtonColor: "#b45309",
+                  background: "#fff8e7",
+                });
+              }
             }
-          }
         }
       });
     }
@@ -285,13 +330,19 @@ const PaginaProductos = () => {
 
   // --- búsqueda y paginación ---
   const productosFiltrados = useMemo(() => {
-    if (!terminoBusqueda.trim()) return listaProductos;
     const termino = terminoBusqueda.toLowerCase().trim();
-    return listaProductos.filter(
-      (p) =>
-        p.nombreProducto?.toLowerCase().includes(termino) ||
-        p.categoria?.toLowerCase().includes(termino)
-    );
+    let filtrados = listaProductos;
+
+    if (termino) {
+      filtrados = listaProductos.filter(
+        (p) =>
+          p.nombreProducto?.toLowerCase().includes(termino) ||
+          p.categoria?.toLowerCase().includes(termino)
+      );
+    }
+
+    console.log(listaProductos.map(p => p.codigoProducto));
+    return ordenarProductos(filtrados);
   }, [listaProductos, terminoBusqueda]);
 
   const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
@@ -379,6 +430,19 @@ const PaginaProductos = () => {
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
         <div className="flex-shrink-0 w-80">
+          <div className="flex items-center gap-2 mt-3">
+          <label htmlFor="orden" className="text-sm text-gray-700">Ordenar por:</label>
+          <select
+            id="orden"
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+          >
+            <option value="alfabetico">Nombre (A–Z)</option>
+            <option value="recientes">Más recientes</option>
+            <option value="antiguos">Más antiguos</option>
+          </select>
+        </div>
           <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar productos..."
@@ -391,6 +455,7 @@ const PaginaProductos = () => {
             </p>
           )}
         </div>
+        
       </section>
 
       {/* tabla */}

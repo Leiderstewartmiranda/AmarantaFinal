@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ModalBase from "../../../../../compartidos/modal/modalbase";
 import { Icon } from "@iconify/react";
-import Select from 'react-select';
+import Select from "react-select";
+import { UbicacionService } from "../../../../../services/ubicacionService"; // 🔥 Ajusta la ruta según tu estructura
 
 const FormularioAgregar = ({
   show,
@@ -29,24 +30,50 @@ const FormularioAgregar = ({
 }) => {
   const [clienteSelect, setClienteSelect] = useState(null);
   const [productoSelect, setProductoSelect] = useState(null);
-  
-  // 🔥 NUEVOS ESTADOS para municipio y departamento
-  const [municipio, setMunicipio] = useState("");
-  const [departamento, setDepartamento] = useState("");
 
-  // 🔸 Preparar datos para react-select
+  // 🌎 Estados para ubicación
+  const [departamento, setDepartamento] = useState(null);
+  const [municipio, setMunicipio] = useState(null);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
+  // ✅ Cargar departamentos al montar
+  useEffect(() => {
+    const cargarDepartamentos = async () => {
+      const data = await UbicacionService.obtenerDepartamentos();
+      const opciones = data.map(dep => ({ value: dep, label: dep }));
+      setDepartamentos(opciones);
+    };
+    cargarDepartamentos();
+  }, []);
+
+  // ✅ Cargar municipios al cambiar el departamento
+  useEffect(() => {
+    const cargarMunicipios = async () => {
+      if (!departamento) {
+        setMunicipios([]);
+        setMunicipio(null);
+        return;
+      }
+      const data = await UbicacionService.obtenerMunicipios(departamento.value);
+      const opciones = data.map(mun => ({ value: mun, label: mun }));
+      setMunicipios(opciones);
+    };
+    cargarMunicipios();
+  }, [departamento]);
+
+  // 🔸 Opciones para clientes y productos
   const opcionesClientes = useMemo(() => {
     return clientes.map((cliente) => {
       const id = cliente.idCliente || cliente.codigoCliente || cliente.Id_Cliente;
       const nombre = cliente.nombreCompleto ||
-        `${cliente.nombre || ''} ${cliente.apellido || ''}`.trim() ||
-        cliente.Nombre || 'Cliente';
-      const doc = cliente.documento || cliente.Documento || 'Sin documento';
-      
+        `${cliente.nombre || ""} ${cliente.apellido || ""}`.trim() ||
+        cliente.Nombre || "Cliente";
+      const doc = cliente.documento || cliente.Documento || "Sin documento";
       return {
         value: id,
         label: `${nombre} - ${doc}`,
-        data: cliente
+        data: cliente,
       };
     });
   }, [clientes]);
@@ -56,11 +83,10 @@ const FormularioAgregar = ({
       const id = producto.codigoProducto || producto.idProducto || producto.id;
       const nombre = producto.nombreProducto || producto.nombre || producto.Nombre || "Producto";
       const precio = producto.precio || producto.precioVenta || producto.Precio || 0;
-      
       return {
         value: id,
         label: `${nombre} - ${formatearMoneda ? formatearMoneda(precio) : precio}`,
-        data: producto
+        data: producto,
       };
     });
   }, [productos, formatearMoneda]);
@@ -68,24 +94,20 @@ const FormularioAgregar = ({
   // 🔸 Manejo del cambio de cliente
   const handleClienteChange = (selectedOption) => {
     setClienteSelect(selectedOption);
-    
     if (selectedOption && onClienteChange) {
       onClienteChange(selectedOption.data);
       if (correoRef.current) {
-        correoRef.current.value = selectedOption.data.correo || selectedOption.data.Correo || '';
+        correoRef.current.value = selectedOption.data.correo || selectedOption.data.Correo || "";
       }
     } else if (onClienteChange) {
       onClienteChange(null);
-      if (correoRef.current) correoRef.current.value = '';
+      if (correoRef.current) correoRef.current.value = "";
     }
   };
 
-  // 🔸 SOLUCIÓN MEJORADA - Limpiar el ref después de agregar
+  // 🔸 Agregar producto
   const handleAgregarProducto = () => {
     if (!productoSelect) return;
-
-    console.log("🔄 Agregando producto:", productoSelect.value);
-
     if (productosRef.current) {
       const productId = productoSelect.value;
       productosRef.current.value = productId;
@@ -101,8 +123,8 @@ const FormularioAgregar = ({
     limpiarProductos();
     setClienteSelect(null);
     setProductoSelect(null);
-    setMunicipio(""); // 🔥 Limpiar municipio
-    setDepartamento(""); // 🔥 Limpiar departamento
+    setMunicipio(null);
+    setDepartamento(null);
     if (clienteRef.current) clienteRef.current.value = "";
     if (correoRef.current) correoRef.current.value = "";
     if (direccionRef.current) direccionRef.current.value = "";
@@ -110,25 +132,21 @@ const FormularioAgregar = ({
     if (onClienteChange) onClienteChange(null);
   };
 
-  // 🔸 Manejar submit con datos adicionales
+  // 🔸 Enviar formulario
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // 🔥 CREAR OBJETO CON TODOS LOS DATOS NECESARIOS
+
     const formDataAdicional = {
       clienteSeleccionado,
-      productosAgregados, // 🔥 INCLUIR los productos agregados
+      productosAgregados,
       totalCalculado,
       direccion: direccionRef.current?.value || "",
       correo: correoRef.current?.value || "",
       estado: estadoRef.current?.value || "Pendiente",
-      municipio: municipio, // 🔥 del estado local
-      departamento: departamento // 🔥 del estado local
+      municipio: municipio?.value || "",
+      departamento: departamento?.value || ""
     };
 
-    console.log("📦 Datos del formulario:", formDataAdicional);
-    
-    // Llamar al onSubmit del padre con todos los datos
     onSubmit(e, formDataAdicional);
   };
 
@@ -137,35 +155,30 @@ const FormularioAgregar = ({
   const customStyles = {
     control: (base, state) => ({
       ...base,
-      border: '1px solid #d1d5db',
-      borderRadius: '0.375rem',
-      padding: '0.125rem',
-      backgroundColor: 'white',
-      '&:hover': {
-        borderColor: 'var(--naranjado)'
-      },
-      boxShadow: state.isFocused ? '0 0 0 1px var(--naranjado)' : 'none',
-      borderColor: state.isFocused ? 'var(--naranjado)' : '#d1d5db'
+      border: "1px solid #d1d5db",
+      borderRadius: "0.375rem",
+      padding: "0.125rem",
+      backgroundColor: "white",
+      "&:hover": { borderColor: "var(--naranjado)" },
+      boxShadow: state.isFocused ? "0 0 0 1px var(--naranjado)" : "none",
+      borderColor: state.isFocused ? "var(--naranjado)" : "#d1d5db",
     }),
     option: (base, state) => ({
       ...base,
-      backgroundColor: state.isSelected ? 'var(--naranjado)' : state.isFocused ? '#fed7aa' : 'white',
-      color: state.isSelected ? 'white' : 'black',
-      '&:hover': {
-        backgroundColor: '#fed7aa'
-      }
-    })
+      backgroundColor: state.isSelected
+        ? "var(--naranjado)"
+        : state.isFocused
+        ? "#fed7aa"
+        : "white",
+      color: state.isSelected ? "white" : "black",
+      "&:hover": { backgroundColor: "#fed7aa" },
+    }),
   };
 
   return (
-    <ModalBase
-      show={show}
-      title={titulo}
-      icon="mdi:cart-plus"
-      onClose={handleClose}
-    >
+    <ModalBase show={show} title={titulo} onClose={handleClose}>
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* 🧍 Cliente con buscador */}
+        {/* 🧍 Cliente */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-gray-700 font-medium">Cliente *</label>
@@ -180,13 +193,7 @@ const FormularioAgregar = ({
               isClearable
               required
             />
-            {clientes.length === 0 && (
-              <small className="text-red-500 text-sm mt-1 block">
-                No hay clientes disponibles.
-              </small>
-            )}
           </div>
-
           <div>
             <label className="block text-gray-700 font-medium">Correo *</label>
             <input
@@ -200,75 +207,65 @@ const FormularioAgregar = ({
           </div>
         </div>
 
-        {/* 📋 Info del cliente */}
-        {clienteSeleccionado && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-            <h4 className="font-medium text-blue-800 mb-2">Información del cliente</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-              <div><strong>Teléfono:</strong> {clienteSeleccionado.telefono || clienteSeleccionado.Telefono || 'No disponible'}</div>
-              <div><strong>Documento:</strong> {clienteSeleccionado.documento || clienteSeleccionado.Documento || 'No disponible'}</div>
-              {clienteSeleccionado.direccion && (
-                <div className="md:col-span-2">
-                  <strong>Dirección:</strong> {clienteSeleccionado.direccion || clienteSeleccionado.Direccion}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* 🏠 Información de Envío */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-medium text-gray-700 mb-3">Información de Envío</h3>
-          
-          {/* 📦 Dirección */}
+
           <div className="mb-4">
             <label className="block text-gray-700 font-medium">Dirección de Entrega *</label>
             <textarea
               ref={direccionRef}
               rows="3"
               required
-              placeholder="Dirección completa de entrega (calle, número, barrio, etc.)"
-              className="mt-1 block w-full border border-gray-300 rounded p-2 resize-none focus:border-[var(--naranjado)] focus:outline-none"
+              placeholder="Dirección completa de entrega"
+              className="mt-1 block w-full border border-gray-300 rounded p-2 resize-none focus:border-[var(--naranjado)] focus:outline-none bg-white"
             ></textarea>
           </div>
 
-          {/* 🔥 NUEVOS CAMPOS: Municipio y Departamento */}
+          {/* 🌎 Departamento y Municipio */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium">Municipio *</label>
-              <input
-                type="text"
-                value={municipio}
-                onChange={(e) => setMunicipio(e.target.value)}
+              <label className="block text-gray-700 font-medium">Departamento *</label>
+              <Select
+                value={departamento}
+                onChange={(value) => {
+                  setDepartamento(value);
+                  setMunicipio(null);
+                }}
+                options={departamentos}
+                placeholder="Seleccione un departamento"
+                styles={customStyles}
                 required
-                placeholder="Ej: Medellín, Bogotá, Cali"
-                className="mt-1 block w-full border border-gray-300 rounded p-2 focus:border-[var(--naranjado)] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium">Departamento *</label>
-              <input
-                type="text"
-                value={departamento}
-                onChange={(e) => setDepartamento(e.target.value)}
+              <label className="block text-gray-700 font-medium">Municipio *</label>
+              <Select
+                value={municipio}
+                onChange={setMunicipio}
+                options={municipios}
+                placeholder={
+                  departamento
+                    ? "Seleccione un municipio"
+                    : "Seleccione primero un departamento"
+                }
+                isDisabled={!departamento}
+                styles={customStyles}
                 required
-                placeholder="Ej: Antioquia, Cundinamarca, Valle"
-                className="mt-1 block w-full border border-gray-300 rounded p-2 focus:border-[var(--naranjado)] focus:outline-none"
               />
             </div>
           </div>
         </div>
 
-        {/* 🛒 Productos (mantener igual) */}
+        {/* 🛒 Productos */}
         <div>
           <label className="block text-gray-700 font-medium mb-2">Productos *</label>
-          
+
           <select ref={productosRef} className="hidden">
-            <option value="">Selecciona un producto</option>
             {productos.map((producto) => {
               const id = producto.codigoProducto || producto.idProducto || producto.id;
-              const nombre = producto.nombreProducto || producto.nombre || producto.Nombre || "Producto";
+              const nombre = producto.nombreProducto || producto.nombre || producto.Nombre;
               return <option key={id} value={id}>{nombre}</option>;
             })}
           </select>
@@ -292,16 +289,15 @@ const FormularioAgregar = ({
               disabled={!productoSelect}
               className={`font-semibold py-2 px-4 rounded transition duration-300 flex items-center gap-1 ${
                 productoSelect
-                  ? 'bg-[var(--naranjado)] text-white hover:bg-orange-600'
-                  : 'bg-gray-400 text-white cursor-not-allowed'
+                  ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
+                  : "bg-gray-400 text-white cursor-not-allowed"
               }`}
             >
               <Icon icon="mdi:cart-arrow-down" width="18" /> Agregar
             </button>
           </div>
 
-          {/* Productos agregados (mantener igual) */}
-          {/* 🛒 Productos agregados - VERIFICAR QUE ESTÉ COMPLETO */}
+          {/* Lista de productos agregados */}
           {productosAgregados.length > 0 && (
             <div className="border border-gray-300 rounded p-3 bg-gray-50 max-h-48 overflow-y-auto">
               <div className="flex justify-between items-center mb-2">
@@ -321,7 +317,10 @@ const FormularioAgregar = ({
                   const nombre = p.nombreProducto || p.nombre || p.Nombre || "Producto sin nombre";
                   const precio = p.precio || p.precioVenta || p.Precio || 0;
                   return (
-                    <div key={`${id}-${index}`} className="flex items-center justify-between bg-white p-2 rounded border">
+                    <div
+                      key={`${id}-${index}`}
+                      className="flex items-center justify-between bg-white p-2 rounded border"
+                    >
                       <div className="flex-1">
                         <div className="font-medium text-sm">{nombre}</div>
                         <div className="text-xs text-gray-600">
@@ -329,17 +328,17 @@ const FormularioAgregar = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button 
-                          type="button" 
-                          onClick={() => cambiarCantidad(id, p.cantidad - 1)} 
+                        <button
+                          type="button"
+                          onClick={() => cambiarCantidad(id, p.cantidad - 1)}
                           className="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold"
                         >
                           -
                         </button>
                         <span className="w-8 text-center text-sm font-medium">{p.cantidad}</span>
-                        <button 
-                          type="button" 
-                          onClick={() => cambiarCantidad(id, p.cantidad + 1)} 
+                        <button
+                          type="button"
+                          onClick={() => cambiarCantidad(id, p.cantidad + 1)}
                           className="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold"
                         >
                           +
@@ -348,11 +347,10 @@ const FormularioAgregar = ({
                       <div className="ml-3 text-sm font-medium w-20 text-right">
                         {formatearMoneda ? formatearMoneda(p.subtotal) : p.subtotal}
                       </div>
-                      <button 
-                        onClick={() => eliminarProducto(id)} 
-                        type="button" 
-                        className="ml-2 text-red-600 hover:text-red-800 w-6 h-6 flex items-center justify-center" 
-                        title="Eliminar"
+                      <button
+                        onClick={() => eliminarProducto(id)}
+                        type="button"
+                        className="ml-2 text-red-600 hover:text-red-800 w-6 h-6 flex items-center justify-center"
                       >
                         ×
                       </button>
@@ -384,7 +382,9 @@ const FormularioAgregar = ({
               defaultValue="Pendiente"
             >
               {estadosDisponibles.map((estado) => (
-                <option key={estado} value={estado}>{estado}</option>
+                <option key={estado} value={estado}>
+                  {estado}
+                </option>
               ))}
             </select>
           </div>
@@ -416,8 +416,8 @@ const FormularioAgregar = ({
             disabled={!puedeCrear}
             className={`font-semibold py-2 px-4 rounded transition duration-300 ${
               puedeCrear
-                ? 'bg-[var(--naranjado)] text-white hover:bg-orange-600'
-                : 'bg-gray-400 text-white cursor-not-allowed'
+                ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
+                : "bg-gray-400 text-white cursor-not-allowed"
             }`}
           >
             Agregar Pedido

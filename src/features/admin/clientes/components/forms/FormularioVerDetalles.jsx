@@ -5,10 +5,7 @@ const FormularioVerDetalles = ({ show, setShow, cliente }) => {
   if (!cliente) return null;
 
   return (
-    <ModalBase show={show} setShow={setShow}>
-      <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
-        Detalles del Cliente
-      </h2>
+    <ModalBase show={show} setShow={setShow} title="Detalles del Cliente" onClose={() => setShow(false)}>
 
       <div className="bg-white rounded p-4">
         {/* Tipo y número de documento */}
@@ -88,11 +85,11 @@ const FormularioVerDetalles = ({ show, setShow, cliente }) => {
         </div>
 
         {/* Botón cerrar */}
-        <div className="flex justify-center">
+        <div className="flex justify-end pt-4">
           <button
             onClick={() => setShow(false)}
             type="button"
-            className="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600 transition duration-300 w-full max-w-xs"
+            className="bg-gray-500 text-white font-bold py-2 px-1 rounded hover:bg-gray-600 transition duration-300 w-30 max-w-xs"
           >
             Cerrar
           </button>

@@ -16,10 +16,11 @@ import RecuperarContraseña from "./features/recuperar/recuperarClave";
 import VerificarCodigoRecuperacion from "./features/recuperar/verificarCodigoRecuperacion";
 import NuevaClave from "./features/recuperar/nuevaClave";
 import Perfil from "./features/Usuarios/Perfil";
-import PerfilAdmin from "./features/admin/PerfilAd/PerfilAdmin";
+// import PerfilAdmin from "./features/admin/PerfilAd/PerfilAdmin";
 import EditarPerfil from "./features/Usuarios/EditarPerfil";
-import EditarPerfilAdmin from "./features/admin/PerfilAd/EditarPerfilAd";
+// import EditarPerfilAdmin from "./features/admin/PerfilAd/EditarPerfilAd";
 import PaginaRoles from "./features/admin/roles/pages/paginaRoles";
+import ProtectedRoute from "./protectedRoute.jsx";
 
 const Router = () => {
   return (
@@ -34,17 +35,24 @@ const Router = () => {
       <Route path="/perfil" element={<Perfil/>} ></Route>
       <Route path="/editar-perfil" element={<EditarPerfil/>} ></Route>
       {/* Rutas administrativas */}
-      <Route path="/admin" element={<App />}>
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute rolPermitido="Admin">
+            <App />
+          </ProtectedRoute>
+        }
+      >
         <Route path="clientes" element={<PaginaClientes />} />
-        <Route path="pedidos" element={<PaginaPedidos/>} />
-        <Route path="dashboard" element={<Dashboard/>} />
+        <Route path="pedidos" element={<PaginaPedidos />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="proveedores" element={<PaginaProveedores />} />
         <Route path="productos" element={<PaginaProductos />} />
         <Route path="compras" element={<PaginaCompras />} />
         <Route path="categorias" element={<PaginaCategorias />} />
-        <Route path="perfil" element={<PerfilAdmin />} />
+        {/* <Route path="perfil" element={<PerfilAdmin />} /> */}
         <Route path="roles" element={<PaginaRoles />} />
-        <Route path="editar-perfil-Ad" element={<EditarPerfilAdmin />} />
+        {/* <Route path="editar-perfil-Ad" element={<EditarPerfilAdmin />} /> */}
       </Route>
       {/* Rutas publicas
       <Route path="/" element={<ClientLayout />}>

@@ -42,13 +42,13 @@ const PaginaRoles = () => {
       const data = await GetRoles();
       setListaRoles(data);
       
-      Swal.fire({
-        icon: "success",
-        title: "✅ Roles cargados",
-        text: "Los roles se han cargado correctamente",
-        confirmButtonColor: "#b45309",
-        background: "#fff8e7",
-      });
+      // Swal.fire({
+      //   icon: "success",
+      //   title: "✅ Roles cargados",
+      //   text: "Los roles se han cargado correctamente",
+      //   confirmButtonColor: "#b45309",
+      //   background: "#fff8e7",
+      // });
     } catch (error) {
       console.error("Error cargando los roles:", error);
       Swal.fire({

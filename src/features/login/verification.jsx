@@ -41,15 +41,15 @@ export default function Verification() {
       const data = await response.json();
 
       if (data.exito && data.usuario) {
-        // 🔥 GUARDAR LOS DATOS COMPLETOS DEL USUARIO EN LOCALSTORAGE
+        //GUARDAR LOS DATOS COMPLETOS DEL USUARIO EN LOCALSTORAGE
         const usuarioData = {
           id: data.usuario.idUsuario,
-          idCliente: data.usuario.idCliente, // ← Mismo campo crítico que en el login
+          idCliente: data.usuario.idCliente, 
           nombre: data.usuario.nombre,
           apellido: data.usuario.apellido,
           correo: data.usuario.correo,
           rol: data.usuario.rol,
-          verificado: true // ← Agregar flag de verificación
+          verificado: true 
         };
         
         localStorage.setItem("usuario", JSON.stringify(usuarioData));

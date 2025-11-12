@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { UbicacionService } from "../../services/ubicacionService.jsx";
-
+import { UbicacionService } from "../../services/ubicacionService";
 import Swal from "sweetalert2";
-import "./EditarPerfil.css";
+import { Camera } from "lucide-react";
+import "./EditarPerfil.css"; // 👈 usamos el mismo estilo
 
 export default function EditarPerfil() {
   const [departamentos, setDepartamentos] = useState([]);
-  const [municipios, setMunicipios] = useState([]);  
+  const [municipios, setMunicipios] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔹 Datos enviados desde Perfil (si existen)
   const usuarioInicial = location.state?.usuario || {};
-
   const [usuario, setUsuario] = useState({
     nombre: "",
     apellido: "",
@@ -22,158 +20,49 @@ export default function EditarPerfil() {
     departamento: "",
     municipio: "",
     imagenPerfil: "",
-    ...usuarioInicial, // usa los datos enviados
+    ...usuarioInicial,
   });
 
-  const [editando, setEditando] = useState(true); // editable al entrar desde Perfil
   const [nuevaImagen, setNuevaImagen] = useState(null);
   const [vistaPrevia, setVistaPrevia] = useState(null);
 
   const correo = usuario.correo || JSON.parse(localStorage.getItem("usuario"))?.correo;
 
+  // Cargar departamentos
   useEffect(() => {
     const cargarDepartamentos = async () => {
-        const deps = await UbicacionService.obtenerDepartamentos();
-        setDepartamentos(deps);
+      const deps = await UbicacionService.obtenerDepartamentos();
+      setDepartamentos(deps);
     };
     cargarDepartamentos();
   }, []);
 
+  // Cargar municipios al cambiar departamento
   useEffect(() => {
     const cargarMunicipios = async () => {
-        if (usuario.departamento) {
+      if (usuario.departamento) {
         const mun = await UbicacionService.obtenerMunicipios(usuario.departamento);
         setMunicipios(mun);
-        } else {
+      } else {
         setMunicipios([]);
-        }
+      }
     };
     cargarMunicipios();
   }, [usuario.departamento]);
 
-  // 🔹 Fetch opcional si no hay datos
-  useEffect(() => {
-    if (!usuarioInicial.correo && correo) {
-      const fetchUsuario = async () => {
-        try {
-          const response = await fetch(
-            `http://localhost:5201/api/Usuarios/ObtenerPorCorreo?correo=${correo}`
-          );
-          if (!response.ok) throw new Error("No se pudo obtener el usuario");
-          const data = await response.json();
-          setUsuario(data);
-        } catch {
-          Swal.fire("Error", "No se pudo cargar la información del perfil", "error");
-        }
-      };
-      fetchUsuario();
-    }
-  }, [usuarioInicial, correo]);
-
-  // 🔹 Manejar cambio de campos
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUsuario((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Manejar cambio de imagen
   const handleImagen = (e) => {
     const file = e.target.files[0];
     setNuevaImagen(file);
     setVistaPrevia(URL.createObjectURL(file));
   };
 
-  const customStyles = {
-    control: (base, state) => ({
-      ...base,
-      border: "1.5px solid #d6d3d1",
-      borderRadius: "6px",
-      padding: "0.125rem",
-      backgroundColor: "#fff",
-      minHeight: "48px",
-      boxShadow: "none",
-      "&:hover": {
-        borderColor: "#b45309"
-      },
-      borderColor: state.isFocused ? "#b45309" : "#d6d3d1",
-      boxShadow: state.isFocused ? "0 0 5px rgba(180, 83, 9, 0.4)" : "none",
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isSelected 
-        ? "#b45309"
-        : state.isFocused 
-        ? "#fef3c7"
-        : "white",
-      color: state.isSelected ? "white" : "#1c1917",
-      fontSize: "0.95rem",
-      padding: "10px 12px",
-      "&:hover": {
-        backgroundColor: "#fef3c7",
-        color: "#1c1917"
-      },
-    }),
-    menu: (base) => ({
-      ...base,
-      borderRadius: "6px",
-      boxShadow: "0 4px 20px rgba(180, 83, 9, 0.3)",
-      border: "1px solid #d6d3d1",
-      marginTop: "4px",
-      zIndex: 9999,
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "#a8a29e",
-      fontSize: "0.95rem",
-      fontStyle: "italic",
-    }),
-    dropdownIndicator: (base, state) => ({
-      ...base,
-      color: "#6b7280",
-      padding: "4px 8px",
-      transition: "all 0.25s ease",
-      transform: state.selectProps.menuIsOpen ? "rotate(180deg)" : "rotate(0)",
-      "&:hover": {
-        color: "#b45309",
-      },
-    }),
-    clearIndicator: (base) => ({
-      ...base,
-      color: "#6b7280",
-      padding: "4px 8px",
-      "&:hover": {
-        color: "#e63946",
-      },
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "#1c1917",
-      fontSize: "0.95rem",
-      fontWeight: "400",
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: "0 12px",
-    }),
-    indicatorSeparator: (base) => ({
-      ...base,
-      backgroundColor: "#d6d3d1",
-    }),
-    input: (base) => ({
-      ...base,
-      color: "#1c1917",
-      fontSize: "0.95rem",
-      margin: "0",
-      padding: "0",
-    }),
-  };
-
-  // 🔹 Guardar cambios
   const handleGuardar = async (e) => {
     e.preventDefault();
-
-    if (!correo) return;
-
     const formData = new FormData();
     Object.entries(usuario).forEach(([key, value]) => formData.append(key, value || ""));
     if (nuevaImagen) formData.append("nuevaImagen", nuevaImagen);
@@ -194,133 +83,116 @@ export default function EditarPerfil() {
         title: "Perfil actualizado",
         text: "Tu información se ha guardado correctamente.",
         confirmButtonColor: "#b45309",
-        background: "#fff8e7",
       });
       navigate("/perfil");
-
-      setEditando(false);
-      setVistaPrevia(null);
-      setNuevaImagen(null);
     } catch {
       Swal.fire("Error", "No se pudo actualizar el perfil", "error");
     }
   };
 
-  if (!correo) {
-    Swal.fire({
-      icon: "warning",
-      title: "⚠️ No hay sesión activa.",
-      text: "Por favor, inicia sesión para acceder a tu perfil.",
-      confirmButtonColor: "#b45309",
-      background: "#fff8e7",
-    });
-    window.location.href = "/login";
-    return null;
-  }
-
   return (
     <div className="perfil-container">
       <div className="perfil-card">
-        <h2>Editar Perfil</h2>
-
+        <h2>Editar Información</h2>
         <form className="perfil-form" onSubmit={handleGuardar}>
-          {/* Imagen */}
+          {/* Imagen con botón flotante */}
           <div className="perfil-imagen">
-            <img
-              src={vistaPrevia || usuario.imagenPerfil || "https://i.pinimg.com/736x/5a/1e/fd/5a1efd27ee4f553c1c3ec13f9edf62ee.jpg"}
-              alt="Foto de perfil"
-            />
-            {editando && <input type="file" accept="image/*" onChange={handleImagen} />}
-          </div>
-
-          {/* Campos editables */}
-          {[
-            ["nombre", "Nombre"],
-            ["apellido", "Apellido"],
-            ["telefono", "Teléfono"],
-            // ["departamento", "Departamento"],
-            // ["municipio", "Municipio"],
-            ["direccion", "Dirección"],
-          ].map(([campo, label]) => (
-            <div className="form-group" key={campo}>
-              <label>{label}:</label>
+            <div style={{ position: "relative" }}>
+              <img
+                src={
+                  vistaPrevia ||
+                  usuario.imagenPerfil ||
+                  "https://i.pinimg.com/736x/5a/1e/fd/5a1efd27ee4f553c1c3ec13f9edf62ee.jpg"
+                }
+                alt="Foto de perfil"
+              />
+              <label
+                htmlFor="file-upload"
+                title="Cambiar imagen"
+                style={{
+                  position: "absolute",
+                  bottom: "6px",
+                  right: "6px",
+                  background: "#b45309",
+                  color: "white",
+                  borderRadius: "50%",
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                  transition: "0.2s",
+                }}
+              >
+                <Camera size={18} />
+              </label>
               <input
-                name={campo}
-                value={usuario[campo] || ""}
-                onChange={handleChange}
-                disabled={!editando}
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleImagen}
+                style={{ display: "none" }}
               />
             </div>
-            
-          ))}
-          {/* Departamento */}
+          </div>
+
+          {/* Campos compactos */}
           <div className="form-group">
-            <label>Departamento:</label>
-            <select
-              name="departamento"
-              value={usuario.departamento || ""}
-              onChange={handleChange}
-              disabled={!editando}
-            >
+            <label className="label-per">Nombre</label>
+            <input name="nombre" value={usuario.nombre || ""} onChange={handleChange} required />
+          </div>
+
+          <div className="form-group">
+            <label className="label-per">Apellido</label>
+            <input name="apellido" value={usuario.apellido || ""} onChange={handleChange} required />
+          </div>
+
+          <div className="form-group">
+            <label className="label-per">Teléfono</label>
+            <input name="telefono" value={usuario.telefono || ""} onChange={handleChange} />
+          </div>
+
+          <div className="form-group">
+            <label className="label-per">Dirección</label>
+            <input name="direccion" value={usuario.direccion || ""} onChange={handleChange} />
+          </div>
+
+          <div className="form-group">
+            <label className="label-per">Departamento</label>
+            <select name="departamento" value={usuario.departamento || ""} onChange={handleChange}>
               <option value="">Selecciona un departamento</option>
               {departamentos.map((dep) => (
-                <option key={dep} value={dep} styles={customStyles}>
+                <option key={dep} value={dep}>
                   {dep}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Municipio */}
           <div className="form-group">
-            <label>Municipio:</label>
+            <label className="label-per">Municipio</label>
             <select
               name="municipio"
               value={usuario.municipio || ""}
               onChange={handleChange}
-              disabled={!editando || !usuario.departamento}
+              disabled={!usuario.departamento}
             >
               <option value="">Selecciona un municipio</option>
               {municipios.map((mun) => (
-                <option key={mun} value={mun} styles={customStyles}>
+                <option key={mun} value={mun}>
                   {mun}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Correo (solo lectura) */}
-          <div className="form-group">
-            <label>Correo:</label>
-            <input value={correo} disabled />
-          </div>
-
-          {/* Botones */}
           <div className="perfil-botones">
-            {/* {!editando ? (
-              <button type="button" className="editar-btn" onClick={() => setEditando(true)}>
-                Editar
-              </button>
-            ) : (
-              <> */}
-                <button type="submit" className="guar-btn">
-                  Guardar
-                </button>
-                <button
-                  type="button"
-                  className="canc-btn"
-                  onClick={() => {
-                    setEditando(false);
-                    setVistaPrevia(null);
-                    setNuevaImagen(null);
-                    if (usuarioInicial.correo) setUsuario(usuarioInicial);
-                      window.location.href = "/perfil";
-                  }}
-                >
-                  Cancelar
-                </button>
-              {/* </>
-            )} */}
+            <button type="submit" className="guar-btn">Guardar</button>
+            <button type="button" className="canc-btn" onClick={() => navigate("/perfil")}>
+              Cancelar
+            </button>
           </div>
         </form>
       </div>

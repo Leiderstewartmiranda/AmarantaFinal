@@ -73,7 +73,7 @@ const FormularioAgregar = ({
   };
 
   return (
-    <ModalBase show={show} close={close} title={"Agregar Categoría"}>
+    <ModalBase show={show} title={"Agregar Categoría"} onClose={close}>
       <form onSubmit={handleSubmit}>
         
 
@@ -95,7 +95,7 @@ const FormularioAgregar = ({
                   });
                 }
               }}
-              className={`w-full border rounded p-2 ${
+              className={`w-full border rounded p-2 bg-white ${
                 errores.nombreCategoria ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -111,7 +111,7 @@ const FormularioAgregar = ({
               rows="3"
               placeholder="Descripción de la categoría"
               onChange={() => setErrores({ ...errores, descripcion: "" })}
-              className={`w-full border rounded p-2 resize-none ${
+              className={`w-full border rounded p-2 resize-none bg-white ${
                 errores.descripcion ? "border-red-500" : "border-gray-300"
               }`}
             />

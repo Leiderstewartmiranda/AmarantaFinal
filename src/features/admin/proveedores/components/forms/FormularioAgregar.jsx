@@ -153,7 +153,7 @@ const FormularioAgregar = ({
                 name="nombreEmpresa"
                 value={formData.nombreEmpresa}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                   errores.nombreEmpresa ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Nombre de la empresa proveedora"
@@ -171,7 +171,7 @@ const FormularioAgregar = ({
                 name="correo"
                 value={formData.correo}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                   errores.correo ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="correo@empresa.com"
@@ -189,7 +189,7 @@ const FormularioAgregar = ({
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                   errores.telefono ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Número de teléfono"
@@ -209,7 +209,7 @@ const FormularioAgregar = ({
                 name="Nit"
                 value={formData.Nit}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                   errores.Nit ? "border-red-500" : "border-gray-300"
                 }`}
               >
@@ -233,7 +233,7 @@ const FormularioAgregar = ({
                 name="Representante"
                 value={formData.Representante}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+                className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                   errores.Representante ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Número de documento"

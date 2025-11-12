@@ -1,4 +1,3 @@
-
 import { Icon } from "@iconify/react/dist/iconify.js";
 import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
@@ -8,18 +7,18 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import FormularioCompra from "../components/forms/FormularioAgregarCompra";
 import FormularioVerCompra from "../components/forms/FormularioVerCompra";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
-import { 
-  GetCompras, 
+import {
+  GetCompras,
   AnularCompra,
   GetProveedores,
   GetProductos,
-  GetDetallesByCompra
+  GetDetallesByCompra,
 } from "../../../../services/compraService";
-import TituloSeccion from "../../../../compartidos/Titulo/Titulos"; 
-import jsPDF from 'jspdf';
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
+import jsPDF from "jspdf";
+import Swal from "sweetalert2";
 
 const PaginaCompras = () => {
-  // Estados reales conectados a API
   const [listaCompras, setListaCompras] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -31,13 +30,10 @@ const PaginaCompras = () => {
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const comprasPorPagina = 5;
-  const [showConfirmacion, setShowConfirmacion] = useState(false);
-  const [compraAAnular, setCompraAAnular] = useState(null);
-  const [compraSeleccionada, setCompraSeleccionada] = useState(null);
 
   const busquedaRef = useRef();
 
-  // Cargar datos de la API
+  // Cargar datos
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -45,13 +41,19 @@ const PaginaCompras = () => {
         const [comprasData, proveedoresData, productosData] = await Promise.all([
           GetCompras(),
           GetProveedores(),
-          GetProductos()
+          GetProductos(),
         ]);
         setListaCompras(comprasData);
         setProveedores(proveedoresData);
         setProductos(productosData);
       } catch (error) {
-        console.error("Error cargando datos:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error al cargar datos",
+          text: "No se pudieron obtener los datos de compras o proveedores.",
+          confirmButtonColor: "#d15113",
+          background: "#fff8e7",
+        });
       } finally {
         setLoading(false);
       }
@@ -59,284 +61,227 @@ const PaginaCompras = () => {
     fetchData();
   }, [recarga]);
 
-  // Filtrar compras basado en el término de búsqueda
+  // Filtrar compras
   const comprasFiltradas = useMemo(() => {
-    if (!terminoBusqueda.trim()) {
-      return listaCompras;
-    }
-
+    if (!terminoBusqueda.trim()) return listaCompras;
     const termino = terminoBusqueda.toLowerCase().trim();
-    
-    return listaCompras.filter((compra) => {
-      const fecha = compra.fechaCompra?.toLowerCase() || '';
-      const total = compra.precioTotal?.toString().toLowerCase() || '';
-      const estado = compra.estado?.toLowerCase() || '';
-      const codigo = compra.codigoCompra?.toString().toLowerCase() || '';
-      
-      // Buscar nombre del proveedor
-      const proveedor = proveedores.find(p => p.IdProveedor === compra.IdProveedor);
-      const nombreProveedor = proveedor?.nombreEmpresa?.toLowerCase() || '';
 
+    return listaCompras.filter((compra) => {
+      const proveedor = proveedores.find((p) => p.IdProveedor === compra.IdProveedor);
+      const nombreProveedor = proveedor?.nombreEmpresa?.toLowerCase() || "";
       return (
-        fecha.includes(termino) ||
-        total.includes(termino) ||
-        estado.includes(termino) ||
-        codigo.includes(termino) ||
+        compra.fechaCompra?.toLowerCase().includes(termino) ||
+        compra.precioTotal?.toString().toLowerCase().includes(termino) ||
+        compra.estado?.toLowerCase().includes(termino) ||
+        compra.codigoCompra?.toString().toLowerCase().includes(termino) ||
         nombreProveedor.includes(termino)
       );
     });
   }, [listaCompras, terminoBusqueda, proveedores]);
 
-  // Calcular datos de paginación
+  // Paginación
   const totalPaginas = Math.ceil(comprasFiltradas.length / comprasPorPagina);
   const indiceInicio = (paginaActual - 1) * comprasPorPagina;
   const comprasPaginadas = comprasFiltradas.slice(indiceInicio, indiceInicio + comprasPorPagina);
 
-  // Manejar cambios en la barra de búsqueda
   const handleBusquedaChange = (e) => {
     setTerminoBusqueda(e.target.value);
     setPaginaActual(1);
   };
 
-  // Manejar cambio de página
-  const handleCambioPagina = (nuevaPagina) => {
-    setPaginaActual(nuevaPagina);
-  };
+  const handleCambioPagina = (nuevaPagina) => setPaginaActual(nuevaPagina);
 
-  // Manejar compra creada exitosamente
+  // Compra creada
   const handleCompraCreada = () => {
-    setRecarga(prev => prev + 1);
+    setRecarga((prev) => prev + 1);
     setShowAgregar(false);
+    Swal.fire({
+      icon: "success",
+      title: "Compra registrada",
+      text: "La compra se ha agregado correctamente.",
+      confirmButtonColor: "#d15113",
+      background: "#fff8e7",
+    });
   };
 
-  // Manejar anulación de compra
-  const handleAnular = (compra) => {
+  // Confirmar anulación con alerta moderna
+  const handleAnular = async (compra) => {
     if (compra.estado === "Anulada") {
-      alert("Esta compra ya está anulada y no se puede modificar");
+      Swal.fire({
+        icon: "info",
+        title: "Compra ya anulada",
+        text: "Esta compra ya fue anulada previamente.",
+        confirmButtonColor: "#d15113",
+        background: "#fff8e7",
+      });
       return;
     }
-    setCompraAAnular(compra);
-    setShowConfirmacion(true);
-  };
 
-  const confirmarAnulacion = async () => {
-    if (compraAAnular) {
+    const result = await Swal.fire({
+      title: "¿Anular compra?",
+      html: `
+        <div style="text-align:left; font-size:14px;">
+          <strong>Código:</strong> #${compra.codigoCompra}<br/>
+          <strong>Fecha:</strong> ${new Date(compra.fechaCompra).toLocaleDateString()}<br/>
+          <strong>Proveedor:</strong> ${getProveedorNombre(compra.idProveedor)}<br/>
+          <strong>Total:</strong> ${formatoMoneda(compra.precioTotal)}
+        </div>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, anular",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+      confirmButtonColor: "#d15113",
+      cancelButtonColor: "#888888ff",
+      background: "#fff8e7",
+    });
+
+    if (result.isConfirmed) {
       try {
-        await AnularCompra(compraAAnular.codigoCompra);
-        setRecarga(prev => prev + 1);
-        setCompraAAnular(null);
-        setShowConfirmacion(false);
+        await AnularCompra(compra.codigoCompra);
+        Swal.fire({
+          icon: "success",
+          title: "Compra anulada",
+          text: `La compra #${compra.codigoCompra} ha sido anulada correctamente.`,
+          confirmButtonColor: "#d15113",
+          background: "#fff8e7",
+        });
+        setRecarga((prev) => prev + 1);
       } catch (error) {
-        console.error("Error anulando compra:", error);
-        alert("Error al anular la compra");
+        Swal.fire({
+          icon: "error",
+          title: "Error al anular",
+          text: "No se pudo anular la compra. Intenta nuevamente.",
+          confirmButtonColor: "#d15113",
+          background: "#fff8e7",
+        });
       }
     }
   };
 
-  const cerrarConfirmacion = () => {
-    setShowConfirmacion(false);
-    setCompraAAnular(null);
-  };
-
-  // Mostrar detalles de la compra
   const mostrarDetalles = (compra) => {
-    setCompraSeleccionada(compra);
     setShowDetalles(true);
+    setCompraSeleccionada(compra);
   };
 
+  const [compraSeleccionada, setCompraSeleccionada] = useState(null);
   const closeDetalles = () => {
     setShowDetalles(false);
     setCompraSeleccionada(null);
   };
 
-  // Formatear moneda
-  const formatoMoneda = (valor) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP'
-    }).format(valor || 0);
-  };
+  // Formateo
+  const formatoMoneda = (valor) =>
+    new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(valor || 0);
 
-  // Obtener nombre del proveedor
   const getProveedorNombre = (idProveedor) => {
-    const proveedor = proveedores.find(p => p.idProveedor === idProveedor);
-    return proveedor?.nombreEmpresa;
+    const proveedor = proveedores.find((p) => p.idProveedor === idProveedor);
+    return proveedor?.nombreEmpresa || "Desconocido";
   };
 
-  // Función para generar y descargar factura PDF
-const descargarFactura = async (compra) => {
-  try {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
+  // Generar factura PDF
+  const descargarFactura = async (compra) => {
+    try {
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const verde = [74, 75, 47];
+      const naranjado = [209, 81, 19];
+      const detallesData = await GetDetallesByCompra(compra.codigoCompra);
+      const detalles = Array.isArray(detallesData) ? detallesData : [];
 
-    // Colores institucionales Amaranta
-    const verde = [74, 75, 47]; // #4a4b2f
-    const naranjado = [209, 81, 19]; // #d15113
-
-    // Obtener detalles con nombres de productos
-    const detallesData = await GetDetallesByCompra(compra.codigoCompra);
-    const detalles = Array.isArray(detallesData) ? detallesData : [];
-
-    // Cargar logo
-    const logo = new Image();
-    logo.src = `${window.location.origin}/AmaraLogo.png`; // ✅ debe estar en public/
-
-    logo.onload = () => {
-      // === ENCABEZADO ===
-      doc.addImage(logo, "PNG", 15, 10, 25, 25);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(...verde);
-      doc.text("AMARANTA", 45, 20);
-      doc.setFontSize(12);
-      doc.setTextColor(100);
-      doc.text("Reporte de Compra", 45, 28);
-      doc.setDrawColor(...verde);
-      doc.line(15, 38, 195, 38);
-
-      // === DATOS DE COMPRA ===
-      doc.setTextColor(0);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Detalles de la Compra", 15, 48);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Código: ${compra.codigoCompra}`, 15, 55);
-      doc.text(`Fecha: ${new Date(compra.fechaCompra).toLocaleDateString()}`, 15, 60);
-      doc.text(`Estado: ${compra.estado}`, 15, 65);
-
-      // === PROVEEDOR ===
-      const proveedor = proveedores.find(p => p.idProveedor === compra.idProveedor);
-      if (proveedor) {
+      const logo = new Image();
+      logo.src = `${window.location.origin}/AmaraLogo.png`;
+      logo.onload = () => {
+        doc.addImage(logo, "PNG", 15, 10, 25, 25);
         doc.setFont("helvetica", "bold");
-        doc.text("Proveedor:", 15, 75);
+        doc.setFontSize(22);
+        doc.setTextColor(...verde);
+        doc.text("AMARANTA", 45, 20);
+        doc.setFontSize(12);
+        doc.setTextColor(100);
+        doc.text("Reporte de Compra", 45, 28);
+        doc.setDrawColor(...verde);
+        doc.line(15, 38, 195, 38);
+        doc.setTextColor(0);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Detalles de la Compra", 15, 48);
         doc.setFont("helvetica", "normal");
-        doc.text(proveedor.nombreEmpresa || "", 15, 80);
-        doc.text(`${proveedor.nit || ""}: ${proveedor.representante || ""}`, 15, 85);
-        doc.text(`Tel: ${proveedor.telefono || "N/A"}`, 15, 90);
-      }
+        doc.text(`Código: ${compra.codigoCompra}`, 15, 55);
+        doc.text(`Fecha: ${new Date(compra.fechaCompra).toLocaleDateString()}`, 15, 60);
+        doc.text(`Estado: ${compra.estado}`, 15, 65);
 
-      // === TABLA DE PRODUCTOS ===
-      let y = 100;
-      doc.setFont("helvetica", "bold");
-      doc.setFillColor(...naranjado);
-      doc.setTextColor(255);
-      doc.rect(15, y, 180, 8, "F");
-      doc.text("Producto", 20, y + 6);
-      doc.text("Cantidad", 90, y + 6);
-      doc.text("Precio Unitario", 125, y + 6);
-      doc.text("Subtotal", 165, y + 6);
+        const proveedor = proveedores.find((p) => p.idProveedor === compra.idProveedor);
+        if (proveedor) {
+          doc.setFont("helvetica", "bold");
+          doc.text("Proveedor:", 15, 75);
+          doc.setFont("helvetica", "normal");
+          doc.text(proveedor.nombreEmpresa || "", 15, 80);
+          doc.text(`${proveedor.nit || ""}: ${proveedor.representante || ""}`, 15, 85);
+          doc.text(`Tel: ${proveedor.telefono || "N/A"}`, 15, 90);
+        }
 
-      // === FILAS DE PRODUCTOS ===
-      y += 14;
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(0);
+        let y = 100;
+        doc.setFont("helvetica", "bold");
+        doc.setFillColor(...naranjado);
+        doc.setTextColor(255);
+        doc.rect(15, y, 180, 8, "F");
+        doc.text("Producto", 20, y + 6);
+        doc.text("Cantidad", 90, y + 6);
+        doc.text("Precio Unitario", 125, y + 6);
+        doc.text("Subtotal", 165, y + 6);
 
-      if (detalles.length === 0) {
-        doc.text("No hay productos registrados para esta compra.", 20, y + 5);
-      } else {
-        detalles.forEach((d) => {
-          const producto = productos.find(p => p.codigoProducto === d.codigoProducto);
-          const nombre = producto?.nombre || d.nombreProducto || "Producto desconocido";
-          const cantidad = d.cantidad || 0;
-          const precio = d.precioUnitario || 0;
-          const subtotal = cantidad * precio;
+        y += 14;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0);
 
-          // Celdas de texto
-          doc.text(nombre, 20, y);
-          doc.text(String(cantidad), 95, y, { align: "right" });
-          doc.text(`$${precio.toLocaleString("es-CO")}`, 145, y, { align: "right" });
-          doc.text(`$${subtotal.toLocaleString("es-CO")}`, 190, y, { align: "right" });
+        if (detalles.length === 0) {
+          doc.text("No hay productos registrados para esta compra.", 20, y + 5);
+        } else {
+          detalles.forEach((d) => {
+            const producto = productos.find((p) => p.codigoProducto === d.codigoProducto);
+            const nombre = producto?.nombre || d.nombreProducto || "Producto desconocido";
+            const cantidad = d.cantidad || 0;
+            const precio = d.precioUnitario || 0;
+            const subtotal = cantidad * precio;
+            doc.text(nombre, 20, y);
+            doc.text(String(cantidad), 95, y, { align: "right" });
+            doc.text(`$${precio.toLocaleString("es-CO")}`, 145, y, { align: "right" });
+            doc.text(`$${subtotal.toLocaleString("es-CO")}`, 190, y, { align: "right" });
+            y += 8;
+            if (y > 260) {
+              doc.addPage();
+              y = 20;
+            }
+          });
+        }
 
-          y += 8;
-          if (y > 260) { // Salto de página automático
-            doc.addPage();
-            y = 20;
-          }
-        });
-      }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(...verde);
+        doc.text(`TOTAL: ${formatoMoneda(compra.precioTotal)}`, 190, y + 10, { align: "right" });
 
-      // === TOTAL ===
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      doc.setTextColor(...verde);
-      doc.text(
-        `TOTAL: $${(compra.precioTotal || 0).toLocaleString("es-CO")}`,
-        190,
-        y + 10,
-        { align: "right" }
-      );
+        if (compra.estado === "Anulada") {
+          doc.setFontSize(60);
+          doc.setTextColor(255, 0, 0, 30);
+          doc.text("ANULADA", 105, 160, { align: "center", angle: 45 });
+        }
 
-      // === MARCA DE AGUA SI ESTÁ ANULADA ===
-      if (compra.estado === "Anulada") {
-        doc.setFontSize(60);
-        doc.setTextColor(255, 0, 0, 30);
-        doc.text("ANULADA", 105, 160, { align: "center", angle: 45 });
-      }
-
-      // === PIE DE PÁGINA ===
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(10);
-      doc.setTextColor(120);
-      doc.text("Generado automáticamente por el sistema Amaranta", 105, 285, {
-        align: "center",
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+        doc.text("Generado automáticamente por el sistema Amaranta", 105, 285, { align: "center" });
+        doc.save(`Factura_Compra_${compra.codigoCompra}.pdf`);
+      };
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al generar PDF",
+        text: "No se pudo generar la factura.",
+        confirmButtonColor: "#d15113",
+        background: "#fff8e7",
       });
-
-      // === DESCARGAR ===
-      doc.save(`Factura_Compra_${compra.codigoCompra}.pdf`);
-    };
-  } catch (error) {
-    console.error("Error generando PDF:", error);
-    alert("❌ No se pudo generar el PDF.");
-  }
-};
-
-
-
-
-  // Función para generar los números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-    
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
     }
-    
-    return numeros;
-  };
-
-  // Estilo para estado
-  const getEstadoColor = (estado) => {
-    return estado === "Anulada" 
-      ? "bg-red-100 text-red-800 border-red-300" 
-      : "bg-green-100 text-green-800 border-green-300";
-  };
-
-  const getEstadoTexto = (estado) => {
-    return estado === "Anulada" ? "Anulada" : "Activa";
   };
 
   if (loading) {
@@ -349,16 +294,13 @@ const descargarFactura = async (compra) => {
 
   return (
     <>
-      <TituloSeccion 
-      titulo="Gestión de Compras" />
-      
-      {/* Sección para botón y búsqueda */}
+      <TituloSeccion titulo="Gestión de Compras" />
+
+      {/* Botón + búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">
-        <div className="flex-shrink-0">
-          <BotonAgregar action={() => setShowAgregar(true)} />
-        </div>
-        <div className="flex-shrink-0 w-80">
-          <BarraBusqueda 
+        <BotonAgregar action={() => setShowAgregar(true)} />
+        <div className="w-80">
+          <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar por proveedor, código o estado"
             value={terminoBusqueda}
@@ -372,11 +314,10 @@ const descargarFactura = async (compra) => {
         </div>
       </section>
 
+      {/* Tabla */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <TablaAdmin
-            listaCabecera={["Código", "Fecha", "Proveedor", "Total", "Estado", "Acciones"]}
-          >
+          <TablaAdmin listaCabecera={["Código", "Fecha", "Proveedor", "Total", "Estado", "Acciones"]}>
             {comprasPaginadas.length > 0 ? (
               comprasPaginadas.map((compra) => (
                 <tr
@@ -386,23 +327,24 @@ const descargarFactura = async (compra) => {
                   }`}
                 >
                   <td className="py-2 px-4 font-semibold">#{compra.codigoCompra}</td>
-                  <td className="py-2 px-4">
-                    {new Date(compra.fechaCompra).toLocaleDateString()}
-                  </td>
+                  <td className="py-2 px-4">{new Date(compra.fechaCompra).toLocaleDateString()}</td>
                   <td className="py-2 px-4">{getProveedorNombre(compra.idProveedor)}</td>
-                  <td className="py-2 px-4 font-semibold">
-                    {formatoMoneda(compra.precioTotal)}
-                  </td>
+                  <td className="py-2 px-4 font-semibold">{formatoMoneda(compra.precioTotal)}</td>
                   <td className="py-2 px-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getEstadoColor(compra.estado)}`}>
-                      {getEstadoTexto(compra.estado)}
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${
+                        compra.estado === "Anulada"
+                          ? "bg-red-100 text-red-800 border-red-300"
+                          : "bg-green-100 text-green-800 border-green-300"
+                      }`}
+                    >
+                      {compra.estado === "Anulada" ? "Anulada" : "Activa"}
                     </span>
                   </td>
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
                       icon="material-symbols:visibility-outline"
                       width="24"
-                      height="24"
                       className="text-green-700 cursor-pointer hover:text-green-800"
                       onClick={() => mostrarDetalles(compra)}
                       title="Ver detalles"
@@ -410,7 +352,6 @@ const descargarFactura = async (compra) => {
                     <Icon
                       icon="material-symbols:download"
                       width="24"
-                      height="24"
                       className="text-blue-700 cursor-pointer hover:text-blue-800"
                       onClick={() => descargarFactura(compra)}
                       title="Descargar factura PDF"
@@ -418,10 +359,9 @@ const descargarFactura = async (compra) => {
                     <Icon
                       icon="mdi:cancel"
                       width="24"
-                      height="24"
                       className={`cursor-pointer transition-colors ${
-                        compra.estado === "Anulada" 
-                          ? "text-gray-400 cursor-not-allowed" 
+                        compra.estado === "Anulada"
+                          ? "text-gray-400 cursor-not-allowed"
                           : "text-red-700 hover:text-red-800"
                       }`}
                       onClick={() => compra.estado !== "Anulada" && handleAnular(compra)}
@@ -433,10 +373,9 @@ const descargarFactura = async (compra) => {
             ) : (
               <tr>
                 <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda ? 
-                    `No se encontraron compras que coincidan con "${terminoBusqueda}"` : 
-                    "No hay compras disponibles"
-                  }
+                  {terminoBusqueda
+                    ? `No se encontraron compras que coincidan con "${terminoBusqueda}"`
+                    : "No hay compras disponibles"}
                 </td>
               </tr>
             )}
@@ -450,11 +389,11 @@ const descargarFactura = async (compra) => {
           paginaActual={paginaActual}
           totalPaginas={totalPaginas}
           handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={generarNumerosPagina}
+          generarNumerosPagina={() => Array.from({ length: totalPaginas }, (_, i) => i + 1)}
         />
       )}
 
-      {/* Formulario para agregar compra */}
+      {/* Formularios */}
       <FormularioCompra
         show={showAgregar}
         close={() => setShowAgregar(false)}
@@ -463,7 +402,6 @@ const descargarFactura = async (compra) => {
         productos={productos}
       />
 
-      {/* Formulario para ver detalles de compra */}
       <FormularioVerCompra
         show={showDetalles}
         close={closeDetalles}
@@ -471,27 +409,6 @@ const descargarFactura = async (compra) => {
         formatoMoneda={formatoMoneda}
         descargarFactura={descargarFactura}
         proveedores={proveedores}
-      />
-
-      {/* Modal de confirmación para anular */}
-      <ModalConfirmacion
-        show={showConfirmacion}
-        onClose={cerrarConfirmacion}
-        onConfirm={confirmarAnulacion}
-        titulo="Anular Compra"
-        mensaje="¿Estás seguro de que deseas anular esta compra? Esta acción no se puede deshacer."
-        detalles={compraAAnular && (
-          <>
-            <div><strong>Código:</strong> #{compraAAnular.codigoCompra}</div>
-            <div><strong>Fecha:</strong> {new Date(compraAAnular.fechaCompra).toLocaleDateString()}</div>
-            <div><strong>Proveedor:</strong> {getProveedorNombre(compraAAnular.IdProveedor)}</div>
-            <div><strong>Total:</strong> {formatoMoneda(compraAAnular.precioTotal)}</div>
-          </>
-        )}
-        textoConfirmar="Anular"
-        textoCancelar="Cancelar"
-        tipoIcono="warning"
-        colorConfirmar="red"
       />
     </>
   );

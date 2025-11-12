@@ -5,7 +5,7 @@ const FormularioAgregar = ({
   show,
   setShow,
   onSubmit,
-  titulo = "Agregar Nuevo Cliente",
+  title = "Agregar Nuevo Cliente",
 }) => {
   const [formData, setFormData] = useState({
     tipoDocumento: "",
@@ -95,15 +95,15 @@ const FormularioAgregar = ({
   };
 
   return (
-    <ModalBase show={show} setShow={setShow}>
+    <ModalBase show={show} title={title} setShow={setShow} onClose={() => setShow(false)}>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800">{titulo}</h2>
-        <button
+        {/* <h2 className="text-xl font-bold text-gray-800">{titulo}</h2> */}
+        {/* <button
           onClick={() => setShow(false)}
           className="text-gray-500 hover:text-gray-700 text-2xl"
         >
           ×
-        </button>
+        </button> */}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +115,7 @@ const FormularioAgregar = ({
               name="tipoDocumento"
               value={formData.tipoDocumento}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.tipoDocumento ? "border-red-500" : "border-gray-300"
               }`}
             >
@@ -140,7 +140,7 @@ const FormularioAgregar = ({
               value={formData.documento}
               onChange={handleChange}
               placeholder={getDocumentoPlaceholder()}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.documento ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -157,7 +157,7 @@ const FormularioAgregar = ({
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.nombre ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -174,7 +174,7 @@ const FormularioAgregar = ({
               name="apellido"
               value={formData.apellido}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.apellido ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -191,7 +191,7 @@ const FormularioAgregar = ({
               name="correo"
               value={formData.correo}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.correo ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -208,7 +208,7 @@ const FormularioAgregar = ({
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.telefono ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -227,7 +227,7 @@ const FormularioAgregar = ({
               name="direccion"
               value={formData.direccion}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.direccion ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -243,7 +243,7 @@ const FormularioAgregar = ({
               name="clave"
               value={formData.clave}
               onChange={handleChange}
-              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${
+              className={`w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${
                 errores.clave ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -256,11 +256,12 @@ const FormularioAgregar = ({
         {/* Estado */}
         <div>
           <label className="block text-gray-700 font-medium">Estado *</label>
+          <br />
           <select
             name="estado"
             value={formData.estado}
             onChange={handleChange}
-            className="w-full md:w-1/2 border rounded p-2 focus:border-orange-500 focus:outline-none"
+            className="w-full md:w-49/100 border rounded p-2 focus:border-orange-500 focus:outline-none bg-white"
           >
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>

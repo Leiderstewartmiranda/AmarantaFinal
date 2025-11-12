@@ -25,7 +25,7 @@ const FormularioVerDetallesProducto = ({ show, close, producto, categorias = [] 
     )?.nombreCategoria || "Sin categoría";
 
   return (
-    <ModalBase show={show} setShow={close} titulo="Detalles del Producto">
+    <ModalBase show={show} setShow={close} title="Detalles del Producto" onClose={close}>
       <div className="space-y-5">
         {/* Imagen del producto */}
         {producto.imagen ? (
@@ -95,9 +95,9 @@ const FormularioVerDetallesProducto = ({ show, close, producto, categorias = [] 
         <div className="flex justify-end pt-4">
           <button
             onClick={close}
-            className="flex items-center gap-2 px-4 py-2 text-white bg-gray-600 rounded-md hover:bg-gray-700 transition duration-200"
+            className="bg-gray-500 text-white font-bold py-2 px-1 rounded hover:bg-gray-600 transition duration-300 w-30 max-w-xs"
           >
-            <Icon icon="mdi:close" className="text-lg" />
+            
             Cerrar
           </button>
         </div>

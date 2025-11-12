@@ -26,13 +26,13 @@ const PaginaProveedores = () => {
         console.log("Datos recibidos de la API:", data);
         setListaProveedores(data);
         
-        Swal.fire({
-          icon: "success",
-          title: "✅ Proveedores cargados",
-          text: "Los proveedores se han cargado correctamente",
-          confirmButtonColor: "#b45309",
-          background: "#fff8e7",
-        });
+        // Swal.fire({
+        //   icon: "success",
+        //   title: "✅ Proveedores cargados",
+        //   text: "Los proveedores se han cargado correctamente",
+        //   confirmButtonColor: "#b45309",
+        //   background: "#fff8e7",
+        // });
       } catch (error) {
         console.error("Error cargando proveedores:", error);
         Swal.fire({

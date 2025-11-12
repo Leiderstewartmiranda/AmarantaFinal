@@ -156,7 +156,7 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
       // 🚀 Enviar todos los detalles en una sola petición
       await PostDetallesCompraMultiple(detalles);
 
-      alert("✅ Compra registrada correctamente");
+      
       setProductosAgregados([]);
       setProveedorSelect(null);
       setProductoSelect(null);
@@ -195,7 +195,7 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
   };
 
   return (
-    <ModalBase show={show} titulo="Registrar Compra" icon="mdi:cart-arrow-down" onClose={close}>
+    <ModalBase show={show} title="Registrar Compra" onClose={close}>
       <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
         {/* 🗓️ Fecha y proveedor */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -31,6 +31,7 @@ export default function Perfil() {
         return res.json();
       })
       .then((data) => {
+        console.log("🧠 Datos usuario:", data);
         setUsuario(data);
         setLoading(false);
       })
@@ -56,6 +57,18 @@ export default function Perfil() {
 
   if (!usuario) return null;
 
+  // 🔹 Función para redirigir según el rol
+  const handleVolver = () => {
+    const usuarioLocal = JSON.parse(localStorage.getItem("usuario"));
+    const rol = usuarioLocal?.rol;
+
+    if (rol === "Admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div className="perfil-container">
       <div className="header-decor"></div>
@@ -63,11 +76,14 @@ export default function Perfil() {
       <div className="perfil-card">
         <div className="foto-container">
           <div className="foto-wrapper">
-              <img
-                src={usuario.imagenPerfil || "https://i.pinimg.com/736x/5a/1e/fd/5a1efd27ee4f553c1c3ec13f9edf62ee.jpg"}
-                alt="Perfil"
-                className="foto-usuario"
-              />
+            <img
+              src={
+                usuario.imagenPerfil ||
+                "https://i.pinimg.com/736x/5a/1e/fd/5a1efd27ee4f553c1c3ec13f9edf62ee.jpg"
+              }
+              alt="Perfil"
+              className="foto-usuario"
+            />
           </div>
         </div>
 
@@ -120,10 +136,16 @@ export default function Perfil() {
 
         <div className="actions-container">
           <button
+            className="btn-volver"
+            onClick={handleVolver}
+          >
+           Volver
+          </button>
+          <button
             className="btn-editar"
             onClick={() => navigate("/editar-perfil", { state: { usuario } })}
           >
-            <span className="btn-icon">✏️</span> Editar Perfil
+             Editar Perfil
           </button>
           <button
             className="btn-cerrar"
@@ -132,7 +154,7 @@ export default function Perfil() {
               window.location.href = "/";
             }}
           >
-            <span className="btn-icon">🚪</span> Cerrar Sesión
+             Cerrar Sesión
           </button>
         </div>
       </div>

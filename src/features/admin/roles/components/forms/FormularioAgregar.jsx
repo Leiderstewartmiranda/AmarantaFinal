@@ -11,14 +11,14 @@ const FormularioAgregarRol = ({ show, setShow, onSubmit, nombreRef }) => {
       <button
         type="button"
         onClick={handleClose}
-        className="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+        className="btn btn-secondary"
       >
         Cancelar
       </button>
       <button
         type="submit"
         form="form-agregar-rol"
-        className="px-4 py-2 text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors font-medium"
+        className="btn"
       >
         Agregar Rol
       </button>
@@ -43,7 +43,7 @@ const FormularioAgregarRol = ({ show, setShow, onSubmit, nombreRef }) => {
             id="nombreRol"
             type="text"
             placeholder="Ej: Administrador, Vendedor, Cliente"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+            className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
             required
             maxLength={50}
           />

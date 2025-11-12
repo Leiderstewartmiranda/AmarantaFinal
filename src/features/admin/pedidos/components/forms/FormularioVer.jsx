@@ -37,7 +37,7 @@ const FormularioVer = ({ show, close, codigoPedido, titulo, formatearMoneda }) =
   if (!show) return null;
 
   return (
-    <ModalBase show={show} setShow={close} title={titulo}>
+    <ModalBase show={show} setShow={close} title={titulo} onClose={close}>
       {loading ? (
         <div className="p-6 text-center text-gray-600">Cargando detalles del pedido...</div>
       ) : pedido ? (
@@ -100,7 +100,7 @@ const FormularioVer = ({ show, close, codigoPedido, titulo, formatearMoneda }) =
           <div className="flex justify-end pt-4">
             <button
               onClick={close}
-              className="px-5 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="bg-gray-500 text-white font-bold py-2 px-1 rounded hover:bg-gray-600 transition duration-300 w-30 max-w-xs"
             >
               Cerrar
             </button>

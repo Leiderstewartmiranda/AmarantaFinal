@@ -80,7 +80,7 @@ export default function NavAdmin() {
           <span>Dashboard</span>
         </NavLink>
       </div>
-      <NavLink to="/admin/perfil" className="menu-item">
+      <NavLink to="/perfil" className="menu-item">
           <LogOut size={18} />
           <span>Perfil</span>
         </NavLink>

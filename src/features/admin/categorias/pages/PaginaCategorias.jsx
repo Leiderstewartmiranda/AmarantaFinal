@@ -56,13 +56,13 @@ const PaginaCategorias = () => {
       const data = await GetCProductos();
       setListaCategorias(data);
       
-      Swal.fire({
-        icon: "success",
-        title: "✅ Categorías cargadas",
-        text: "Las categorías se han cargado correctamente",
-        confirmButtonColor: "#b45309",
-        background: "#fff8e7",
-      });
+      // Swal.fire({
+      //   icon: "success",
+      //   title: "✅ Categorías cargadas",
+      //   text: "Las categorías se han cargado correctamente",
+      //   confirmButtonColor: "#b45309",
+      //   background: "#fff8e7",
+      // });
     } catch (error) {
       console.error("Error cargando las categorías:", error);
       Swal.fire({
@@ -541,80 +541,89 @@ const PaginaCategorias = () => {
                   key={element.idCategoria}
                   className="hover:bg-gray-100 border-t-2 border-gray-300"
                 >
+                  <td className="py-2 px-4">{element.nombreCategoria}</td>
+
                   <td className="py-2 px-4">
-                    {element.nombreCategoria}
+                    {element.descripcion && element.descripcion.length > 50
+                      ? `${element.descripcion.substring(0, 50)}...`
+                      : element.descripcion}
                   </td>
-                  <td className="py-2 px-4">
-                    {element.descripcion && element.descripcion.length > 50 
-                      ? `${element.descripcion.substring(0, 50)}...` 
-                      : element.descripcion
-                    }
-                  </td>
-                 <td className="py-1 px-4">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={element.estado || false}
-                      onChange={() => cambiarEstado(element.idCategoria)}
-                    />
-                    <div
-                      className={`w-11 h-6 rounded-full peer ${
-                        element.estado ? "bg-green-500" : "bg-gray-300"
-                      } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
-                    >
+
+                  <td className="py-1 px-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={element.estado || false}
+                        onChange={() => cambiarEstado(element.idCategoria)}
+                      />
                       <div
-                        className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${
-                          element.estado ? "transform translate-x-5" : ""
-                        }`}
-                      ></div>
-                    </div>
-                  </label>
-                </td>
+                        className={`w-11 h-6 rounded-full peer ${
+                          element.estado ? "bg-green-500" : "bg-gray-300"
+                        } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                      >
+                        <div
+                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${
+                            element.estado ? "transform translate-x-5" : ""
+                          }`}
+                        ></div>
+                      </div>
+                    </label>
+                  </td>
 
                   <td className="py-2 px-4 flex gap-2 justify-center">
-                    <Icon
-                      icon="mdi:eye-outline"
-                      width="24"
-                      height="24"
-                      className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
-                      onClick={() => mostrarDetalles(element.idCategoria)}
-                      title="Ver detalles"
-                    />
-                    <Icon
-                      icon="material-symbols:edit-outline"
-                      width="24"
-                      height="24"
-                      className={`cursor-pointer transition-colors ${
-                        element.estado 
-                          ? "text-blue-700 hover:text-blue-900" 
-                          : "text-gray-400 cursor-not-allowed"
-                      }`}
-                      onClick={() => mostrarEditar(element.idCategoria)}
-                      title={element.estado ? "Editar" : "No editable (inactivo)"}
-                    />
-                    <Icon
-                      icon="tabler:trash"
-                      width="24"
-                      height="24"
-                      className="text-red-700 hover:text-red-900 cursor-pointer transition-colors"
-                      onClick={() => handleEliminar(element.idCategoria)}
-                      title="Eliminar"
-                    />
+                    {/* Ver detalles */}
+                    
+                      <Icon
+                        icon="mdi:eye-outline"
+                        width="24"
+                        height="24"
+                        className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
+                        onClick={() => mostrarDetalles(element.idCategoria)}
+                      />
+                      
+                    
+
+                    {/* Editar */}
+                    
+                      <Icon
+                        icon="material-symbols:edit-outline"
+                        width="24"
+                        height="24"
+                        className={`cursor-pointer transition-colors ${
+                          element.estado
+                            ? "text-blue-700 hover:text-blue-900"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
+                        onClick={() => mostrarEditar(element.idCategoria)}
+                      />
+                      
+
+                    {/* Eliminar */}
+                    
+                      <Icon
+                        icon="tabler:trash"
+                        width="24"
+                        height="24"
+                        className="text-red-700 hover:text-red-900 cursor-pointer transition-colors"
+                        onClick={() => handleEliminar(element.idCategoria)}
+                        alt=""
+                      />
+                      
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td colSpan="4" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda ? 
-                    `No se encontraron categorías que coincidan con "${terminoBusqueda}"` : 
-                    "No hay categorías disponibles"
-                  }
+                  {terminoBusqueda
+                    ? `No se encontraron categorías que coincidan con "${terminoBusqueda}"`
+                    : "No hay categorías disponibles"}
                 </td>
               </tr>
             )}
           </TablaAdmin>
+
         </div>
       </section>
 

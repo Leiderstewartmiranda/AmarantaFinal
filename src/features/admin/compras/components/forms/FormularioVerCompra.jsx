@@ -64,7 +64,7 @@ const FormularioVerCompra = ({
       footerButtons={
         <>
           <button
-            className="btn-secundary"
+            className="bg-gray-500 text-white font-bold py-2 px-1 rounded hover:bg-gray-600 transition duration-300 w-30 max-w-xs"
             onClick={close}
           >
             Cerrar

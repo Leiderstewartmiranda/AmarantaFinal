@@ -98,7 +98,7 @@ const FormularioAgregarProducto = ({
   };
 
   return (
-    <ModalBase show={show} setShow={setShow} title="Agregar Producto">
+    <ModalBase show={show} setShow={setShow} title="Agregar Producto" onClose={handleCancelar}>
       <form onSubmit={handleSubmit} className="formulario-producto">
         {/* Nombre */}
         <div className="campo">
@@ -107,7 +107,7 @@ const FormularioAgregarProducto = ({
             ref={nombreRef}
             type="text"
             placeholder="Nombre del producto"
-            className={errores.nombre ? "input-error" : ""}
+            className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.nombre ? 'border-red-500' : 'border-gray-300'}`}
           />
           {errores.nombre && <p className="error-text">{errores.nombre}</p>}
         </div>
@@ -115,7 +115,7 @@ const FormularioAgregarProducto = ({
         {/* Categoría */}
         <div className="campo">
           <label>Categoría *</label>
-          <select ref={categoriaRef} defaultValue="">
+          <select className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`} ref={categoriaRef} defaultValue="">
             <option value="">Seleccionar categoría</option>
             {categorias.map((cat) => (
               <option key={cat.idCategoria} value={cat.idCategoria}>
@@ -135,7 +135,7 @@ const FormularioAgregarProducto = ({
             min="1000"
             max="1000000"
             placeholder="Precio del producto"
-            className={errores.precio ? "input-error" : ""}
+            className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.precio ? 'border-red-500' : 'border-gray-300'}`}
           />
           {errores.precio && <p className="error-text">{errores.precio}</p>}
         </div>
@@ -149,7 +149,7 @@ const FormularioAgregarProducto = ({
             min="0"
             max="1000"
             placeholder="Cantidad disponible"
-            className={errores.stock ? "input-error" : ""}
+            className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.stock ? 'border-red-500' : 'border-gray-300'}`}
           />
           {errores.stock && <p className="error-text">{errores.stock}</p>}
         </div>
@@ -157,7 +157,7 @@ const FormularioAgregarProducto = ({
         {/* Imagen */}
         <div className="campo">
           <label>Imagen *</label>
-          <input type="file" accept="image/*" onChange={handleImageChange} />
+          <input className={`bg-white`} type="file" accept="image/*" onChange={handleImageChange} />
           {errores.imagen && <p className="error-text">{errores.imagen}</p>}
           {imagen && (
             <p className="imagen-seleccionada">✓ {imagen.name}</p>

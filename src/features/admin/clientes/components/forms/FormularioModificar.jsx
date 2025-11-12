@@ -41,7 +41,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
   };
 
   return (
-    <ModalBase show={show} setShow={close} titulo="Modificar Cliente">
+    <ModalBase show={show} setShow={close} title="Modificar Cliente" onClose={close}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* FILA 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,7 +68,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
               name="Documento"
               value={form.Documento}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
               required
             />
           </div>
@@ -82,7 +82,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             name="NombreCompleto"
             value={form.NombreCompleto}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
             required
           />
         </div>
@@ -96,7 +96,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
               name="Correo"
               value={form.Correo}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
               required
             />
           </div>
@@ -108,7 +108,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
               name="Telefono"
               value={form.Telefono}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
               required
             />
           </div>
@@ -122,7 +122,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             name="Direccion"
             value={form.Direccion}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
           />
         </div>
 
@@ -149,7 +149,6 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             onClick={close}
             className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition duration-200"
           >
-            <Icon icon="mdi:close" className="text-lg" />
             Cancelar
           </button>
 
@@ -157,7 +156,6 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             type="submit"
             className="bg-[var(--naranjado)] text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition duration-300"
           >
-            <Icon icon="mdi:content-save" className="text-lg" />
             Guardar Cambios
           </button>
         </div>

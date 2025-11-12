@@ -84,13 +84,13 @@ const PaginaPedidos = () => {
       setListaClientes(clientesData);
       setListaProductos(productosData);
       
-      Swal.fire({
-        icon: "success",
-        title: "✅ Datos cargados",
-        text: "Pedidos, clientes y productos cargados correctamente",
-        confirmButtonColor: "#b45309",
-        background: "#fff8e7",
-      });
+      // Swal.fire({
+      //   icon: "success",
+      //   title: "✅ Datos cargados",
+      //   text: "Pedidos, clientes y productos cargados correctamente",
+      //   confirmButtonColor: "#b45309",
+      //   background: "#fff8e7",
+      // });
     } catch (err) {
       console.error("Error cargando datos:", err);
       setError("Error al cargar los datos");

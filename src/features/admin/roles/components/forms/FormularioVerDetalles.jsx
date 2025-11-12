@@ -6,7 +6,7 @@ const FormularioVerDetallesRol = ({ show, close, rol }) => {
     <div className="flex justify-end w-full">
       <button
         onClick={close}
-        className="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+        className="bg-gray-500 text-white font-bold py-2 px-1 rounded hover:bg-gray-600 transition duration-300 w-30 max-w-xs"
       >
         Cerrar
       </button>

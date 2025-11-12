@@ -54,7 +54,7 @@ const FormularioModificar = ({
   };
 
   return ( 
-    <ModalBase show={show} close={close} title={"Editar Categoría"}> 
+    <ModalBase show={show} close={close} title={"Editar Categoría"} onClose={close}> 
       <form onSubmit={onSubmit} className="w-full max-w-lg mx-auto"> 
         <div className="space-y-6"> 
           <div className="form-group"> 
@@ -64,7 +64,7 @@ const FormularioModificar = ({
               ref={nombreRef} 
               value={formData.nombreCategoria} 
               onChange={handleNombreChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-white ${
                 errores.nombreCategoria ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-amber-200"
               }`} 
             /> 
@@ -82,7 +82,7 @@ const FormularioModificar = ({
                 setErrores({ ...errores, descripcion: "" }); 
               }} 
               rows="3" 
-              className={`w-full px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 bg-white text-black ${
                 errores.descripcion ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-amber-200"
               }`} 
             /> 

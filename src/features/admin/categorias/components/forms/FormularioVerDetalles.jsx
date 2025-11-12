@@ -9,7 +9,7 @@ const FormularioVerDetalles = ({ show, close, categoria }) => {
       icon="mdi:eye-outline"
       onClose={close}
       footerButtons={
-        <button className="btn" onClick={close}>
+        <button className="bg-gray-500 text-white font-bold py-2 px-1 rounded hover:bg-gray-600 transition duration-300 w-30 max-w-xs" onClick={close}>
           Cerrar
         </button>
       }

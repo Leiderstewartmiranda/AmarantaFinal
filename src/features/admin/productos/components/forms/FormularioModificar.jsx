@@ -141,7 +141,7 @@ const FormularioModificarProducto = ({
   };
 
   return (
-    <ModalBase show={show} setShow={close} titulo="Editar producto">
+    <ModalBase show={show} setShow={close} title="Editar producto" onClose={handleCancelar}>
       <form onSubmit={handleSubmit} className="formulario-modal">
         {/* Nombre */}
         <div className="campo">
@@ -151,7 +151,7 @@ const FormularioModificarProducto = ({
             value={form.nombre}
             onChange={handleChange}
             placeholder="Ej. Shampoo herbal"
-            className={errores.nombre ? "error" : ""}
+            className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.nombre ? 'border-red-500' : 'border-gray-300'}`}
           />
           {errores.nombre && (
             <span className="mensaje-error">{errores.nombre}</span>
@@ -165,7 +165,7 @@ const FormularioModificarProducto = ({
             name="categoria"
             value={form.categoria}
             onChange={handleChange}
-            className={errores.categoria ? "error" : ""}
+            className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`}
           >
             <option value="">Seleccionar categoría</option>
             {categorias.map((cat) => (
@@ -188,7 +188,7 @@ const FormularioModificarProducto = ({
               type="number"
               value={form.precio}
               onChange={handleChange}
-              className={errores.precio ? "error" : ""}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.precio ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errores.precio && (
               <span className="mensaje-error">{errores.precio}</span>
@@ -201,7 +201,7 @@ const FormularioModificarProducto = ({
               type="number"
               value={form.stock}
               onChange={handleChange}
-              className={errores.stock ? "error" : ""}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.stock ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errores.stock && (
               <span className="mensaje-error">{errores.stock}</span>
@@ -217,6 +217,7 @@ const FormularioModificarProducto = ({
             type="file"
             accept="image/*"
             onChange={handleChange}
+            className={`bg-white`}
           />
           {errores.imagen && (
             <span className="mensaje-error">{errores.imagen}</span>
@@ -232,6 +233,7 @@ const FormularioModificarProducto = ({
               name="estado"
               checked={form.estado}
               onChange={handleChange}
+              className={`bg-white`}
             />
             <span className="slider"></span>
           </label>
@@ -260,7 +262,7 @@ const FormularioModificarProducto = ({
               </span>
             ) : (
               <span className="flex items-center gap-2">
-                <Icon icon="mdi:content-save" /> Guardar
+                 Guardar
               </span>
             )}
           </button>

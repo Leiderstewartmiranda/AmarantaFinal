@@ -310,3 +310,19 @@
     transform: rotate(360deg);
   }
 }
+
+.btn-volver {
+  background-color: #d4a574;
+  color: #fff;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-volver:hover {
+  background-color: #b45309;
+  transform: scale(1.05);
+}

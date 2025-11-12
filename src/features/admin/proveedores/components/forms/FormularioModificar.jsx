@@ -248,7 +248,7 @@ const FormularioModificarProveedor = ({
               name="nit"
               value={formData.nit}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.nit ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.nit ? 'border-red-500' : 'border-gray-300'}`}
               required
               disabled={cargando}
             >
@@ -266,7 +266,7 @@ const FormularioModificarProveedor = ({
               name="representante"
               value={formData.representante}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.representante ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.representante ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={getDocumentoPlaceholder()}
               required
               disabled={cargando}
@@ -284,7 +284,7 @@ const FormularioModificarProveedor = ({
               name="nombreEmpresa"
               value={formData.nombreEmpresa}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.nombreEmpresa ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.nombreEmpresa ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="Nombre del proveedor"
               required
               disabled={cargando}
@@ -299,7 +299,7 @@ const FormularioModificarProveedor = ({
               name="correo"
               value={formData.correo}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.correo ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.correo ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="contacto@proveedor.com"
               required
               disabled={cargando}
@@ -317,7 +317,7 @@ const FormularioModificarProveedor = ({
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.telefono ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.telefono ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="Número de teléfono"
               required
               disabled={cargando}
@@ -331,7 +331,7 @@ const FormularioModificarProveedor = ({
               name="estado"
               value={formData.estado}
               onChange={handleChange}
-              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none ${errores.estado ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.estado ? 'border-red-500' : 'border-gray-300'}`}
               required
               disabled={cargando}
             >

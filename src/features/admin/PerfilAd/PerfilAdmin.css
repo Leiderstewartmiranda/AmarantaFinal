@@ -1,30 +1,33 @@
-.perfilAd-container {
-  min-height: 100vh;
+/* .perfilAd-container {
+  min-height: 50vh;
+  max-height: 100vh;
   background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6) ),
     url("https://static.excelenciasgourmet.com/cdn/ff/eZQ9zND5l2cqH3HmqytZ0fznNT6Mit7ml1xVYpQaWJQ/1721683343/public/2019-10/habanos-ron.jpg")
       no-repeat center center/cover;
   font-family: Georgia, "Times New Roman", serif;
   color: #fffbe6;
-  padding: 4rem 2rem;
+  padding: 2rem 3rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  margin-left: 250px;
+  margin-right: -1.6%;
+  margin-left: 13.6%;
   border-radius: 1ch;
+  margin-top: -2%;
 }
 
 /* Capa de desenfoque */
-.perfilAd-container::before {
+/* .perfilAd-container::before {
   content: "";
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   z-index: 0;
-}
+} */
 
 /* .perfil-container::before {
   content: "";
@@ -38,7 +41,7 @@
   z-index: 0;
 } */
 
-.header-decor,
+/* .header-decor,
 .footer-decor {
   position: absolute;
   left: 0;
@@ -61,9 +64,9 @@
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(212, 165, 116, 0.2),
     inset 0 0 30px rgba(212, 165, 116, 0.05);
-  max-width: 600px;
+  max-width: 2000px;
   width: 100%;
-  padding: 3rem 2.5rem;
+  padding: 3rem 3rem;
   text-align: center;
   animation: fadeInUp 0.6s ease-out;
   position: relative;
@@ -155,6 +158,19 @@
 .divider-diamond {
   color: #d4a574;
   font-size: 0.8rem;
+}
+
+.divid2{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .divid2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .info-grid {
@@ -260,7 +276,7 @@
 }
 
 /* Animaciones */
-@keyframes fadeInUp {
+/* @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(30px);
@@ -269,9 +285,9 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
+} */
 
-@keyframes pulse {
+/* @keyframes pulse {
   0%,
   100% {
     transform: scale(1);
@@ -279,9 +295,9 @@
   50% {
     transform: scale(1.05);
   }
-}
+} */
 
-.spinner {
+/* .spinner {
   width: 60px;
   height: 60px;
   border: 4px solid #333;
@@ -305,10 +321,10 @@
   margin-top: 1rem;
   font-size: 1.2rem;
   letter-spacing: 2px;
-}
+} */
 
-@keyframes spin {
+/* @keyframes spin {
   to {
     transform: rotate(360deg);
   }
-}
+}  */

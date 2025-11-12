@@ -7,7 +7,6 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import FormularioAgregar from "../components/forms/FormularioAgregar";
 import FormularioModificar from "../components/forms/FormularioModificar";
 import FormularioVerDetalles from "../components/forms/FormularioVerDetalles";
-import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
 import {
   GetClientes,
   CrearCliente,
@@ -15,6 +14,7 @@ import {
   DeleteCliente,
 } from "../../../../services/clienteService";
 import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
+import Swal from "sweetalert2";
 
 const PaginaClientes = () => {
   const [listaClientes, setListaClientes] = useState([]);
@@ -23,13 +23,13 @@ const PaginaClientes = () => {
   const [showAgregar, setShowAgregar] = useState(false);
   const [showEditar, setShowEditar] = useState(false);
   const [showDetalles, setShowDetalles] = useState(false);
+
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const clientesPorPagina = 5;
 
-  const [showConfirmacion, setShowConfirmacion] = useState(false);
-  const [clienteAEliminar, setClienteAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const busquedaRef = useRef();
 
   const [formData, setFormData] = useState({
     IdCliente: null,
@@ -42,9 +42,7 @@ const PaginaClientes = () => {
     Direccion: "",
   });
 
-  const busquedaRef = useRef();
-
-  // 🔹 Cargar clientes desde API
+  // 🔹 Cargar clientes
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -71,20 +69,19 @@ const PaginaClientes = () => {
         setLoading(false);
       }
     };
-
     cargar();
   }, []);
 
   // 🔹 Agregar cliente
   const handleAgregarCliente = async (datosFormulario) => {
-    console.log("📝 Datos recibidos del formulario:", datosFormulario);
-    console.log("🔍 TipoDocumento value:", datosFormulario.tipoDocumento);
-    console.log("🔍 Tipo de dato:", typeof datosFormulario.tipoDocumento);
-
-    // Validar que tipoDocumento tenga valor
     if (!datosFormulario.tipoDocumento) {
-      console.error("❌ ERROR: tipoDocumento está vacío");
-      alert("Por favor selecciona un tipo de documento");
+      Swal.fire({
+        icon: "warning",
+        title: "Falta información",
+        text: "Por favor selecciona un tipo de documento.",
+        confirmButtonColor: "#d15153",
+        background: "#fff8e7",
+      });
       return;
     }
 
@@ -97,15 +94,11 @@ const PaginaClientes = () => {
       Clave: datosFormulario.clave || "123456",
       Telefono: datosFormulario.telefono,
       Direccion: datosFormulario.direccion,
-      IdRol: 2, // Rol fijo para Cliente
+      IdRol: 2,
     };
-    console.log("🚀 DATOS a enviar a la API:", nuevoCliente);
 
     try {
       const creado = await CrearCliente(nuevoCliente);
-        console.log("✅ RESPUESTA COMPLETA de la API:", creado);
-        console.log("🔍 TipoDocumento en respuesta:", creado.TipoDocumento);
-        console.log("🔍 TODAS las propiedades del objeto:", Object.keys(creado));
 
       const adaptado = {
         IdCliente: creado.idCliente,
@@ -117,17 +110,33 @@ const PaginaClientes = () => {
         Correo: creado.correo,
         Telefono: creado.telefono,
         Direccion: creado.direccion,
+        Estado: "Activo",
       };
 
       setListaClientes((prev) => [...prev, adaptado]);
+
+      Swal.fire({
+        icon: "success",
+        title: "Cliente agregado",
+        text: "El cliente ha sido registrado exitosamente.",
+        confirmButtonColor: "#d15153",
+        background: "#fff8e7",
+      });
+      setShowAgregar(false);
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al agregar cliente",
+        text: "Ocurrió un error al registrar el cliente.",
+        confirmButtonColor: "#d15153",
+        background: "#fff8e7",
+      });
       console.error("Error agregando cliente:", error);
     }
   };
 
   // 🔹 Editar cliente
   const handleEditarSubmit = async (datosFormulario) => {
-
     const actualizado = {
       IdCliente: datosFormulario.IdCliente,
       TipoDocumento: datosFormulario.TipoDocumento,
@@ -150,32 +159,71 @@ const PaginaClientes = () => {
                 ...c,
                 ...actualizado,
                 NombreCompleto: `${actualizado.Nombre} ${actualizado.Apellido}`.trim(),
-                Estado: "Activo",
               }
             : c
         )
       );
 
+      Swal.fire({
+        icon: "success",
+        title: "Cliente actualizado",
+        text: "Los datos se han guardado correctamente.",
+        confirmButtonColor: "#d15153",
+        background: "#fff8e7",
+      });
+
       closeModal();
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al actualizar",
+        text: "No fue posible actualizar el cliente.",
+        confirmButtonColor: "#d15153",
+        background: "#fff8e7",
+      });
       console.error("Error editando cliente:", error);
     }
   };
 
-  // 🔹 Eliminar cliente
-  const confirmarEliminacion = async () => {
-    if (!clienteAEliminar) return;
-    try {
-      await DeleteCliente(clienteAEliminar.IdCliente);
-      setListaClientes((prev) =>
-        prev.filter((c) => c.IdCliente !== clienteAEliminar.IdCliente)
-      );
-    } catch (error) {
-      console.error("Error eliminando cliente:", error);
-    } finally {
-      setClienteAEliminar(null);
-      setShowConfirmacion(false);
-    }
+  // 🔹 Eliminar cliente con alerta de confirmación
+  const confirmarEliminacion = (cliente) => {
+    Swal.fire({
+      title: "¿Eliminar cliente?",
+      text: `¿Estás seguro de eliminar a ${cliente.NombreCompleto} identificado con el documento ${cliente.TipoDocumento}-${cliente.Documento}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d15153",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      background: "#fff8e7",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await DeleteCliente(cliente.IdCliente);
+          setListaClientes((prev) =>
+            prev.filter((c) => c.IdCliente !== cliente.IdCliente)
+          );
+
+          Swal.fire({
+            icon: "success",
+            title: "Cliente eliminado",
+            text: "El cliente fue eliminado correctamente.",
+            confirmButtonColor: "#d15153",
+            background: "#fff8e7",
+          });
+        } catch (error) {
+          Swal.fire({
+            icon: "error",
+            title: "Error al eliminar",
+            text: "No se pudo eliminar el cliente.",
+            confirmButtonColor: "#d15153",
+            background: "#fff8e7",
+          });
+          console.error("Error eliminando cliente:", error);
+        }
+      }
+    });
   };
 
   // 🔹 Filtrar clientes
@@ -236,10 +284,8 @@ const PaginaClientes = () => {
       <TituloSeccion titulo="Clientes" />
 
       <section className="col-span-2 flex justify-between items-center gap-4">
-        <div className="flex-shrink-0">
-          <BotonAgregar action={() => setShowAgregar(true)} />
-        </div>
-        <div className="flex-shrink-0 w-80">
+        <BotonAgregar action={() => setShowAgregar(true)} />
+        <div className="w-80">
           <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar cliente"
@@ -269,11 +315,13 @@ const PaginaClientes = () => {
           >
             {loading ? (
               <tr>
-                <td colSpan="7" className="text-center py-6">Cargando...</td>
+                <td colSpan="7" className="text-center py-6">
+                  Cargando...
+                </td>
               </tr>
             ) : clientesPaginados.length > 0 ? (
               clientesPaginados.map((c) => (
-                <tr key={c.IdCliente} className="hover:bg-gray-100">
+                <tr key={c.IdCliente} className="hover:bg-gray-50">
                   <td className="py-2 px-4">{c.NombreCompleto}</td>
                   <td className="py-2 px-4">{c.TipoDocumento}</td>
                   <td className="py-2 px-4">{c.Documento}</td>
@@ -293,24 +341,21 @@ const PaginaClientes = () => {
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
                       icon="mdi:eye-outline"
-                      width="24"
+                      width="22"
                       className="text-green-700 cursor-pointer"
                       onClick={() => mostrarDetalles(c.IdCliente)}
                     />
                     <Icon
                       icon="material-symbols:edit-outline"
-                      width="24"
+                      width="22"
                       className="text-blue-700 cursor-pointer"
                       onClick={() => mostrarEditar(c.IdCliente)}
                     />
                     <Icon
                       icon="tabler:trash"
-                      width="24"
+                      width="22"
                       className="text-red-700 cursor-pointer"
-                      onClick={() => {
-                        setClienteAEliminar(c);
-                        setShowConfirmacion(true);
-                      }}
+                      onClick={() => confirmarEliminacion(c)}
                     />
                   </td>
                 </tr>
@@ -352,14 +397,6 @@ const PaginaClientes = () => {
         show={showDetalles}
         setShow={setShowDetalles}
         cliente={clienteSeleccionado}
-      />
-
-      <ModalConfirmacion
-        show={showConfirmacion}
-        onClose={() => setShowConfirmacion(false)}
-        onConfirm={confirmarEliminacion}
-        titulo="Eliminar Cliente"
-        mensaje="¿Estás seguro de que deseas eliminar este cliente?"
       />
     </>
   );
