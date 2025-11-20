@@ -18,6 +18,28 @@ const PaginaProveedores = () => {
   const [loading, setLoading] = useState(true);
   const [recarga, setRecarga] = useState(0);
 
+  // Estados para filtros y ordenamiento
+  const [terminoBusqueda, setTerminoBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroTipoDoc, setFiltroTipoDoc] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const proveedoresPorPagina = 5;
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc'
+  });
+
+  const [showAgregar, setShowAgregar] = useState(false);
+  const [showEditar, setShowEditar] = useState(false);
+  const [showVer, setShowVer] = useState(false);
+  const [showConfirmacion, setShowConfirmacion] = useState(false);
+  const [proveedorAEliminar, setProveedorAEliminar] = useState(null);
+  const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
+
+  const busquedaRef = useRef();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -25,14 +47,6 @@ const PaginaProveedores = () => {
         const data = await GetProveedores();
         console.log("Datos recibidos de la API:", data);
         setListaProveedores(data);
-        
-        // Swal.fire({
-        //   icon: "success",
-        //   title: "✅ Proveedores cargados",
-        //   text: "Los proveedores se han cargado correctamente",
-        //   confirmButtonColor: "#b45309",
-        //   background: "#fff8e7",
-        // });
       } catch (error) {
         console.error("Error cargando proveedores:", error);
         Swal.fire({
@@ -49,54 +63,142 @@ const PaginaProveedores = () => {
     fetchData();
   }, [recarga]);
 
-  const [showAgregar, setShowAgregar] = useState(false);
-  const [showEditar, setShowEditar] = useState(false);
-  const [showVer, setShowVer] = useState(false);
-  const [terminoBusqueda, setTerminoBusqueda] = useState("");
-  const [paginaActual, setPaginaActual] = useState(1);
-  const proveedoresPorPagina = 5;
-  const [showConfirmacion, setShowConfirmacion] = useState(false);
-  const [proveedorAEliminar, setProveedorAEliminar] = useState(null);
-  const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
+    });
+  };
 
-  const busquedaRef = useRef();
+  // 🔹 Función para aplicar filtros
+  const aplicarFiltros = () => {
+    setPaginaActual(1);
+  };
 
-  // Filtrar proveedores basado en el término de búsqueda
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc' 
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
+
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "Nombre Empresa",
+      onClick: () => handleOrdenar('nombreEmpresa'),
+      icono: getSortIcon('nombreEmpresa')
+    },
+    {
+      titulo: "Contacto",
+      onClick: () => handleOrdenar('correo'),
+      icono: getSortIcon('correo')
+    },
+    {
+      titulo: "Tipo Documento",
+      onClick: () => handleOrdenar('nit'),
+      icono: getSortIcon('nit')
+    },
+    {
+      titulo: "Documento",
+      onClick: () => handleOrdenar('representante'),
+      icono: getSortIcon('representante')
+    },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('estado'),
+      icono: getSortIcon('estado')
+    },
+    "Acciones"
+  ];
+
+  // 🔹 Filtrar y ordenar proveedores
   const proveedoresFiltrados = useMemo(() => {
-    if (!terminoBusqueda.trim()) {
-      return listaProveedores;
+    let filtrados = listaProveedores;
+
+    // Aplicar filtro de búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase();
+      filtrados = filtrados.filter((proveedor) => {
+        const nombreEmpresa = proveedor.nombreEmpresa?.toLowerCase() || '';
+        const correo = proveedor.correo?.toLowerCase() || '';
+        const tipoDocumento = proveedor.nit?.toLowerCase() || '';
+        const documento = proveedor.representante?.toLowerCase() || '';
+        const telefono = proveedor.telefono ? proveedor.telefono.toLowerCase() : "";
+
+        return (
+          nombreEmpresa.includes(termino) ||
+          correo.includes(termino) ||
+          tipoDocumento.includes(termino) ||
+          documento.includes(termino) ||
+          telefono.includes(termino)
+        );
+      });
     }
 
-    const termino = terminoBusqueda.toLowerCase().trim();
-    
-    return listaProveedores.filter((proveedor) => {
-      const nombreEmpresa = proveedor.nombreEmpresa?.toLowerCase() || '';
-      const correo = proveedor.correo?.toLowerCase() || '';
-      const tipoDocumento = proveedor.nit?.toLowerCase() || '';
-      const documento = proveedor.representante?.toLowerCase() || '';
-      const telefono = proveedor.telefono ? proveedor.telefono.toLowerCase() : "";
+    // Aplicar filtro de estado
+    if (filtroEstado) {
+      const estadoFiltro = filtroEstado === "Activo";
+      filtrados = filtrados.filter(proveedor => proveedor.estado === estadoFiltro);
+    }
 
-      return (
-        nombreEmpresa.includes(termino) ||
-        correo.includes(termino) ||
-        tipoDocumento.includes(termino) ||
-        documento.includes(termino) ||
-        telefono.includes(termino)
-      );
-    });
-  }, [listaProveedores, terminoBusqueda]);
+    // Aplicar filtro de tipo de documento
+    if (filtroTipoDoc) {
+      filtrados = filtrados.filter(proveedor => proveedor.nit === filtroTipoDoc);
+    }
+
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
+
+        // Para columnas booleanas (estado)
+        if (ordenamiento.columna === 'estado') {
+          aValue = aValue ? 1 : 0;
+          bValue = bValue ? 1 : 0;
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaProveedores, terminoBusqueda, filtroEstado, filtroTipoDoc, ordenamiento]);
 
   // Calcular datos de paginación
   const totalPaginas = Math.ceil(proveedoresFiltrados.length / proveedoresPorPagina);
   const indiceInicio = (paginaActual - 1) * proveedoresPorPagina;
-  const indiceFin = indiceInicio + proveedoresPorPagina;
-  const proveedoresPaginados = proveedoresFiltrados.slice(indiceInicio, indiceFin);
+  const proveedoresPaginados = proveedoresFiltrados.slice(indiceInicio, indiceInicio + proveedoresPorPagina);
 
-  // Manejar cambios en la barra de búsqueda
-  const handleBusquedaChange = (e) => {
-    setTerminoBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
+  // Ajustar página actual si es necesario
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   // Manejar cambio de página
   const handleCambioPagina = (nuevaPagina) => {
@@ -108,7 +210,6 @@ const PaginaProveedores = () => {
     try {
       const proveedor = listaProveedores.find(p => p.idProveedor === id);
       if (proveedor) {
-        // Mostrar confirmación antes de cambiar estado
         Swal.fire({
           icon: "question",
           title: "🔄 Cambiar estado",
@@ -200,16 +301,35 @@ const PaginaProveedores = () => {
 
   const handleEditarSubmit = async (proveedorActualizado) => {
     try {
+      console.log("🔄 Recibiendo proveedor actualizado:", proveedorActualizado);
+      console.log("🔍 ID del proveedor:", proveedorActualizado?.idProveedor);
+
+      // ✅ VALIDACIÓN: Asegurar que el proveedor tiene ID
+      if (!proveedorActualizado || !proveedorActualizado.idProveedor) {
+        console.error("❌ Error: Proveedor sin ID", proveedorActualizado);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo identificar el proveedor para actualizar.",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+        return;
+      }
+
+      // Llamar al servicio
       await PutProveedor(proveedorActualizado.idProveedor, proveedorActualizado);
-      setRecarga(prev => prev + 1);
       
-      // Actualizar la lista local
-      setListaProveedores(
-        listaProveedores.map((proveedor) =>
-          proveedor.idProveedor === proveedorActualizado.idProveedor ? proveedorActualizado : proveedor
+      // ✅ ACTUALIZAR ESTADO LOCAL
+      setListaProveedores(prev => 
+        prev.map(proveedor => 
+          proveedor.idProveedor === proveedorActualizado.idProveedor 
+            ? { ...proveedor, ...proveedorActualizado }
+            : proveedor
         )
       );
       
+      setRecarga(prev => prev + 1);
       closeModal();
       
       Swal.fire({
@@ -219,8 +339,9 @@ const PaginaProveedores = () => {
         confirmButtonColor: "#b45309",
         background: "#fff8e7",
       });
+      
     } catch (error) {
-      console.error("Error actualizando proveedor:", error);
+      console.error("💥 Error actualizando proveedor:", error);
       Swal.fire({
         icon: "error",
         title: "❌ Error al actualizar",
@@ -284,7 +405,6 @@ const PaginaProveedores = () => {
     } catch (error) {
       console.error("Error eliminando proveedor:", error);
       
-      // Manejar específicamente el error de integridad referencial
       if (error.message.includes("REFERENCE constraint") || 
           error.message.includes("FK_Productos_Proveedores") ||
           error.message.includes("Error 500")) {
@@ -377,42 +497,6 @@ const PaginaProveedores = () => {
     return nit === "NIT" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300";
   };
 
-  // Función para generar los números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-    
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
-    }
-    
-    return numeros;
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center col-span-2 h-64">
@@ -424,16 +508,59 @@ const PaginaProveedores = () => {
   return (
     <>
       <TituloSeccion titulo="Proveedores" />
+      
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
+        <section className="col-span-2">
+        <div className="filtros flex items-center gap-3 mb-1">
+          <select 
+            value={filtroTipoDoc}
+            onChange={(e) => {
+              setFiltroTipoDoc(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Tipo documento</option>
+            <option value="NIT">NIT</option>
+            <option value="RUT">RUT</option>
+
+            <option value="CC">CC</option>
+          </select>
+          
+          <select 
+            value={filtroEstado}
+            onChange={(e) => {
+              setFiltroEstado(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Estado</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+          
+          {/* <button 
+            onClick={aplicarFiltros}
+            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <i className="fa-solid fa-filter"></i>
+            Filtrar
+          </button> */}
+        </div>
+      </section>
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda 
             ref={busquedaRef}
             placeholder="Buscar proveedores"
             value={terminoBusqueda}
-            onChange={handleBusquedaChange}
+            onChange={(e) => {
+              setTerminoBusqueda(e.target.value);
+              setPaginaActual(1);
+            }}
           />
           {terminoBusqueda && (
             <p className="text-sm text-gray-600 mt-2 text-right">
@@ -442,92 +569,110 @@ const PaginaProveedores = () => {
           )}
         </div>
       </section>
+
+      {/* 🔹 Sección de Filtros para Proveedores */}
+      
+
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-        <TablaAdmin
-          listaCabecera={["Nombre", "Contacto", "Tipo Documento", "Documento", "Estado", "Acciones"]}
-        >
-          {proveedoresPaginados.length > 0 ? (
-            proveedoresPaginados.map((element) => (
-              <tr
-                key={element.idProveedor}
-                className="hover:bg-gray-100 border-t-2 border-gray-300"
-              >
-                <td className="py-2 px-4 font-medium">{element.nombreEmpresa}</td>
-                <td className="py-2 px-4 text-sm text-black max-w-xs truncate">
-                  {element.correo}
-                </td>
-                <td className="py-2 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getTipoDocumentoColor(element.nit)}`}>
-                    {element.nit}
-                  </span>
-                </td>
-                <td className="py-2 px-4 text-black">
-                  {element.representante}
-                </td>
-                <td className="py-1 px-4">
-                  <select
-                    value={element.estado ? "Activo" : "Inactivo"}
-                    onChange={(e) => handleCambiarEstado(element.idProveedor, e.target.value === "Activo")}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.estado)} cursor-pointer hover:shadow-sm`}
-                  >
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
-                </td>
-                <td className="py-2 px-4 flex gap-2 justify-center">
-                  <Icon
-                    icon="material-symbols:visibility-outline"
-                    width="24"
-                    height="24"
-                    className="text-green-700 cursor-pointer hover:text-green-800"
-                    onClick={() => mostrarVer(element.idProveedor)}
-                    title="Ver detalles"
-                  />
-                  <Icon
-                    icon="material-symbols:edit-outline"
-                    width="24"
-                    height="24"
-                    className={`cursor-pointer transition-colors ${
-                      element.estado 
-                        ? "text-blue-700 hover:text-blue-800" 
-                        : "text-gray-400 cursor-not-allowed"
-                    }`}
-                    onClick={() => mostrarEditar(element.idProveedor)}
-                    title={element.estado ? "Editar proveedor" : "No editable (inactivo)"}
-                  />
-                  <Icon
-                    icon="tabler:trash"
-                    width="24"
-                    height="24"
-                    className="text-red-700 cursor-pointer hover:text-red-800"
-                    onClick={() => handleEliminar(element.idProveedor)}
-                    title="Eliminar proveedor"
-                  />
+          <TablaAdmin listaCabecera={columnasConOrdenamiento}>
+            {proveedoresPaginados.length > 0 ? (
+              proveedoresPaginados.map((element) => (
+                <tr
+                  key={element.idProveedor}
+                  className="hover:bg-gray-100 border-t-2 border-gray-300"
+                >
+                  <td className="py-2 px-4 font-medium">{element.nombreEmpresa}</td>
+                  <td className="py-2 px-4 text-sm text-black max-w-xs truncate">
+                    {element.correo}
+                  </td>
+                  <td className="py-2 px-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${getTipoDocumentoColor(element.nit)}`}>
+                      {element.nit}
+                    </span>
+                  </td>
+                  <td className="py-2 px-4 text-black">
+                    {element.representante}
+                  </td>
+                  <td className="py-1 px-4">
+                    <select
+                      value={element.estado ? "Activo" : "Inactivo"}
+                      onChange={(e) => handleCambiarEstado(element.idProveedor, e.target.value === "Activo")}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.estado)} cursor-pointer hover:shadow-sm`}
+                    >
+                      <option value="Activo">Activo</option>
+                      <option value="Inactivo">Inactivo</option>
+                    </select>
+                  </td>
+                  <td className="py-2 px-4 flex gap-2 justify-center">
+                    <Icon
+                      icon="material-symbols:visibility-outline"
+                      width="24"
+                      height="24"
+                      className="text-green-700 cursor-pointer hover:text-green-800"
+                      onClick={() => mostrarVer(element.idProveedor)}
+                      title="Ver detalles"
+                    />
+                    <Icon
+                      icon="material-symbols:edit-outline"
+                      width="24"
+                      height="24"
+                      className={`cursor-pointer transition-colors ${
+                        element.estado 
+                          ? "text-blue-700 hover:text-blue-800" 
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                      onClick={() => mostrarEditar(element.idProveedor)}
+                      title={element.estado ? "Editar proveedor" : "No editable (inactivo)"}
+                    />
+                    <Icon
+                      icon="tabler:trash"
+                      width="24"
+                      height="24"
+                      className="text-red-700 cursor-pointer hover:text-red-800"
+                      onClick={() => handleEliminar(element.idProveedor)}
+                      title="Eliminar proveedor"
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
+                  {terminoBusqueda || filtroEstado || filtroTipoDoc ? 
+                    `No se encontraron proveedores que coincidan con los filtros aplicados` : 
+                    "No hay proveedores disponibles"
+                  }
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                {terminoBusqueda ? 
-                  `No se encontraron proveedores que coincidan con "${terminoBusqueda}"` : 
-                  "No hay proveedores disponibles"
-                }
-              </td>
-            </tr>
-          )}
-        </TablaAdmin>
+            )}
+          </TablaAdmin>
         </div>
       </section>
 
+      {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={generarNumerosPagina}
-        />
+        <div className="col-span-2 mt-4">
+          <Paginacion
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            handleCambioPagina={handleCambioPagina}
+          />
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Página {paginaActual} de {totalPaginas} - {proveedoresFiltrados.length} proveedores encontrados
+            {(filtroEstado || filtroTipoDoc || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
+      )}
+
+      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {totalPaginas === 1 && proveedoresFiltrados.length > 0 && (
+        <div className="col-span-2 mt-4">
+          <p className="text-sm text-gray-600 text-center">
+            Mostrando {proveedoresFiltrados.length} proveedores
+            {(filtroEstado || filtroTipoDoc || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
       )}
 
       <FormularioAgregarProveedor
@@ -552,6 +697,9 @@ const PaginaProveedores = () => {
         formData={proveedorSeleccionado}
         titulo="Detalles del Proveedor"
       />
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </>
   );
 };

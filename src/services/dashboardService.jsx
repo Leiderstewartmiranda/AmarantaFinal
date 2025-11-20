@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5201/api";
+const API_URL = "http://amarantaapi.somee.com/api";
 
 // 📦 Obtener resumen general del dashboard
 export async function GetDashboardData() {

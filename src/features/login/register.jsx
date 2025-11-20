@@ -192,7 +192,7 @@ export default function Register() {
   // 🔎 Verificar si correo o documento ya existen en la API
   const validarExistenciaEnBackend = async () => {
     try {
-      const response = await fetch("http://localhost:5201/api/Usuarios");
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios");
       if (!response.ok) throw new Error("Error al consultar usuarios");
 
       const usuarios = await response.json();
@@ -281,7 +281,7 @@ export default function Register() {
         direccion: form.direccion
       });
 
-      const response = await fetch("http://localhost:5201/api/Usuarios", {
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios", {
         method: "POST",
         body: formData, // 🚫 sin headers Content-Type para FormData
       });

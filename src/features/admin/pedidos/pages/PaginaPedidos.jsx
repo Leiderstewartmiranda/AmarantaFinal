@@ -35,11 +35,20 @@ const PaginaPedidos = () => {
   const [showVer, setShowVer] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
+  const [filtroCliente, setFiltroCliente] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroFecha, setFiltroFecha] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const pedidosPorPagina = 5;
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [pedidoAEliminar, setPedidoAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc'
+  });
 
   const [formData, setFormData] = useState({
     Cliente: "",
@@ -83,14 +92,6 @@ const PaginaPedidos = () => {
       setListaPedidos(pedidosMapeados);
       setListaClientes(clientesData);
       setListaProductos(productosData);
-      
-      // Swal.fire({
-      //   icon: "success",
-      //   title: "✅ Datos cargados",
-      //   text: "Pedidos, clientes y productos cargados correctamente",
-      //   confirmButtonColor: "#b45309",
-      //   background: "#fff8e7",
-      // });
     } catch (err) {
       console.error("Error cargando datos:", err);
       setError("Error al cargar los datos");
@@ -125,42 +126,177 @@ const PaginaPedidos = () => {
     };
   };
 
-  // 🔍 Filtrar pedidos basado en el término de búsqueda
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
+    });
+  };
+
+  // 🔹 Función para aplicar filtros
+  const aplicarFiltros = () => {
+    setPaginaActual(1);
+  };
+
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc' 
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
+
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "Cliente",
+      onClick: () => handleOrdenar('Cliente'),
+      icono: getSortIcon('Cliente')
+    },
+    {
+      titulo: "Fecha",
+      onClick: () => handleOrdenar('FechaPedido'),
+      icono: getSortIcon('FechaPedido')
+    },
+    {
+      titulo: "Total",
+      onClick: () => handleOrdenar('PrecioTotal'),
+      icono: getSortIcon('PrecioTotal')
+    },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('Estado'),
+      icono: getSortIcon('Estado')
+    },
+    "Acciones"
+  ];
+
+  // 🔹 Filtrar y ordenar pedidos
   const pedidosFiltrados = useMemo(() => {
-    if (!terminoBusqueda.trim()) {
-      return listaPedidos;
+    let filtrados = listaPedidos;
+
+    // Aplicar filtro de búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      filtrados = filtrados.filter((pedido) => {
+        const cliente = pedido.Cliente?.toLowerCase() || "";
+        const direccion = pedido.Direccion?.toLowerCase() || "";
+        const correo = pedido.Correo?.toLowerCase() || "";
+        const estado = pedido.Estado?.toLowerCase() || "";
+        const total = pedido.PrecioTotal?.toString() || "";
+
+        return (
+          cliente.includes(termino) ||
+          direccion.includes(termino) ||
+          correo.includes(termino) ||
+          estado.includes(termino) ||
+          total.includes(termino)
+        );
+      });
     }
 
-    const termino = terminoBusqueda.toLowerCase().trim();
-    
-    return listaPedidos.filter((pedido) => {
-      const cliente = pedido.Cliente?.toLowerCase() || "";
-      const direccion = pedido.Direccion?.toLowerCase() || "";
-      const correo = pedido.Correo?.toLowerCase() || "";
-      const estado = pedido.Estado?.toLowerCase() || "";
-      const total = pedido.PrecioTotal?.toString() || "";
-
-      return (
-        cliente.includes(termino) ||
-        direccion.includes(termino) ||
-        correo.includes(termino) ||
-        estado.includes(termino) ||
-        total.includes(termino)
+    // Aplicar filtro de cliente
+    if (filtroCliente) {
+      filtrados = filtrados.filter(pedido => 
+        pedido.IdCliente === parseInt(filtroCliente)
       );
-    });
-  }, [listaPedidos, terminoBusqueda]);
+    }
+
+    // Aplicar filtro de estado
+    if (filtroEstado) {
+      filtrados = filtrados.filter(pedido => pedido.Estado === filtroEstado);
+    }
+
+    // Aplicar filtro de fecha
+    if (filtroFecha) {
+      const hoy = new Date();
+      const fechaPedido = new Date();
+      
+      switch (filtroFecha) {
+        case "hoy":
+          filtrados = filtrados.filter(pedido => {
+            const fechaPedido = new Date(pedido.FechaPedido);
+            return fechaPedido.toDateString() === hoy.toDateString();
+          });
+          break;
+        case "semana":
+          const haceUnaSemana = new Date();
+          haceUnaSemana.setDate(hoy.getDate() - 7);
+          filtrados = filtrados.filter(pedido => {
+            const fechaPedido = new Date(pedido.FechaPedido);
+            return fechaPedido >= haceUnaSemana;
+          });
+          break;
+        case "mes":
+          const haceUnMes = new Date();
+          haceUnMes.setMonth(hoy.getMonth() - 1);
+          filtrados = filtrados.filter(pedido => {
+            const fechaPedido = new Date(pedido.FechaPedido);
+            return fechaPedido >= haceUnMes;
+          });
+          break;
+        default:
+          break;
+      }
+    }
+
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
+
+        // Para columnas de fecha
+        if (ordenamiento.columna === 'FechaPedido') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        }
+
+        // Para columnas numéricas
+        if (ordenamiento.columna === 'PrecioTotal') {
+          aValue = parseFloat(aValue) || 0;
+          bValue = parseFloat(bValue) || 0;
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaPedidos, terminoBusqueda, filtroCliente, filtroEstado, filtroFecha, ordenamiento]);
 
   // 📄 Calcular datos de paginación
   const totalPaginas = Math.ceil(pedidosFiltrados.length / pedidosPorPagina);
   const indiceInicio = (paginaActual - 1) * pedidosPorPagina;
-  const indiceFin = indiceInicio + pedidosPorPagina;
-  const pedidosPaginados = pedidosFiltrados.slice(indiceInicio, indiceFin);
+  const pedidosPaginados = pedidosFiltrados.slice(indiceInicio, indiceInicio + pedidosPorPagina);
 
-  // 🔄 Manejar cambios en la barra de búsqueda
-  const handleBusquedaChange = (e) => {
-    setTerminoBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
+  // Ajustar página actual si es necesario
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   // 🔄 Manejar cambio de página
   const handleCambioPagina = (nuevaPagina) => {
@@ -640,42 +776,6 @@ const PaginaPedidos = () => {
     }
   };
 
-  // 🔢 Generar números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-    
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
-    }
-    
-    return numeros;
-  };
-
   // ⏳ Mostrar loading
   if (loading) {
     return (
@@ -707,12 +807,72 @@ const PaginaPedidos = () => {
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
+        <section className="col-span-2">
+        <div className="filtros flex items-center gap-3 mb-1">
+          <select 
+            value={filtroCliente}
+            onChange={(e) => {
+              setFiltroCliente(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todos los clientes</option>
+            {listaClientes.map(cliente => (
+              <option key={cliente.idCliente} value={cliente.idCliente}>
+                {cliente.nombre} {cliente.apellido}
+              </option>
+            ))}
+          </select>
+          
+          <select 
+            value={filtroEstado}
+            onChange={(e) => {
+              setFiltroEstado(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todos los estados</option>
+            {estadosDisponibles.map(estado => (
+              <option key={estado} value={estado}>
+                {estado}
+              </option>
+            ))}
+          </select>
+
+          <select 
+            value={filtroFecha}
+            onChange={(e) => {
+              setFiltroFecha(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todas las fechas</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Última semana</option>
+            <option value="mes">Último mes</option>
+          </select>
+          
+          {/* <button 
+            onClick={aplicarFiltros}
+            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <i className="fa-solid fa-filter"></i>
+            Filtrar
+          </button> */}
+        </div>
+      </section>
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda 
             ref={busquedaRef}
             placeholder="Buscar por cliente, estado o total"
             value={terminoBusqueda}
-            onChange={handleBusquedaChange}
+            onChange={(e) => {
+              setTerminoBusqueda(e.target.value);
+              setPaginaActual(1);
+            }}
           />
           {terminoBusqueda && (
             <p className="text-sm text-gray-600 mt-2 text-right">
@@ -721,99 +881,116 @@ const PaginaPedidos = () => {
           )}
         </div>
       </section>
+
+      {/* 🔹 Sección de Filtros para Pedidos */}
+      
+
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-        <TablaAdmin
-          listaCabecera={["Cliente", "Fecha", "Total", "Estado", "Acciones"]}
-        >
-          {pedidosPaginados.length > 0 ? (
-            pedidosPaginados.map((element) => (
-              <tr
-                key={element.CodigoPedido}
-                className={`hover:bg-gray-100 border-t-2 border-gray-300 ${
-                  element.Estado === "Cancelado" ? "bg-red-50 text-gray-500" : ""
-                }`}
-              >
-                <td className="py-2 px-4 font-medium">{element.Cliente}</td>
-                <td className="py-2 px-4 text-sm text-black">
-                  {element.FechaPedido ? new Date(element.FechaPedido).toLocaleDateString('es-CO') : 'N/A'}
-                </td>
-                <td className="py-2 px-4 text-black">
-                  {formatearMoneda(element.PrecioTotal)}
-                </td>
-                <td className="py-1 px-4">
-                  <select
-                    value={element.Estado}
-                    onChange={(e) => handleCambiarEstado(element.CodigoPedido, e.target.value)}
-                    disabled={element.Estado === "Completado" || element.Estado === "Cancelado"}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.Estado)} ${
-                      element.Estado === "Completado" || element.Estado === "Cancelado"
-                        ? 'cursor-not-allowed opacity-70' 
-                        : 'cursor-pointer hover:shadow-sm'
-                    }`}
-                    title={
-                      element.Estado === "Completado" || element.Estado === "Cancelado"
-                        ? "No se puede cambiar el estado de un pedido completado o cancelado"
-                        : "Cambiar estado del pedido"
-                    }
-                  >
-                    {estadosDisponibles.map((estado) => (
-                      <option key={estado} value={estado}>
-                        {estado}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="py-2 px-4 flex gap-2 justify-center">
-                  <Icon
-                    icon="material-symbols:visibility-outline"
-                    width="24"
-                    height="24"
-                    className="text-green-700 cursor-pointer hover:text-green-800"
-                    onClick={() => mostrarVer(element.CodigoPedido)}
-                    title="Ver detalles"
-                  />
+          <TablaAdmin listaCabecera={columnasConOrdenamiento}>
+            {pedidosPaginados.length > 0 ? (
+              pedidosPaginados.map((element) => (
+                <tr
+                  key={element.CodigoPedido}
+                  className={`hover:bg-gray-100 border-t-2 border-gray-300 ${
+                    element.Estado === "Cancelado" ? "bg-red-50 text-gray-500" : ""
+                  }`}
+                >
+                  <td className="py-2 px-4 font-medium">{element.Cliente}</td>
+                  <td className="py-2 px-4 text-sm text-black">
+                    {element.FechaPedido ? new Date(element.FechaPedido).toLocaleDateString('es-CO') : 'N/A'}
+                  </td>
+                  <td className="py-2 px-4 text-black">
+                    {formatearMoneda(element.PrecioTotal)}
+                  </td>
+                  <td className="py-1 px-4">
+                    <select
+                      value={element.Estado}
+                      onChange={(e) => handleCambiarEstado(element.CodigoPedido, e.target.value)}
+                      disabled={element.Estado === "Completado" || element.Estado === "Cancelado"}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.Estado)} ${
+                        element.Estado === "Completado" || element.Estado === "Cancelado"
+                          ? 'cursor-not-allowed opacity-70' 
+                          : 'cursor-pointer hover:shadow-sm'
+                      }`}
+                      title={
+                        element.Estado === "Completado" || element.Estado === "Cancelado"
+                          ? "No se puede cambiar el estado de un pedido completado o cancelado"
+                          : "Cambiar estado del pedido"
+                      }
+                    >
+                      {estadosDisponibles.map((estado) => (
+                        <option key={estado} value={estado}>
+                          {estado}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="py-2 px-4 flex gap-2 justify-center">
+                    <Icon
+                      icon="material-symbols:visibility-outline"
+                      width="24"
+                      height="24"
+                      className="text-green-700 cursor-pointer hover:text-green-800"
+                      onClick={() => mostrarVer(element.CodigoPedido)}
+                      title="Ver detalles"
+                    />
 
-                  <Icon
-                    icon="tabler:trash"
-                    width="24"
-                    height="24"
-                    className={`cursor-pointer hover:text-red-800 ${
-                      element.Estado === "Cancelado" 
-                        ? "text-gray-400 cursor-not-allowed" 
-                        : "text-red-700"
-                    }`}
-                    onClick={() => element.Estado !== "Cancelado" && handleEliminar(element.CodigoPedido)}
-                    title={
-                      element.Estado === "Cancelado" 
-                        ? "Pedido ya cancelado" 
-                        : "Cancelar pedido"
-                    }
-                  />
+                    <Icon
+                      icon="tabler:trash"
+                      width="24"
+                      height="24"
+                      className={`cursor-pointer hover:text-red-800 ${
+                        element.Estado === "Cancelado" 
+                          ? "text-gray-400 cursor-not-allowed" 
+                          : "text-red-700"
+                      }`}
+                      onClick={() => element.Estado !== "Cancelado" && handleEliminar(element.CodigoPedido)}
+                      title={
+                        element.Estado === "Cancelado" 
+                          ? "Pedido ya cancelado" 
+                          : "Cancelar pedido"
+                      }
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="py-8 px-4 text-center text-gray-500">
+                  {terminoBusqueda || filtroCliente || filtroEstado || filtroFecha ? 
+                    `No se encontraron pedidos que coincidan con los filtros aplicados` : 
+                    "No hay pedidos disponibles"}
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="py-8 px-4 text-center text-gray-500">
-                {terminoBusqueda ? 
-                  `No se encontraron pedidos que coincidan con "${terminoBusqueda}"` : 
-                  "No hay pedidos disponibles"
-                }
-              </td>
-            </tr>
-          )}
-        </TablaAdmin>
+            )}
+          </TablaAdmin>
         </div>
       </section>
 
+      {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={generarNumerosPagina}
-        />
+        <div className="col-span-2 mt-4">
+          <Paginacion
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            handleCambioPagina={handleCambioPagina}
+          />
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Página {paginaActual} de {totalPaginas} - {pedidosFiltrados.length} pedidos encontrados
+            {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
+      )}
+
+      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {totalPaginas === 1 && pedidosFiltrados.length > 0 && (
+        <div className="col-span-2 mt-4">
+          <p className="text-sm text-gray-600 text-center">
+            Mostrando {pedidosFiltrados.length} pedidos
+            {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
       )}
 
       <FormularioAgregar
@@ -866,6 +1043,9 @@ const PaginaPedidos = () => {
         titulo="Detalles del Pedido"
         formatearMoneda={formatearMoneda}
       />
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </>
   );
 };

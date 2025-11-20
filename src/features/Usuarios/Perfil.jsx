@@ -24,7 +24,7 @@ export default function Perfil() {
 
     // 🔹 Petición al backend con el correo del usuario
     fetch(
-      `http://localhost:5201/api/Usuarios/ObtenerPorCorreo?correo=${usuarioLocal.correo}`
+      `http://amarantaapi.somee.com/api/Usuarios/ObtenerPorCorreo?correo=${usuarioLocal.correo}`
     )
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener datos");

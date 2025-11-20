@@ -25,8 +25,16 @@ const PaginaClientes = () => {
   const [showDetalles, setShowDetalles] = useState(false);
 
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
+  const [filtroTipoDoc, setFiltroTipoDoc] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const clientesPorPagina = 5;
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc' // 'asc' o 'desc'
+  });
 
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const busquedaRef = useRef();
@@ -226,18 +234,84 @@ const PaginaClientes = () => {
     });
   };
 
-  // 🔹 Filtrar clientes
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
+    });
+  };
+
+  // 🔹 Función para aplicar filtros
+  const aplicarFiltros = () => {
+    setPaginaActual(1); // Resetear a primera página al aplicar filtros
+  };
+
+  // 🔹 Filtrar y ordenar clientes
   const clientesFiltrados = useMemo(() => {
-    if (!terminoBusqueda.trim()) return listaClientes;
-    const termino = terminoBusqueda.toLowerCase();
-    return listaClientes.filter(
-      (c) =>
-        c.NombreCompleto.toLowerCase().includes(termino) ||
-        c.Documento.toLowerCase().includes(termino) ||
-        c.Correo.toLowerCase().includes(termino) ||
-        c.Telefono.toLowerCase().includes(termino)
-    );
-  }, [listaClientes, terminoBusqueda]);
+    let filtrados = listaClientes;
+
+    // Aplicar filtro de búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase();
+      filtrados = filtrados.filter(
+        (c) =>
+          c.NombreCompleto.toLowerCase().includes(termino) ||
+          c.Documento.toLowerCase().includes(termino) ||
+          c.Correo.toLowerCase().includes(termino) ||
+          c.Telefono.toLowerCase().includes(termino)
+      );
+    }
+
+    // Aplicar filtro de tipo de documento
+    if (filtroTipoDoc) {
+      filtrados = filtrados.filter(c => c.TipoDocumento === "CC" || "Cedula de Ciudadania" ? filtroTipoDoc === "CC" : filtroTipoDoc === "CE");
+    }
+
+    // Aplicar filtro de estado
+    if (filtroEstado) {
+      filtrados = filtrados.filter(c => c.Estado === filtroEstado);
+    }
+
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
+
+        // Para columnas específicas
+        if (ordenamiento.columna === 'Documento' || ordenamiento.columna === 'Telefono') {
+          aValue = parseInt(aValue?.replace(/\D/g, '')) || 0;
+          bValue = parseInt(bValue?.replace(/\D/g, '')) || 0;
+        }
+
+        if (ordenamiento.columna === 'NombreCompleto') {
+          aValue = a.NombreCompleto;
+          bValue = b.NombreCompleto;
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaClientes, terminoBusqueda, filtroTipoDoc, filtroEstado, ordenamiento]);
 
   // Paginación
   const totalPaginas = Math.ceil(clientesFiltrados.length / clientesPorPagina);
@@ -246,6 +320,15 @@ const PaginaClientes = () => {
     indiceInicio,
     indiceInicio + clientesPorPagina
   );
+
+  // 🔹 CORRECCIÓN: Asegurar que la página actual no exceda el total de páginas
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   const handleCambioPagina = (nuevaPagina) => setPaginaActual(nuevaPagina);
 
@@ -279,12 +362,93 @@ const PaginaClientes = () => {
     });
   };
 
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc' 
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
+
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "Nombre completo",
+      onClick: () => handleOrdenar('NombreCompleto'),
+      icono: getSortIcon('NombreCompleto')
+    },
+    {
+      titulo: "Tipo Doc.",
+      onClick: () => handleOrdenar('TipoDocumento'),
+      icono: getSortIcon('TipoDocumento')
+    },
+    {
+      titulo: "Documento",
+      onClick: () => handleOrdenar('Documento'),
+      icono: getSortIcon('Documento')
+    },
+    {
+      titulo: "Correo",
+      onClick: () => handleOrdenar('Correo'),
+      icono: getSortIcon('Correo')
+    },
+    {
+      titulo: "Teléfono",
+      onClick: () => handleOrdenar('Telefono'),
+      icono: getSortIcon('Telefono')
+    },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('Estado'),
+      icono: getSortIcon('Estado')
+    },
+    "Acciones"
+  ];
+
   return (
     <>
       <TituloSeccion titulo="Clientes" />
 
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
+          {/* 🔹 Sección de Filtros - Similar al HTML de referencia */}
+        <div className="filtros flex items-center gap-4 mb-1">
+          <select 
+            value={filtroTipoDoc}
+            onChange={(e) => {
+              setFiltroTipoDoc(e.target.value);
+              setPaginaActual(1); // Resetear página al cambiar filtro
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Tipo documento</option>
+            <option value="CC">Cédula</option>
+            <option value="CE">Cédula Extranjería</option>
+          </select>
+          
+          <select 
+            value={filtroEstado}
+            onChange={(e) => {
+              setFiltroEstado(e.target.value);
+              setPaginaActual(1); // Resetear página al cambiar filtro
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Estado</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+          
+          {/* <button 
+            onClick={aplicarFiltros}
+            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <i className="fa-solid fa-filter"></i>
+            Filtrar
+          </button> */}
+        </div>
         <div className="w-80">
           <BarraBusqueda
             ref={busquedaRef}
@@ -300,19 +464,11 @@ const PaginaClientes = () => {
         </div>
       </section>
 
+      
+
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <TablaAdmin
-            listaCabecera={[
-              "Nombre Completo",
-              "Tipo Doc.",
-              "Documento",
-              "Correo",
-              "Teléfono",
-              "Estado",
-              "Acciones",
-            ]}
-          >
+          <TablaAdmin listaCabecera={columnasConOrdenamiento}>
             {loading ? (
               <tr>
                 <td colSpan="7" className="text-center py-6">
@@ -342,19 +498,19 @@ const PaginaClientes = () => {
                     <Icon
                       icon="mdi:eye-outline"
                       width="22"
-                      className="text-green-700 cursor-pointer"
+                      className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
                       onClick={() => mostrarDetalles(c.IdCliente)}
                     />
                     <Icon
                       icon="material-symbols:edit-outline"
                       width="22"
-                      className="text-blue-700 cursor-pointer"
+                      className="text-blue-700 cursor-pointer hover:text-blue-900 transition-colors"
                       onClick={() => mostrarEditar(c.IdCliente)}
                     />
                     <Icon
                       icon="tabler:trash"
                       width="22"
-                      className="text-red-700 cursor-pointer"
+                      className="text-red-700 cursor-pointer hover:text-red-900 transition-colors"
                       onClick={() => confirmarEliminacion(c)}
                     />
                   </td>
@@ -362,8 +518,8 @@ const PaginaClientes = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-6">
-                  No hay clientes disponibles
+                <td colSpan="7" className="text-center py-6 text-gray-500">
+                  No hay clientes que coincidan con los filtros aplicados
                 </td>
               </tr>
             )}
@@ -371,12 +527,28 @@ const PaginaClientes = () => {
         </div>
       </section>
 
+      {/* 🔹 CORRECCIÓN: Mostrar paginación solo si hay más de una página */}
       {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={handleCambioPagina}
-        />
+        <div className="col-span-2 mt-4">
+          <Paginacion
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            handleCambioPagina={handleCambioPagina}
+          />
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Página {paginaActual} de {totalPaginas} - {clientesFiltrados.length} clientes encontrados
+          </p>
+        </div>
+      )}
+
+      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {totalPaginas === 1 && clientesFiltrados.length > 0 && (
+        <div className="col-span-2 mt-4">
+          <p className="text-sm text-gray-600 text-center">
+            Mostrando {clientesFiltrados.length} clientes
+            {(filtroTipoDoc || filtroEstado || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
       )}
 
       <FormularioAgregar
@@ -398,6 +570,9 @@ const PaginaClientes = () => {
         setShow={setShowDetalles}
         cliente={clienteSeleccionado}
       />
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </>
   );
 };

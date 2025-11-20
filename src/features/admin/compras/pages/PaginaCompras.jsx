@@ -28,8 +28,17 @@ const PaginaCompras = () => {
   const [showAgregar, setShowAgregar] = useState(false);
   const [showDetalles, setShowDetalles] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
+  const [filtroProveedor, setFiltroProveedor] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroFecha, setFiltroFecha] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const comprasPorPagina = 5;
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc'
+  });
 
   const busquedaRef = useRef();
 
@@ -61,33 +70,187 @@ const PaginaCompras = () => {
     fetchData();
   }, [recarga]);
 
-  // Filtrar compras
-  const comprasFiltradas = useMemo(() => {
-    if (!terminoBusqueda.trim()) return listaCompras;
-    const termino = terminoBusqueda.toLowerCase().trim();
-
-    return listaCompras.filter((compra) => {
-      const proveedor = proveedores.find((p) => p.IdProveedor === compra.IdProveedor);
-      const nombreProveedor = proveedor?.nombreEmpresa?.toLowerCase() || "";
-      return (
-        compra.fechaCompra?.toLowerCase().includes(termino) ||
-        compra.precioTotal?.toString().toLowerCase().includes(termino) ||
-        compra.estado?.toLowerCase().includes(termino) ||
-        compra.codigoCompra?.toString().toLowerCase().includes(termino) ||
-        nombreProveedor.includes(termino)
-      );
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
     });
-  }, [listaCompras, terminoBusqueda, proveedores]);
+  };
+
+  // 🔹 Función para aplicar filtros
+  const aplicarFiltros = () => {
+    setPaginaActual(1);
+  };
+
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc' 
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
+
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "Código",
+      onClick: () => handleOrdenar('codigoCompra'),
+      icono: getSortIcon('codigoCompra')
+    },
+    {
+      titulo: "Fecha",
+      onClick: () => handleOrdenar('fechaCompra'),
+      icono: getSortIcon('fechaCompra')
+    },
+    {
+      titulo: "Proveedor",
+      onClick: () => handleOrdenar('idProveedor'),
+      icono: getSortIcon('idProveedor')
+    },
+    {
+      titulo: "Total",
+      onClick: () => handleOrdenar('precioTotal'),
+      icono: getSortIcon('precioTotal')
+    },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('estado'),
+      icono: getSortIcon('estado')
+    },
+    "Acciones"
+  ];
+
+  // 🔹 Filtrar y ordenar compras
+  const comprasFiltradas = useMemo(() => {
+    let filtrados = listaCompras;
+
+    // Aplicar filtro de búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      filtrados = filtrados.filter((compra) => {
+        const proveedor = proveedores.find((p) => p.IdProveedor === compra.IdProveedor);
+        const nombreProveedor = proveedor?.nombreEmpresa?.toLowerCase() || "";
+        return (
+          compra.fechaCompra?.toLowerCase().includes(termino) ||
+          compra.precioTotal?.toString().toLowerCase().includes(termino) ||
+          compra.estado?.toLowerCase().includes(termino) ||
+          compra.codigoCompra?.toString().toLowerCase().includes(termino) ||
+          nombreProveedor.includes(termino)
+        );
+      });
+    }
+
+    // Aplicar filtro de proveedor
+    if (filtroProveedor) {
+      filtrados = filtrados.filter(compra => 
+        compra.idProveedor === parseInt(filtroProveedor)
+      );
+    }
+
+    // Aplicar filtro de estado
+    if (filtroEstado) {
+      filtrados = filtrados.filter(compra => compra.estado === filtroEstado);
+    }
+
+    // Aplicar filtro de fecha
+    if (filtroFecha) {
+      const hoy = new Date();
+      const fechaCompra = new Date();
+      
+      switch (filtroFecha) {
+        case "hoy":
+          filtrados = filtrados.filter(compra => {
+            const fechaCompra = new Date(compra.fechaCompra);
+            return fechaCompra.toDateString() === hoy.toDateString();
+          });
+          break;
+        case "semana":
+          const haceUnaSemana = new Date();
+          haceUnaSemana.setDate(hoy.getDate() - 7);
+          filtrados = filtrados.filter(compra => {
+            const fechaCompra = new Date(compra.fechaCompra);
+            return fechaCompra >= haceUnaSemana;
+          });
+          break;
+        case "mes":
+          const haceUnMes = new Date();
+          haceUnMes.setMonth(hoy.getMonth() - 1);
+          filtrados = filtrados.filter(compra => {
+            const fechaCompra = new Date(compra.fechaCompra);
+            return fechaCompra >= haceUnMes;
+          });
+          break;
+        default:
+          break;
+      }
+    }
+
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
+
+        // Para columnas específicas
+        if (ordenamiento.columna === 'idProveedor') {
+          // Ordenar por nombre de proveedor en lugar del ID
+          const aProveedor = proveedores.find(prov => prov.idProveedor === aValue)?.nombreEmpresa || '';
+          const bProveedor = proveedores.find(prov => prov.idProveedor === bValue)?.nombreEmpresa || '';
+          aValue = aProveedor;
+          bValue = bProveedor;
+        }
+
+        // Para columnas de fecha
+        if (ordenamiento.columna === 'fechaCompra') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        }
+
+        // Para columnas numéricas
+        if (ordenamiento.columna === 'precioTotal' || ordenamiento.columna === 'codigoCompra') {
+          aValue = parseFloat(aValue) || 0;
+          bValue = parseFloat(bValue) || 0;
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaCompras, terminoBusqueda, filtroProveedor, filtroEstado, filtroFecha, ordenamiento, proveedores]);
 
   // Paginación
   const totalPaginas = Math.ceil(comprasFiltradas.length / comprasPorPagina);
   const indiceInicio = (paginaActual - 1) * comprasPorPagina;
   const comprasPaginadas = comprasFiltradas.slice(indiceInicio, indiceInicio + comprasPorPagina);
 
-  const handleBusquedaChange = (e) => {
-    setTerminoBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
+  // Ajustar página actual si es necesario
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   const handleCambioPagina = (nuevaPagina) => setPaginaActual(nuevaPagina);
 
@@ -299,12 +462,69 @@ const PaginaCompras = () => {
       {/* Botón + búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
+      <section className="col-span-2">
+        <div className="filtros flex items-center gap-2 mb-1">
+          <select 
+            value={filtroProveedor}
+            onChange={(e) => {
+              setFiltroProveedor(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todos los proveedores</option>
+            {proveedores.map(proveedor => (
+              <option key={proveedor.idProveedor} value={proveedor.idProveedor}>
+                {proveedor.nombreEmpresa}
+              </option>
+            ))}
+          </select>
+          
+          <select 
+            value={filtroEstado}
+            onChange={(e) => {
+              setFiltroEstado(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Activa">Activa</option>
+            <option value="Anulada">Anulada</option>
+          </select>
+
+          <select 
+            value={filtroFecha}
+            onChange={(e) => {
+              setFiltroFecha(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todas las fechas</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Última semana</option>
+            <option value="mes">Último mes</option>
+          </select>
+          
+          {/* <button 
+            onClick={aplicarFiltros}
+            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <i className="fa-solid fa-filter"></i>
+            Filtrar
+          </button> */}
+        </div>
+      </section>
         <div className="w-80">
           <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar por proveedor, código o estado"
             value={terminoBusqueda}
-            onChange={handleBusquedaChange}
+            onChange={(e) => {
+              setTerminoBusqueda(e.target.value);
+              setPaginaActual(1);
+            }}
           />
           {terminoBusqueda && (
             <p className="text-sm text-gray-600 mt-2 text-right">
@@ -314,10 +534,13 @@ const PaginaCompras = () => {
         </div>
       </section>
 
+      {/* 🔹 Sección de Filtros para Compras */}
+      
+
       {/* Tabla */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <TablaAdmin listaCabecera={["Código", "Fecha", "Proveedor", "Total", "Estado", "Acciones"]}>
+          <TablaAdmin listaCabecera={columnasConOrdenamiento}>
             {comprasPaginadas.length > 0 ? (
               comprasPaginadas.map((compra) => (
                 <tr
@@ -373,9 +596,9 @@ const PaginaCompras = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda
-                    ? `No se encontraron compras que coincidan con "${terminoBusqueda}"`
-                    : "No hay compras disponibles"}
+                  {terminoBusqueda || filtroProveedor || filtroEstado || filtroFecha ? 
+                    `No se encontraron compras que coincidan con los filtros aplicados` : 
+                    "No hay compras disponibles"}
                 </td>
               </tr>
             )}
@@ -383,14 +606,29 @@ const PaginaCompras = () => {
         </div>
       </section>
 
-      {/* Paginación */}
+      {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={() => Array.from({ length: totalPaginas }, (_, i) => i + 1)}
-        />
+        <div className="col-span-2 mt-4">
+          <Paginacion
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            handleCambioPagina={handleCambioPagina}
+          />
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Página {paginaActual} de {totalPaginas} - {comprasFiltradas.length} compras encontradas
+            {(filtroProveedor || filtroEstado || filtroFecha || terminoBusqueda) && " (filtradas)"}
+          </p>
+        </div>
+      )}
+
+      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {totalPaginas === 1 && comprasFiltradas.length > 0 && (
+        <div className="col-span-2 mt-4">
+          <p className="text-sm text-gray-600 text-center">
+            Mostrando {comprasFiltradas.length} compras
+            {(filtroProveedor || filtroEstado || filtroFecha || terminoBusqueda) && " (filtradas)"}
+          </p>
+        </div>
       )}
 
       {/* Formularios */}
@@ -410,6 +648,9 @@ const PaginaCompras = () => {
         descargarFactura={descargarFactura}
         proveedores={proveedores}
       />
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </>
   );
 };

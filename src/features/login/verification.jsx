@@ -32,7 +32,7 @@ export default function Verification() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5201/api/Usuarios/VerificarCodigo", {
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/VerificarCodigo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, codigo }),

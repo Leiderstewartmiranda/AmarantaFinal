@@ -8,9 +8,10 @@ const FormularioModificarProveedor = ({
   formData: initialData,
   onProveedorActualizado,
   titulo = "Modificar Proveedor",
-  proveedores = [] // 👈 Nuevo prop para la lista de proveedores
+  proveedores = [] 
 }) => {
   const [formData, setFormData] = useState({
+    idProveedor: "", // ✅ AGREGADO: ID del proveedor
     nit: "",
     representante: "",
     nombreEmpresa: "",
@@ -26,7 +27,11 @@ const FormularioModificarProveedor = ({
   // Actualizar los valores de los campos cuando cambie initialData
   useEffect(() => {
     if (show && initialData) {
+      console.log("📥 initialData recibido:", initialData);
+      console.log("🔍 ID del proveedor:", initialData.idProveedor);
+      
       setFormData({
+        idProveedor: initialData.idProveedor || "", // ✅ INCLUIR EL ID
         nit: initialData.nit || "",
         representante: initialData.representante || "",
         nombreEmpresa: initialData.nombreEmpresa || "",
@@ -47,14 +52,14 @@ const FormularioModificarProveedor = ({
     const documentoDuplicado = proveedores.some(
       (p) =>
         p.representante?.toLowerCase() === formData.representante?.toLowerCase() &&
-        p.idProveedor !== initialData?.idProveedor // Excluir el proveedor actual
+        p.idProveedor !== formData.idProveedor // ✅ Usar formData.idProveedor
     );
 
     // Verificar si existe otro proveedor con el mismo correo
     const correoDuplicado = proveedores.some(
       (p) =>
         p.correo?.toLowerCase() === formData.correo?.toLowerCase() &&
-        p.idProveedor !== initialData?.idProveedor // Excluir el proveedor actual
+        p.idProveedor !== formData.idProveedor // ✅ Usar formData.idProveedor
     );
 
     return { documentoDuplicado, correoDuplicado };
@@ -151,6 +156,9 @@ const FormularioModificarProveedor = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log("📤 formData completo:", formData);
+    console.log("🔍 ID en formData:", formData.idProveedor);
+    
     if (!validarFormulario()) {
       return;
     }
@@ -159,9 +167,14 @@ const FormularioModificarProveedor = ({
     setErrorServidor("");
 
     try {
+      // ✅ VALIDACIÓN CRÍTICA - Verificar que el ID existe
+      if (!formData.idProveedor) {
+        throw new Error("No se pudo identificar el proveedor (ID no encontrado)");
+      }
+
       // Preparar datos para la API
       const datosProveedor = {
-        idProveedor: initialData.idProveedor,
+        idProveedor: formData.idProveedor, // ✅ Usar formData.idProveedor
         nit: formData.nit,
         representante: formData.representante,
         nombreEmpresa: formData.nombreEmpresa,
@@ -170,19 +183,21 @@ const FormularioModificarProveedor = ({
         estado: formData.estado === "Activo"
       };
 
+      console.log("🎯 Datos a enviar a la API:", datosProveedor);
+
       // Llamar a la API
-      await PutProveedor(initialData.idProveedor, datosProveedor);
+      await PutProveedor(formData.idProveedor, datosProveedor); // ✅ Usar formData.idProveedor
 
       // Notificar al componente padre que la actualización fue exitosa
       if (onProveedorActualizado) {
-        onProveedorActualizado();
+        onProveedorActualizado(datosProveedor);
       }
 
       // Cerrar el modal
       close();
 
     } catch (error) {
-      console.error("Error al actualizar proveedor:", error);
+      console.error("💥 Error al actualizar proveedor:", error);
       setErrorServidor(error.message || "Error al actualizar el proveedor. Intente nuevamente.");
     } finally {
       setCargando(false);

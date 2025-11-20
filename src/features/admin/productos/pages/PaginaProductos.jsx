@@ -23,10 +23,18 @@ const PaginaProductos = () => {
   const [showEditar, setShowEditar] = useState(false);
   const [showDetalles, setShowDetalles] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroStock, setFiltroStock] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const productosPorPagina = 5;
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-  const [orden, setOrden] = useState("alfabetico");
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc'
+  });
 
   // refs
   const imagenRef = useRef();
@@ -80,36 +88,174 @@ const PaginaProductos = () => {
     fetchData();
   }, []);
 
-  const ordenarProductos = (lista) => {
-    const productosOrdenados = [...lista];
-
-    switch (orden) {
-      case "alfabetico":
-        return productosOrdenados.sort((a, b) =>
-          a.nombreProducto.localeCompare(b.nombreProducto, "es", { sensitivity: "base" })
-        );
-
-      case "recientes":
-        return productosOrdenados.sort((a, b) => {
-          const numA = parseInt(a.codigoProducto.replace(/\D/g, "")) || 0;
-          const numB = parseInt(b.codigoProducto.replace(/\D/g, "")) || 0;
-          return numB - numA; // mayor → más reciente
-        });
-
-      case "antiguos":
-        return productosOrdenados.sort((a, b) => {
-          const numA = parseInt(a.codigoProducto.replace(/\D/g, "")) || 0;
-          const numB = parseInt(b.codigoProducto.replace(/\D/g, "")) || 0;
-          return numA - numB; // menor → más antiguo
-        });
-
-      default:
-        return productosOrdenados;
-    }
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
+    });
   };
 
+  // 🔹 Función para aplicar filtros
+  const aplicarFiltros = () => {
+    setPaginaActual(1);
+  };
 
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc' 
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
 
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "Nombre",
+      onClick: () => handleOrdenar('nombreProducto'),
+      icono: getSortIcon('nombreProducto')
+    },
+    {
+      titulo: "Categoría",
+      onClick: () => handleOrdenar('idCategoria'),
+      icono: getSortIcon('idCategoria')
+    },
+    {
+      titulo: "Precio",
+      onClick: () => handleOrdenar('precio'),
+      icono: getSortIcon('precio')
+    },
+    {
+      titulo: "Stock",
+      onClick: () => handleOrdenar('stock'),
+      icono: getSortIcon('stock')
+    },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('estado'),
+      icono: getSortIcon('estado')
+    },
+    "Acciones"
+  ];
+
+  // 🔹 Filtrar y ordenar productos
+  const productosFiltrados = useMemo(() => {
+    let filtrados = listaProductos;
+
+    // Aplicar filtro de búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      filtrados = filtrados.filter((producto) => {
+        const nombreProducto = producto.nombreProducto?.toLowerCase() || '';
+        const categoriaNombre = categorias.find(cat => cat.idCategoria === producto.idCategoria)?.nombreCategoria?.toLowerCase() || '';
+        
+        return (
+          nombreProducto.includes(termino) ||
+          categoriaNombre.includes(termino)
+        );
+      });
+    }
+
+    // Aplicar filtro de categoría
+    if (filtroCategoria) {
+      filtrados = filtrados.filter(producto => 
+        producto.idCategoria === parseInt(filtroCategoria)
+      );
+    }
+
+    // Aplicar filtro de estado
+    if (filtroEstado) {
+      const estadoFiltro = filtroEstado === "Activo";
+      filtrados = filtrados.filter(producto => producto.estado === estadoFiltro);
+    }
+
+    // Aplicar filtro de stock - CORREGIDO
+    if (filtroStock) {
+      filtrados = filtrados.filter(producto => {
+        const stock = producto.stock || 0; // Manejar valores null/undefined
+        
+        switch (filtroStock) {
+          case "bajo":
+            return stock <= 5;
+          case "medio":
+            return stock > 5 && stock <= 15;
+          case "alto":
+            return stock > 15;
+          case "sin-stock":
+            return stock === 0;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
+
+        // Para columnas específicas
+        if (ordenamiento.columna === 'idCategoria') {
+          // Ordenar por nombre de categoría en lugar del ID
+          const aCategoria = categorias.find(cat => cat.idCategoria === aValue)?.nombreCategoria || '';
+          const bCategoria = categorias.find(cat => cat.idCategoria === bValue)?.nombreCategoria || '';
+          aValue = aCategoria;
+          bValue = bCategoria;
+        }
+
+        // Para columnas booleanas (estado)
+        if (ordenamiento.columna === 'estado') {
+          aValue = aValue ? 1 : 0;
+          bValue = bValue ? 1 : 0;
+        }
+
+        // Para columnas numéricas - CORREGIDO
+        if (ordenamiento.columna === 'precio' || ordenamiento.columna === 'stock') {
+          aValue = parseFloat(aValue) || 0;
+          bValue = parseFloat(bValue) || 0;
+        }
+
+        // Manejar valores null/undefined en strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaProductos, terminoBusqueda, filtroCategoria, filtroEstado, filtroStock, ordenamiento, categorias]);
+
+  // Calcular datos de paginación
+  const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
+  const indiceInicio = (paginaActual - 1) * productosPorPagina;
+  const productosPaginados = productosFiltrados.slice(indiceInicio, indiceInicio + productosPorPagina);
+
+  // Ajustar página actual si es necesario
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   // Función para cambiar estado del producto
   const cambiarEstado = async (codigoProducto) => {
@@ -328,28 +474,6 @@ const PaginaProductos = () => {
     }
   };
 
-  // --- búsqueda y paginación ---
-  const productosFiltrados = useMemo(() => {
-    const termino = terminoBusqueda.toLowerCase().trim();
-    let filtrados = listaProductos;
-
-    if (termino) {
-      filtrados = listaProductos.filter(
-        (p) =>
-          p.nombreProducto?.toLowerCase().includes(termino) ||
-          p.categoria?.toLowerCase().includes(termino)
-      );
-    }
-
-    console.log(listaProductos.map(p => p.codigoProducto));
-    return ordenarProductos(filtrados);
-  }, [listaProductos, terminoBusqueda]);
-
-  const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
-  const indiceInicio = (paginaActual - 1) * productosPorPagina;
-  const indiceFin = indiceInicio + productosPorPagina;
-  const productosPaginados = productosFiltrados.slice(indiceInicio, indiceFin);
-
   const formatearPrecio = (precio) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -358,14 +482,10 @@ const PaginaProductos = () => {
     }).format(precio);
 
   const getStockClass = (stock) => {
-    if (stock <= 5) return "text-red-600 font-semibold";
-    if (stock <= 15) return "text-yellow-600 font-semibold";
+    const stockNum = stock || 0; // Manejar valores null/undefined
+    if (stockNum <= 5) return "text-red-600 font-semibold";
+    if (stockNum <= 15) return "text-yellow-600 font-semibold";
     return "text-green-600 font-semibold";
-  };
-
-  const handleBusquedaChange = (e) => {
-    setTerminoBusqueda(e.target.value);
-    setPaginaActual(1);
   };
 
   const closeModal = () => {
@@ -376,42 +496,6 @@ const PaginaProductos = () => {
   const closeDetalles = () => {
     setShowDetalles(false);
     setProductoSeleccionado(null);
-  };
-
-  // Función para generar los números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-    
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
-    }
-    
-    return numeros;
   };
 
   if (loading) {
@@ -429,25 +513,71 @@ const PaginaProductos = () => {
       {/* buscar y agregar */}
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
+          <section className="col-span-2">
+            <div className="filtros flex items-center gap-3 mb-1">
+              <select 
+                value={filtroCategoria}
+                onChange={(e) => {
+                  setFiltroCategoria(e.target.value);
+                  setPaginaActual(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="">Todas las categorías</option>
+                {categorias.map(categoria => (
+                  <option key={categoria.idCategoria} value={categoria.idCategoria}>
+                    {categoria.nombreCategoria}
+                  </option>
+                ))}
+              </select>
+              
+              <select 
+                value={filtroEstado}
+                onChange={(e) => {
+                  setFiltroEstado(e.target.value);
+                  setPaginaActual(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="">Todos los estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+
+              <select 
+                value={filtroStock}
+                onChange={(e) => {
+                  setFiltroStock(e.target.value);
+                  setPaginaActual(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="">Todo el stock</option>
+                <option value="bajo">Stock bajo (≤5)</option>
+                <option value="medio">Stock medio (6-15)</option>
+                <option value="alto">Stock alto (&gt;15)</option>
+                <option value="sin-stock">Sin stock</option>
+              </select>
+              
+              {/* <button 
+                onClick={aplicarFiltros}
+                className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
+              >
+                <i className="fa-solid fa-filter"></i>
+                Filtrar
+              </button> */}
+            </div>
+          </section>
+
         <div className="flex-shrink-0 w-80">
-          <div className="flex items-center gap-2 mt-3">
-          <label htmlFor="orden" className="text-sm text-gray-700">Ordenar por:</label>
-          <select
-            id="orden"
-            value={orden}
-            onChange={(e) => setOrden(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
-          >
-            <option value="alfabetico">Nombre (A–Z)</option>
-            <option value="recientes">Más recientes</option>
-            <option value="antiguos">Más antiguos</option>
-          </select>
-        </div>
           <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar productos..."
             value={terminoBusqueda}
-            onChange={handleBusquedaChange}
+            onChange={(e) => {
+              setTerminoBusqueda(e.target.value);
+              setPaginaActual(1);
+            }}
           />
           {terminoBusqueda && (
             <p className="text-sm text-gray-600 mt-2 text-right">
@@ -455,13 +585,14 @@ const PaginaProductos = () => {
             </p>
           )}
         </div>
-        
       </section>
 
+      {/* 🔹 Sección de Filtros para Productos */}
+      
       {/* tabla */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <TablaAdmin listaCabecera={["Nombre", "Categoría", "Precio", "Stock", "Estado", "Acciones"]}>
+          <TablaAdmin listaCabecera={columnasConOrdenamiento}>
             {productosPaginados.length > 0 ? (
               productosPaginados.map((producto) => (
                 <tr key={producto.codigoProducto} className="hover:bg-gray-100 border-t-2 border-gray-300">
@@ -469,7 +600,7 @@ const PaginaProductos = () => {
                   <td className="py-2 px-4">{categorias.find(cat => cat.idCategoria === producto.idCategoria)?.nombreCategoria || "-"}</td>
                   <td className="py-2 px-4 font-semibold">{formatearPrecio(producto.precio)}</td>
                   <td className={`py-2 px-4 ${getStockClass(producto.stock)}`}>
-                    {producto.stock} unidades
+                    {producto.stock || 0} unidades
                   </td>
                   <td className="py-1 px-4">
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -542,9 +673,9 @@ const PaginaProductos = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda
-                    ? `No se encontraron productos que coincidan con "${terminoBusqueda}"`
-                    : "No hay productos disponibles"}
+                  {terminoBusqueda || filtroCategoria || filtroEstado || filtroStock ? 
+                    `No se encontraron productos que coincidan con los filtros aplicados` : 
+                    "No hay productos disponibles"}
                 </td>
               </tr>
             )}
@@ -552,14 +683,29 @@ const PaginaProductos = () => {
         </div>
       </section>
 
-      {/* paginación */}
+      {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={setPaginaActual}
-          generarNumerosPagina={generarNumerosPagina}
-        />
+        <div className="col-span-2 mt-4">
+          <Paginacion
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            handleCambioPagina={setPaginaActual}
+          />
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Página {paginaActual} de {totalPaginas} - {productosFiltrados.length} productos encontrados
+            {(filtroCategoria || filtroEstado || filtroStock || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
+      )}
+
+      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {totalPaginas === 1 && productosFiltrados.length > 0 && (
+        <div className="col-span-2 mt-4">
+          <p className="text-sm text-gray-600 text-center">
+            Mostrando {productosFiltrados.length} productos
+            {(filtroCategoria || filtroEstado || filtroStock || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
       )}
 
       {/* formularios */}
@@ -593,6 +739,9 @@ const PaginaProductos = () => {
         producto={productoSeleccionado}
         categorias={categorias}
       />
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </>
   );
 };

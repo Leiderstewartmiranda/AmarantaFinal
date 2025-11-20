@@ -42,7 +42,7 @@ export default function Login() {
     try {
       console.log("🔄 Iniciando proceso de login...");
       
-      const response = await fetch("http://localhost:5201/api/Usuarios/Login", {
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/Login", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

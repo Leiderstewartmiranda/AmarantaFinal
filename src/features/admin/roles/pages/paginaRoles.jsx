@@ -22,8 +22,15 @@ const PaginaRoles = () => {
   const [showEditar, setShowEditar] = useState(false);
   const [showDetalles, setShowDetalles] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
+  const [filtroID, setFiltroID] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [rolSeleccionado, setRolSeleccionado] = useState(null);
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc'
+  });
 
   // Refs
   const nombreRef = useRef();
@@ -41,14 +48,6 @@ const PaginaRoles = () => {
       setLoading(true);
       const data = await GetRoles();
       setListaRoles(data);
-      
-      // Swal.fire({
-      //   icon: "success",
-      //   title: "✅ Roles cargados",
-      //   text: "Los roles se han cargado correctamente",
-      //   confirmButtonColor: "#b45309",
-      //   background: "#fff8e7",
-      // });
     } catch (error) {
       console.error("Error cargando los roles:", error);
       Swal.fire({
@@ -63,31 +62,118 @@ const PaginaRoles = () => {
     }
   };
 
-  // Filtrar roles basado en el término de búsqueda
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
+    });
+  };
+
+  // 🔹 Función para aplicar filtros
+  const aplicarFiltros = () => {
+    setPaginaActual(1);
+  };
+
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc' 
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
+
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "ID",
+      onClick: () => handleOrdenar('idRol'),
+      icono: getSortIcon('idRol')
+    },
+    {
+      titulo: "Nombre del Rol",
+      onClick: () => handleOrdenar('nombreRol'),
+      icono: getSortIcon('nombreRol')
+    },
+    "Acciones"
+  ];
+
+  // 🔹 Filtrar y ordenar roles
   const rolesFiltrados = useMemo(() => {
-    if (!terminoBusqueda.trim()) {
-      return listaRoles;
+    let filtrados = listaRoles;
+
+    // Aplicar filtro de búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      filtrados = filtrados.filter((rol) => {
+        const nombre = rol.nombreRol?.toLowerCase() || '';
+        const id = rol.idRol?.toString() || '';
+        
+        return (
+          nombre.includes(termino) ||
+          id.includes(termino)
+        );
+      });
     }
 
-    const termino = terminoBusqueda.toLowerCase().trim();
-    
-    return listaRoles.filter((rol) => {
-      const nombre = rol.nombreRol?.toLowerCase() || '';
-      return nombre.includes(termino);
-    });
-  }, [listaRoles, terminoBusqueda]);
+    // Aplicar filtro por ID
+    if (filtroID) {
+      filtrados = filtrados.filter(rol => {
+        const idRol = rol.idRol?.toString() || '';
+        return idRol.includes(filtroID);
+      });
+    }
+
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
+
+        // Para columnas numéricas (ID)
+        if (ordenamiento.columna === 'idRol') {
+          aValue = parseInt(aValue) || 0;
+          bValue = parseInt(bValue) || 0;
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaRoles, terminoBusqueda, filtroID, ordenamiento]);
 
   // Calcular datos de paginación
   const totalPaginas = Math.ceil(rolesFiltrados.length / rolesPorPagina);
   const indiceInicio = (paginaActual - 1) * rolesPorPagina;
-  const indiceFin = indiceInicio + rolesPorPagina;
-  const rolesPaginados = rolesFiltrados.slice(indiceInicio, indiceFin);
+  const rolesPaginados = rolesFiltrados.slice(indiceInicio, indiceInicio + rolesPorPagina);
 
-  // Manejar cambios en la barra de búsqueda
-  const handleBusquedaChange = (e) => {
-    setTerminoBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
+  // Ajustar página actual si es necesario
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   // Manejar cambio de página
   const handleCambioPagina = (nuevaPagina) => {
@@ -339,42 +425,6 @@ const PaginaRoles = () => {
     setRolSeleccionado(null);
   };
 
-  // Función para generar los números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-    
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
-    }
-    
-    return numeros;
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -392,12 +442,37 @@ const PaginaRoles = () => {
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
+        <section className="col-span-2">
+        <div className="filtros flex items-center gap-3 mb-1">
+          <input 
+            type="text"
+            value={filtroID}
+            onChange={(e) => {
+              setFiltroID(e.target.value);
+              setPaginaActual(1);
+            }}
+            placeholder="Filtrar por ID"
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+          
+          {/* <button 
+            onClick={aplicarFiltros}
+            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
+          >
+            <i className="fa-solid fa-filter"></i>
+            Filtrar
+          </button> */}
+        </div>
+      </section>
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda 
             ref={busquedaRef}
             placeholder="Buscar rol"
             value={terminoBusqueda}
-            onChange={handleBusquedaChange}
+            onChange={(e) => {
+              setTerminoBusqueda(e.target.value);
+              setPaginaActual(1);
+            }}
           />
           {terminoBusqueda && (
             <p className="text-sm text-gray-600 mt-2 text-right">
@@ -407,12 +482,13 @@ const PaginaRoles = () => {
         </div>
       </section>
 
+      {/* 🔹 Sección de Filtros para Roles */}
+      
+
       {/* Tabla de roles */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <TablaAdmin
-            listaCabecera={["ID", "Nombre del Rol", "Acciones"]}
-          >
+          <TablaAdmin listaCabecera={columnasConOrdenamiento}>
             {rolesPaginados.length > 0 ? (
               rolesPaginados.map((element) => (
                 <tr
@@ -452,8 +528,8 @@ const PaginaRoles = () => {
             ) : (
               <tr>
                 <td colSpan="3" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda ? 
-                    `No se encontraron roles que coincidan con "${terminoBusqueda}"` : 
+                  {terminoBusqueda || filtroID ? 
+                    `No se encontraron roles que coincidan con los filtros aplicados` : 
                     "No hay roles disponibles"
                   }
                 </td>
@@ -463,14 +539,29 @@ const PaginaRoles = () => {
         </div>
       </section>
 
-      {/* Paginación */}
+      {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={generarNumerosPagina}
-        />
+        <div className="col-span-2 mt-4">
+          <Paginacion
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            handleCambioPagina={handleCambioPagina}
+          />
+          <p className="text-sm text-gray-600 text-center mt-2">
+            Página {paginaActual} de {totalPaginas} - {rolesFiltrados.length} roles encontrados
+            {(filtroID || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
+      )}
+
+      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {totalPaginas === 1 && rolesFiltrados.length > 0 && (
+        <div className="col-span-2 mt-4">
+          <p className="text-sm text-gray-600 text-center">
+            Mostrando {rolesFiltrados.length} roles
+            {(filtroID || terminoBusqueda) && " (filtrados)"}
+          </p>
+        </div>
       )}
 
       {/* Modales */}
@@ -494,6 +585,9 @@ const PaginaRoles = () => {
         close={closeDetalles}
         rol={rolSeleccionado}
       />
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </>
   );
 };

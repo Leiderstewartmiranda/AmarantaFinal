@@ -13,7 +13,8 @@ export default function VerificarCodigoRecuperacion() {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5201/api/Usuarios/VerificarCodigo", {
+      // 🔥 CAMBIO: Usar VerificarCodigoRecuperacion en lugar de VerificarCodigo
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/VerificarCodigoRecuperacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, codigo }),
@@ -46,40 +47,41 @@ export default function VerificarCodigoRecuperacion() {
   };
 
   const handleResend = async () => {
-      try {
-        const response = await fetch("http://localhost:5201/api/Usuarios/EnviarCodigoRegistro", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ correo }),
+    try {
+      // 🔥 CAMBIO: Usar SolicitarRecuperacion para reenviar
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/SolicitarRecuperacion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo }),
+      });
+
+      if (response.ok) {
+        Swal.fire({
+          icon: "info",
+          title: "Código reenviado",
+          text: "📩 Se envió un nuevo código al correo.",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
         });
-  
-        if (response.ok) {
-          Swal.fire({
-            icon: "info",
-            title: "Código reenviado",
-            text: "📩 Se envió un nuevo código al correo.",
-            confirmButtonColor: "#b45309",
-            background: "#fff8e7",
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo reenviar el código.",
-            confirmButtonColor: "#b45309",
-            background: "#fff8e7",
-          });
-        }
-      } catch {
+      } else {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Problema al contactar el servidor.",
+          text: "No se pudo reenviar el código.",
           confirmButtonColor: "#b45309",
           background: "#fff8e7",
         });
       }
-    };
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Problema al contactar el servidor.",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+    }
+  };
 
   return (
     <div className="verifi-page">
@@ -107,8 +109,8 @@ export default function VerificarCodigoRecuperacion() {
           </form>
 
           <button type="button" className="resend-button" onClick={handleResend}>
-          Reenviar código
-        </button>
+            Reenviar código
+          </button>
         </div>
       </section>
     </div>

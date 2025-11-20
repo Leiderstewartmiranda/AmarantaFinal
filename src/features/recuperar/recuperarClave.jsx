@@ -11,10 +11,10 @@ export default function RecuperarClave() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5201/api/Usuarios/EnviarCodigoRegistro", {
+      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/SolicitarRecuperacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({correo}),
+        body: JSON.stringify({ correo }),
       });
 
       if (response.ok) {
@@ -29,8 +29,8 @@ export default function RecuperarClave() {
       } else {
         Swal.fire({
           icon: "error",
-          title: "Correo no encontrado",
-          text: "Verifica que el correo esté registrado.",
+          title: "Error",
+          text: "No se pudo enviar el código. Verifica tu correo.",
           confirmButtonColor: "#b45309",
           background: "#fff8e7",
         });

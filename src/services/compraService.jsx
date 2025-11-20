@@ -1,8 +1,8 @@
 // services/comprasService.js
-const API_URL_COMPRAS = "http://localhost:5201/api/Compras";
-const API_URL_DETALLE_COMPRAS = "http://localhost:5201/api/DetallesCompras";
-const API_URL_PRODUCTOS = "http://localhost:5201/api/Productos";
-const API_URL_PROVEEDORES = "http://localhost:5201/api/Proveedores";
+const API_URL_COMPRAS = "http://amarantaapi.somee.com/api/Compras";
+const API_URL_DETALLE_COMPRAS = "http://amarantaapi.somee.com/api/DetallesCompras";
+const API_URL_PRODUCTOS = "http://amarantaapi.somee.com/api/Productos";
+const API_URL_PROVEEDORES = "http://amarantaapi.somee.com/api/Proveedores";
 
 
 // Servicios para Compras
@@ -165,7 +165,7 @@ export async function GetProveedores() {
 // ✅ Nuevo método: registrar varios detalles de una compra
 export async function PostDetallesCompraMultiple(detalles) {
   try {
-    const response = await fetch("http://localhost:5201/api/DetallesCompras/multiple", {
+    const response = await fetch("http://amarantaapi.somee.com/api/DetallesCompras/multiple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(detalles),

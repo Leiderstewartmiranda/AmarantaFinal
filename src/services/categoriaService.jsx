@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5201/api/CProductos";
+const API_URL = "http://amarantaapi.somee.com/api/CProductos";
 
 // GET - Obtener todas las categorías
 export async function GetCProductos() {
