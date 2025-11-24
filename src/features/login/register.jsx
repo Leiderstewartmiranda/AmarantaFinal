@@ -360,10 +360,6 @@ export default function Register() {
       padding: "0.125rem",
       backgroundColor: "#fff",
       minHeight: "48px",
-      boxShadow: "none",
-      "&:hover": {
-        borderColor: "#a78bfa"
-      },
       borderColor: state.isFocused ? "#a78bfa" : errores.departamento || errores.municipio ? "#ef4444" : "#d6d3d1",
       boxShadow: state.isFocused ? "0 0 5px rgba(167, 139, 250, 0.4)" : "none",
     }),
