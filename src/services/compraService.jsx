@@ -2,7 +2,7 @@
 const API_URL_COMPRAS = "http://amarantaapi.somee.com/api/Compras";
 const API_URL_DETALLE_COMPRAS = "http://amarantaapi.somee.com/api/DetallesCompras";
 const API_URL_PRODUCTOS = "http://amarantaapi.somee.com/api/Productos";
-const API_URL_PROVEEDORES = "http://amarantaapi.somee.com/api/Proveedores";
+const API_URL_PROVEEDORES = "http://localhost:5201/api/Proveedores";
 
 
 // Servicios para Compras

@@ -14,7 +14,7 @@ import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
 import Swal from "sweetalert2";
 
 const PaginaProductos = () => {
-  
+
   const [categorias, setCategorias] = useState([]);
   const [listaProductos, setListaProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +61,7 @@ const PaginaProductos = () => {
         });
       }
     };
-    
+
     cargarCategorias();
   }, []);
 
@@ -71,7 +71,9 @@ const PaginaProductos = () => {
       try {
         setLoading(true);
         const data = await GetProductos();
-        setListaProductos(data);
+        // 🔹 Ordenar por defecto: Últimos creados primero (ID descendente)
+        const dataOrdenada = [...data].sort((a, b) => b.codigoProducto - a.codigoProducto);
+        setListaProductos(dataOrdenada);
       } catch (error) {
         console.error("Error cargando productos:", error);
         Swal.fire({
@@ -115,7 +117,7 @@ const PaginaProductos = () => {
     if (ordenamiento.columna !== columna) {
       return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
     }
-    return ordenamiento.direccion === 'asc' 
+    return ordenamiento.direccion === 'asc'
       ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
       : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
   };
@@ -160,7 +162,7 @@ const PaginaProductos = () => {
       filtrados = filtrados.filter((producto) => {
         const nombreProducto = producto.nombreProducto?.toLowerCase() || '';
         const categoriaNombre = categorias.find(cat => cat.idCategoria === producto.idCategoria)?.nombreCategoria?.toLowerCase() || '';
-        
+
         return (
           nombreProducto.includes(termino) ||
           categoriaNombre.includes(termino)
@@ -170,7 +172,7 @@ const PaginaProductos = () => {
 
     // Aplicar filtro de categoría
     if (filtroCategoria) {
-      filtrados = filtrados.filter(producto => 
+      filtrados = filtrados.filter(producto =>
         producto.idCategoria === parseInt(filtroCategoria)
       );
     }
@@ -185,7 +187,7 @@ const PaginaProductos = () => {
     if (filtroStock) {
       filtrados = filtrados.filter(producto => {
         const stock = producto.stock || 0; // Manejar valores null/undefined
-        
+
         switch (filtroStock) {
           case "bajo":
             return stock <= 5;
@@ -262,7 +264,7 @@ const PaginaProductos = () => {
     const producto = listaProductos.find(p => p.codigoProducto === codigoProducto);
     if (producto) {
       const nuevoEstado = !producto.estado;
-      
+
       Swal.fire({
         icon: "question",
         title: "🔄 Cambiar estado",
@@ -337,7 +339,7 @@ const PaginaProductos = () => {
       const creado = await CrearProducto(nuevoProducto);
       setListaProductos([...listaProductos, creado]);
       setShowAgregar(false);
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Producto agregado",
@@ -377,9 +379,9 @@ const PaginaProductos = () => {
             : p
         )
       );
-      
+
       closeModal();
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Producto actualizado",
@@ -423,7 +425,7 @@ const PaginaProductos = () => {
           try {
             await DeleteProducto(producto.codigoProducto);
             setListaProductos(listaProductos.filter((p) => p.codigoProducto !== producto.codigoProducto));
-            
+
             Swal.fire({
               icon: "success",
               title: "✅ Producto eliminado",
@@ -432,43 +434,43 @@ const PaginaProductos = () => {
               background: "#fff8e7",
             });
           } catch (error) {
-              console.error("Error eliminando producto:", error);
+            console.error("Error eliminando producto:", error);
 
-              // Extraer mensaje o código de error si viene de la API
-              const errorMsg = error.message || error.toString();
+            // Extraer mensaje o código de error si viene de la API
+            const errorMsg = error.message || error.toString();
 
-              console.log("🧠 Mensaje de error al eliminar producto:", errorMsg);
+            console.log("🧠 Mensaje de error al eliminar producto:", errorMsg);
 
-              // 🧩 Detección más específica: si el producto está vinculado con una compra/pedido
-              if (
-                errorMsg.includes("REFERENCE constraint") ||
-                errorMsg.includes("FK_") ||
-                errorMsg.includes("compra") ||
-                errorMsg.includes("pedido") ||
-                errorMsg.includes("detalles") ||
-                errorMsg.includes("Error 500")
-              ) {
-                Swal.fire({
-                  icon: "error",
-                  title: "❌ No se puede eliminar el producto",
-                  html: `
+            // 🧩 Detección más específica: si el producto está vinculado con una compra/pedido
+            if (
+              errorMsg.includes("REFERENCE constraint") ||
+              errorMsg.includes("FK_") ||
+              errorMsg.includes("compra") ||
+              errorMsg.includes("pedido") ||
+              errorMsg.includes("detalles") ||
+              errorMsg.includes("Error 500")
+            ) {
+              Swal.fire({
+                icon: "error",
+                title: "❌ No se puede eliminar el producto",
+                html: `
                     Este producto está vinculado a un <strong>pedido</strong> o una <strong>compra</strong> registrada.<br><br>
                     Por motivos de integridad, no puede eliminarse directamente.<br><br>
                     <small>Si deseas eliminarlo, primero elimina o actualiza los registros relacionados.</small>
                   `,
-                  confirmButtonColor: "#b45309",
-                  background: "#fff8e7",
-                });
-              } else {
-                Swal.fire({
-                  icon: "error",
-                  title: "❌ Error al eliminar",
-                  text: "No se pudo eliminar el producto ya que se encuentra vinculado a otros registros.",
-                  confirmButtonColor: "#b45309",
-                  background: "#fff8e7",
-                });
-              }
+                confirmButtonColor: "#b45309",
+                background: "#fff8e7",
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "❌ Error al eliminar",
+                text: "No se pudo eliminar el producto ya que se encuentra vinculado a otros registros.",
+                confirmButtonColor: "#b45309",
+                background: "#fff8e7",
+              });
             }
+          }
         }
       });
     }
@@ -507,67 +509,67 @@ const PaginaProductos = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Productos" />
 
       {/* buscar y agregar */}
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
-          <section className="col-span-2">
-            <div className="filtros flex items-center gap-3 mb-1">
-              <select 
-                value={filtroCategoria}
-                onChange={(e) => {
-                  setFiltroCategoria(e.target.value);
-                  setPaginaActual(1);
-                }}
-                className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="">Todas las categorías</option>
-                {categorias.map(categoria => (
-                  <option key={categoria.idCategoria} value={categoria.idCategoria}>
-                    {categoria.nombreCategoria}
-                  </option>
-                ))}
-              </select>
-              
-              <select 
-                value={filtroEstado}
-                onChange={(e) => {
-                  setFiltroEstado(e.target.value);
-                  setPaginaActual(1);
-                }}
-                className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="">Todos los estados</option>
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
+        <section className="col-span-2">
+          <div className="filtros flex items-center gap-3 mb-1">
+            <select
+              value={filtroCategoria}
+              onChange={(e) => {
+                setFiltroCategoria(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map(categoria => (
+                <option key={categoria.idCategoria} value={categoria.idCategoria}>
+                  {categoria.nombreCategoria}
+                </option>
+              ))}
+            </select>
 
-              <select 
-                value={filtroStock}
-                onChange={(e) => {
-                  setFiltroStock(e.target.value);
-                  setPaginaActual(1);
-                }}
-                className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="">Todo el stock</option>
-                <option value="bajo">Stock bajo (≤5)</option>
-                <option value="medio">Stock medio (6-15)</option>
-                <option value="alto">Stock alto (&gt;15)</option>
-                <option value="sin-stock">Sin stock</option>
-              </select>
-              
-              {/* <button 
+            <select
+              value={filtroEstado}
+              onChange={(e) => {
+                setFiltroEstado(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todos los estados</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+
+            <select
+              value={filtroStock}
+              onChange={(e) => {
+                setFiltroStock(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todo el stock</option>
+              <option value="bajo">Stock bajo (≤5)</option>
+              <option value="medio">Stock medio (6-15)</option>
+              <option value="alto">Stock alto (&gt;15)</option>
+              <option value="sin-stock">Sin stock</option>
+            </select>
+
+            {/* <button 
                 onClick={aplicarFiltros}
                 className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
               >
                 <i className="fa-solid fa-filter"></i>
                 Filtrar
               </button> */}
-            </div>
-          </section>
+          </div>
+        </section>
 
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda
@@ -588,7 +590,7 @@ const PaginaProductos = () => {
       </section>
 
       {/* 🔹 Sección de Filtros para Productos */}
-      
+
       {/* tabla */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -611,14 +613,12 @@ const PaginaProductos = () => {
                         onChange={() => cambiarEstado(producto.codigoProducto)}
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          producto.estado ? "bg-green-500" : "bg-gray-300"
-                        } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                        className={`w-11 h-6 rounded-full peer ${producto.estado ? "bg-green-500" : "bg-gray-300"
+                          } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
                       >
                         <div
-                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${
-                            producto.estado ? "transform translate-x-5" : ""
-                          }`}
+                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${producto.estado ? "transform translate-x-5" : ""
+                            }`}
                         ></div>
                       </div>
                     </label>
@@ -639,11 +639,10 @@ const PaginaProductos = () => {
                       icon="material-symbols:edit-outline"
                       width="24"
                       height="24"
-                      className={`cursor-pointer transition-colors ${
-                        producto.estado 
-                          ? "text-blue-700 hover:text-blue-900" 
-                          : "text-gray-400 cursor-not-allowed"
-                      }`}
+                      className={`cursor-pointer transition-colors ${producto.estado
+                        ? "text-blue-700 hover:text-blue-900"
+                        : "text-gray-400 cursor-not-allowed"
+                        }`}
                       onClick={() => {
                         if (!producto.estado) {
                           Swal.fire({
@@ -673,8 +672,8 @@ const PaginaProductos = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda || filtroCategoria || filtroEstado || filtroStock ? 
-                    `No se encontraron productos que coincidan con los filtros aplicados` : 
+                  {terminoBusqueda || filtroCategoria || filtroEstado || filtroStock ?
+                    `No se encontraron productos que coincidan con los filtros aplicados` :
                     "No hay productos disponibles"}
                 </td>
               </tr>
@@ -717,7 +716,7 @@ const PaginaProductos = () => {
         categoriaRef={categoriaRef}
         precioRef={precioRef}
         stockRef={stockRef}
-        imagenRef={imagenRef} 
+        imagenRef={imagenRef}
         categorias={categorias}
         setListaProductos={setListaProductos}
         listaProductos={listaProductos}
@@ -728,8 +727,8 @@ const PaginaProductos = () => {
         close={closeModal}
         producto={productoSeleccionado}
         categorias={categorias}
-        setListaProductos={setListaProductos} 
-        listaProductos={listaProductos}  
+        setListaProductos={setListaProductos}
+        listaProductos={listaProductos}
         onSubmit={handleEditarSubmit}
       />
 
@@ -742,7 +741,7 @@ const PaginaProductos = () => {
 
       {/* Agregar Font Awesome para los iconos */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </>
+    </div>
   );
 };
 

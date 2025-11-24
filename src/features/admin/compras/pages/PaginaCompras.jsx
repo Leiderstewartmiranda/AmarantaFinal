@@ -14,6 +14,7 @@ import {
   GetProductos,
   GetDetallesByCompra,
 } from "../../../../services/compraService";
+import { ActualizarProducto } from "../../../../services/productoService";
 import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
 import jsPDF from "jspdf";
 import Swal from "sweetalert2";
@@ -97,7 +98,7 @@ const PaginaCompras = () => {
     if (ordenamiento.columna !== columna) {
       return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
     }
-    return ordenamiento.direccion === 'asc' 
+    return ordenamiento.direccion === 'asc'
       ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
       : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
   };
@@ -154,7 +155,7 @@ const PaginaCompras = () => {
 
     // Aplicar filtro de proveedor
     if (filtroProveedor) {
-      filtrados = filtrados.filter(compra => 
+      filtrados = filtrados.filter(compra =>
         compra.idProveedor === parseInt(filtroProveedor)
       );
     }
@@ -168,7 +169,7 @@ const PaginaCompras = () => {
     if (filtroFecha) {
       const hoy = new Date();
       const fechaCompra = new Date();
-      
+
       switch (filtroFecha) {
         case "hoy":
           filtrados = filtrados.filter(compra => {
@@ -283,13 +284,13 @@ const PaginaCompras = () => {
     const result = await Swal.fire({
       title: "¿Anular compra?",
       html: `
-        <div style="text-align:left; font-size:14px;">
-          <strong>Código:</strong> #${compra.codigoCompra}<br/>
-          <strong>Fecha:</strong> ${new Date(compra.fechaCompra).toLocaleDateString()}<br/>
-          <strong>Proveedor:</strong> ${getProveedorNombre(compra.idProveedor)}<br/>
-          <strong>Total:</strong> ${formatoMoneda(compra.precioTotal)}
-        </div>
-      `,
+          <div style="text-align:left; font-size:14px;">
+            <strong>Código:</strong> #${compra.codigoCompra}<br/>
+            <strong>Fecha:</strong> ${new Date(compra.fechaCompra).toLocaleDateString()}<br/>
+            <strong>Proveedor:</strong> ${getProveedorNombre(compra.idProveedor)}<br/>
+            <strong>Total:</strong> ${formatoMoneda(compra.precioTotal)}
+          </div>
+        `,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, anular",
@@ -302,6 +303,29 @@ const PaginaCompras = () => {
 
     if (result.isConfirmed) {
       try {
+        // 🔻 REVERTIR STOCK (RESTAR)
+        const detalles = await GetDetallesByCompra(compra.codigoCompra);
+
+        if (Array.isArray(detalles)) {
+          for (const item of detalles) {
+            const productoOriginal = productos.find(p => p.codigoProducto === item.codigoProducto);
+
+            if (productoOriginal) {
+              const nuevoStock = (productoOriginal.stock || productoOriginal.Stock || 0) - parseInt(item.cantidad);
+
+              await ActualizarProducto(item.codigoProducto, {
+                NombreProducto: productoOriginal.nombreProducto || productoOriginal.NombreProducto,
+                Precio: productoOriginal.precio || productoOriginal.Precio,
+                Stock: nuevoStock,
+                IdCategoria: productoOriginal.idCategoria || productoOriginal.IdCategoria,
+                Estado: productoOriginal.estado !== undefined ? productoOriginal.estado : productoOriginal.Estado,
+                Imagen: null
+              });
+            }
+          }
+        }
+        // 🔺 FIN REVERTIR STOCK
+
         await AnularCompra(compra.codigoCompra);
         Swal.fire({
           icon: "success",
@@ -312,6 +336,7 @@ const PaginaCompras = () => {
         });
         setRecarga((prev) => prev + 1);
       } catch (error) {
+        console.error("Error anulando compra:", error);
         Swal.fire({
           icon: "error",
           title: "Error al anular",
@@ -456,66 +481,58 @@ const PaginaCompras = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Gestión de Compras" />
 
       {/* Botón + búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
-      <section className="col-span-2">
-        <div className="filtros flex items-center gap-2 mb-1">
-          <select 
-            value={filtroProveedor}
-            onChange={(e) => {
-              setFiltroProveedor(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Todos los proveedores</option>
-            {proveedores.map(proveedor => (
-              <option key={proveedor.idProveedor} value={proveedor.idProveedor}>
-                {proveedor.nombreEmpresa}
-              </option>
-            ))}
-          </select>
-          
-          <select 
-            value={filtroEstado}
-            onChange={(e) => {
-              setFiltroEstado(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Todos los estados</option>
-            <option value="Activa">Activa</option>
-            <option value="Anulada">Anulada</option>
-          </select>
+        <section className="col-span-2">
+          <div className="filtros flex items-center gap-2 mb-1">
+            <select
+              value={filtroProveedor}
+              onChange={(e) => {
+                setFiltroProveedor(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todos los proveedores</option>
+              {proveedores.map(proveedor => (
+                <option key={proveedor.idProveedor} value={proveedor.idProveedor}>
+                  {proveedor.nombreEmpresa}
+                </option>
+              ))}
+            </select>
 
-          <select 
-            value={filtroFecha}
-            onChange={(e) => {
-              setFiltroFecha(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Todas las fechas</option>
-            <option value="hoy">Hoy</option>
-            <option value="semana">Última semana</option>
-            <option value="mes">Último mes</option>
-          </select>
-          
-          {/* <button 
-            onClick={aplicarFiltros}
-            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
-          >
-            <i className="fa-solid fa-filter"></i>
-            Filtrar
-          </button> */}
-        </div>
-      </section>
+            <select
+              value={filtroEstado}
+              onChange={(e) => {
+                setFiltroEstado(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todos los estados</option>
+              <option value="Activa">Activa</option>
+              <option value="Anulada">Anulada</option>
+            </select>
+
+            <select
+              value={filtroFecha}
+              onChange={(e) => {
+                setFiltroFecha(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todas las fechas</option>
+              <option value="hoy">Hoy</option>
+              <option value="semana">Última semana</option>
+              <option value="mes">Último mes</option>
+            </select>
+          </div>
+        </section>
         <div className="w-80">
           <BarraBusqueda
             ref={busquedaRef}
@@ -534,9 +551,6 @@ const PaginaCompras = () => {
         </div>
       </section>
 
-      {/* 🔹 Sección de Filtros para Compras */}
-      
-
       {/* Tabla */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -545,50 +559,60 @@ const PaginaCompras = () => {
               comprasPaginadas.map((compra) => (
                 <tr
                   key={compra.codigoCompra}
-                  className={`hover:bg-gray-100 border-t-2 border-gray-300 ${
-                    compra.estado === "Anulada" ? "bg-red-50 text-gray-500" : ""
-                  }`}
+                  className={`hover:bg-gray-100 border-t-2 border-gray-300 ${compra.estado === "Anulada" ? "bg-red-50 text-gray-500" : ""
+                    }`}
                 >
-                  <td className="py-2 px-4 font-semibold">#{compra.codigoCompra}</td>
-                  <td className="py-2 px-4">{new Date(compra.fechaCompra).toLocaleDateString()}</td>
-                  <td className="py-2 px-4">{getProveedorNombre(compra.idProveedor)}</td>
-                  <td className="py-2 px-4 font-semibold">{formatoMoneda(compra.precioTotal)}</td>
+                  <td className="py-2 px-4 font-medium">#{compra.codigoCompra}</td>
+                  <td className="py-2 px-4 text-black">
+                    {new Date(compra.fechaCompra).toLocaleDateString()}
+                  </td>
+                  <td className="py-2 px-4 text-black">
+                    {getProveedorNombre(compra.idProveedor)}
+                  </td>
+                  <td className="py-2 px-4 font-semibold text-black">
+                    {formatoMoneda(compra.precioTotal)}
+                  </td>
                   <td className="py-2 px-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${
-                        compra.estado === "Anulada"
-                          ? "bg-red-100 text-red-800 border-red-300"
-                          : "bg-green-100 text-green-800 border-green-300"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${compra.estado === "Activa"
+                        ? "bg-green-100 text-green-800 border border-green-200"
+                        : "bg-red-100 text-red-800 border border-red-200"
+                        }`}
                     >
-                      {compra.estado === "Anulada" ? "Anulada" : "Activa"}
+                      {compra.estado}
                     </span>
                   </td>
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
                       icon="material-symbols:visibility-outline"
                       width="24"
-                      className="text-green-700 cursor-pointer hover:text-green-800"
+                      height="24"
+                      className="text-green-700 cursor-pointer hover:text-green-800 transition-colors"
                       onClick={() => mostrarDetalles(compra)}
                       title="Ver detalles"
                     />
                     <Icon
-                      icon="material-symbols:download"
+                      icon="mdi:file-pdf-box"
                       width="24"
-                      className="text-blue-700 cursor-pointer hover:text-blue-800"
+                      height="24"
+                      className="text-red-600 cursor-pointer hover:text-red-800 transition-colors"
                       onClick={() => descargarFactura(compra)}
-                      title="Descargar factura PDF"
+                      title="Descargar Factura PDF"
                     />
                     <Icon
-                      icon="mdi:cancel"
+                      icon="tabler:trash"
                       width="24"
-                      className={`cursor-pointer transition-colors ${
+                      height="24"
+                      className={`transition-colors ${compra.estado === "Anulada"
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-red-700 cursor-pointer hover:text-red-800"
+                        }`}
+                      onClick={() => handleAnular(compra)}
+                      title={
                         compra.estado === "Anulada"
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-red-700 hover:text-red-800"
-                      }`}
-                      onClick={() => compra.estado !== "Anulada" && handleAnular(compra)}
-                      title={compra.estado === "Anulada" ? "Compra ya anulada" : "Anular compra"}
+                          ? "Compra ya anulada"
+                          : "Anular compra"
+                      }
                     />
                   </td>
                 </tr>
@@ -596,9 +620,9 @@ const PaginaCompras = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda || filtroProveedor || filtroEstado || filtroFecha ? 
-                    `No se encontraron compras que coincidan con los filtros aplicados` : 
-                    "No hay compras disponibles"}
+                  {terminoBusqueda || filtroProveedor || filtroEstado || filtroFecha ?
+                    "No se encontraron compras que coincidan con los filtros." :
+                    "No hay compras registradas."}
                 </td>
               </tr>
             )}
@@ -606,7 +630,7 @@ const PaginaCompras = () => {
         </div>
       </section>
 
-      {/* 🔹 Paginación con información de resultados */}
+      {/* Paginación */}
       {totalPaginas > 1 && (
         <div className="col-span-2 mt-4">
           <Paginacion
@@ -616,28 +640,26 @@ const PaginaCompras = () => {
           />
           <p className="text-sm text-gray-600 text-center mt-2">
             Página {paginaActual} de {totalPaginas} - {comprasFiltradas.length} compras encontradas
-            {(filtroProveedor || filtroEstado || filtroFecha || terminoBusqueda) && " (filtradas)"}
+            {(filtroProveedor || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
           </p>
         </div>
       )}
 
-      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
+      {/* Mostrar info cuando hay filtros pero solo una página */}
       {totalPaginas === 1 && comprasFiltradas.length > 0 && (
         <div className="col-span-2 mt-4">
           <p className="text-sm text-gray-600 text-center">
             Mostrando {comprasFiltradas.length} compras
-            {(filtroProveedor || filtroEstado || filtroFecha || terminoBusqueda) && " (filtradas)"}
+            {(filtroProveedor || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
           </p>
         </div>
       )}
 
-      {/* Formularios */}
+      {/* Modales */}
       <FormularioCompra
         show={showAgregar}
         close={() => setShowAgregar(false)}
         onCompraCreada={handleCompraCreada}
-        proveedores={proveedores}
-        productos={productos}
       />
 
       <FormularioVerCompra
@@ -645,13 +667,8 @@ const PaginaCompras = () => {
         close={closeDetalles}
         compra={compraSeleccionada}
         formatoMoneda={formatoMoneda}
-        descargarFactura={descargarFactura}
-        proveedores={proveedores}
       />
-
-      {/* Agregar Font Awesome para los iconos */}
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </>
+    </div>
   );
 };
 

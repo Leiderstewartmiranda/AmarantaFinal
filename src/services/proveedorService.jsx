@@ -1,6 +1,6 @@
 //La variable representante es la que utilizo como documento JAJAJAJA. y la de nit como tipo de documento
 
-const API_URL = "http://amarantaapi.somee.com/api/Proveedores"; // 👈 tu endpoint real
+const API_URL = "http://localhost:5201/api/Proveedores"; // 👈 tu endpoint real
 
 export async function GetProveedores() {
   const response = await fetch(API_URL);
@@ -45,6 +45,16 @@ export async function PutProveedor(id, proveedor) {
   });
   if (!response.ok) throw new Error("Error al actualizar proveedor");
   return true; // porque tu API devuelve NoContent
+}
+
+export async function CambiarEstadoProveedor(id, proveedor) {
+  const response = await fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(proveedor),
+  });
+  if (!response.ok) throw new Error("Error al cambiar estado del proveedor");
+  return true;
 }
 
 export async function DeleteProveedore(id) {

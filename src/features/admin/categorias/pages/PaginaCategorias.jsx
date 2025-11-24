@@ -29,7 +29,7 @@ const PaginaCategorias = () => {
   const [showDetalles, setShowDetalles] = useState(false);
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [showConfirmacionEstado, setShowConfirmacionEstado] = useState(false);
-  
+
   // Estados de datos temporales
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
@@ -37,6 +37,12 @@ const PaginaCategorias = () => {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
   const [categoriaCambioEstado, setCategoriaCambioEstado] = useState(null);
   const [errores, setErrores] = useState({});
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    columna: null,
+    direccion: 'asc'
+  });
 
   // Refs
   const nombreRef = useRef();
@@ -55,14 +61,6 @@ const PaginaCategorias = () => {
       setLoading(true);
       const data = await GetCProductos();
       setListaCategorias(data);
-      
-      // Swal.fire({
-      //   icon: "success",
-      //   title: "✅ Categorías cargadas",
-      //   text: "Las categorías se han cargado correctamente",
-      //   confirmButtonColor: "#b45309",
-      //   background: "#fff8e7",
-      // });
     } catch (error) {
       console.error("Error cargando las categorías:", error);
       Swal.fire({
@@ -76,25 +74,98 @@ const PaginaCategorias = () => {
       setLoading(false);
     }
   };
- 
-  // Filtrar categorías basado en el término de búsqueda
+
+  // 🔹 Función para ordenar
+  const handleOrdenar = (columna) => {
+    setOrdenamiento(prev => {
+      if (prev.columna === columna) {
+        return {
+          columna,
+          direccion: prev.direccion === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        return {
+          columna,
+          direccion: 'asc'
+        };
+      }
+    });
+  };
+
+  // 🔹 Función para obtener el icono de ordenamiento
+  const getSortIcon = (columna) => {
+    if (ordenamiento.columna !== columna) {
+      return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
+    }
+    return ordenamiento.direccion === 'asc'
+      ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
+      : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
+  };
+
+  // 🔹 Configuración de las columnas con ordenamiento
+  const columnasConOrdenamiento = [
+    {
+      titulo: "Nombre",
+      onClick: () => handleOrdenar('nombreCategoria'),
+      icono: getSortIcon('nombreCategoria')
+    },
+    {
+      titulo: "Descripción",
+      onClick: () => handleOrdenar('descripcion'),
+      icono: getSortIcon('descripcion')
+    },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('estado'),
+      icono: getSortIcon('estado')
+    },
+    "Acciones"
+  ];
+
+  // Filtrar y ordenar categorías
   const categoriasFiltradas = useMemo(() => {
-    if (!terminoBusqueda.trim()) {
-      return listaCategorias;
+    let filtrados = listaCategorias;
+
+    // Filtrar por búsqueda
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      filtrados = filtrados.filter((categoria) => {
+        const nombre = categoria.nombreCategoria?.toLowerCase() || '';
+        const descripcion = categoria.descripcion?.toLowerCase() || '';
+
+        return (
+          nombre.includes(termino) ||
+          descripcion.includes(termino)
+        );
+      });
     }
 
-    const termino = terminoBusqueda.toLowerCase().trim();
-    
-    return listaCategorias.filter((categoria) => {
-      const nombre = categoria.nombreCategoria?.toLowerCase() || '';
-      const descripcion = categoria.descripcion?.toLowerCase() || '';
+    // Aplicar ordenamiento
+    if (ordenamiento.columna) {
+      filtrados = [...filtrados].sort((a, b) => {
+        let aValue = a[ordenamiento.columna];
+        let bValue = b[ordenamiento.columna];
 
-      return (
-        nombre.includes(termino) ||
-        descripcion.includes(termino)
-      );
-    });
-  }, [listaCategorias, terminoBusqueda]);
+        // Para columnas booleanas (estado)
+        if (ordenamiento.columna === 'estado') {
+          aValue = aValue ? 1 : 0;
+          bValue = bValue ? 1 : 0;
+        }
+
+        // Manejar valores null/undefined en strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
+
+        if (ordenamiento.direccion === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtrados;
+  }, [listaCategorias, terminoBusqueda, ordenamiento]);
 
   // Calcular datos de paginación
   const totalPaginas = Math.ceil(categoriasFiltradas.length / categoriasPorPagina);
@@ -261,7 +332,7 @@ const PaginaCategorias = () => {
   // ELIMINAR categoría
   const handleEliminar = (id) => {
     const categoria = listaCategorias.find((c) => c.idCategoria === id);
-    
+
     if (categoria) {
       Swal.fire({
         icon: "warning",
@@ -308,12 +379,12 @@ const PaginaCategorias = () => {
       setShowConfirmacion(false);
     } catch (error) {
       console.error("💥 Error al eliminar categoría:", error);
-      
+
       // Manejar específicamente el error de integridad referencial
-      if (error.message.includes("REFERENCE constraint") || 
-          error.message.includes("FK_Productos_Categorias") ||
-          error.message.includes("Error 500")) {
-        
+      if (error.message.includes("REFERENCE constraint") ||
+        error.message.includes("FK_Productos_Categorias") ||
+        error.message.includes("Error 500")) {
+
         Swal.fire({
           icon: "error",
           title: "❌ No se puede eliminar",
@@ -330,7 +401,7 @@ const PaginaCategorias = () => {
           background: "#fff8e7",
         });
       }
-      
+
       setCategoriaAEliminar(null);
       setShowConfirmacion(false);
     }
@@ -339,7 +410,7 @@ const PaginaCategorias = () => {
   // CAMBIAR ESTADO categoría
   const cambiarEstado = (id) => {
     const categoria = listaCategorias.find(c => c.idCategoria === id);
-    
+
     if (categoria) {
       Swal.fire({
         icon: "question",
@@ -375,7 +446,7 @@ const PaginaCategorias = () => {
           Estado: nuevoEstado
         });
         await cargarCategorias();
-        
+
         Swal.fire({
           icon: "success",
           title: "✅ Estado actualizado",
@@ -383,7 +454,7 @@ const PaginaCategorias = () => {
           confirmButtonColor: "#b45309",
           background: "#fff8e7",
         });
-        
+
         setCategoriaCambioEstado(null);
         setShowConfirmacionEstado(false);
       } catch (error) {
@@ -421,7 +492,7 @@ const PaginaCategorias = () => {
         descripcion: categoria.descripcion,
         estado: categoria.estado
       });
-      setErrores({}); 
+      setErrores({});
       setShowEditar(true);
     }
   };
@@ -465,7 +536,7 @@ const PaginaCategorias = () => {
   const generarNumerosPagina = () => {
     const numeros = [];
     const maxVisible = 7;
-    
+
     if (totalPaginas <= maxVisible) {
       for (let i = 1; i <= totalPaginas; i++) {
         numeros.push(i);
@@ -493,7 +564,7 @@ const PaginaCategorias = () => {
         numeros.push(totalPaginas);
       }
     }
-    
+
     return numeros;
   };
 
@@ -506,16 +577,16 @@ const PaginaCategorias = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Categorías" />
-      
+
       {/* Sección de botón y búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
         <div className="flex-shrink-0 w-80">
-          <BarraBusqueda 
+          <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar categoría"
             value={terminoBusqueda}
@@ -533,7 +604,7 @@ const PaginaCategorias = () => {
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
           <TablaAdmin
-            listaCabecera={["Nombre", "Descripción", "Estado", "Acciones"]}
+            listaCabecera={columnasConOrdenamiento}
           >
             {categoriasPaginadas.length > 0 ? (
               categoriasPaginadas.map((element) => (
@@ -558,14 +629,12 @@ const PaginaCategorias = () => {
                         onChange={() => cambiarEstado(element.idCategoria)}
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          element.estado ? "bg-green-500" : "bg-gray-300"
-                        } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                        className={`w-11 h-6 rounded-full peer ${element.estado ? "bg-green-500" : "bg-gray-300"
+                          } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
                       >
                         <div
-                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${
-                            element.estado ? "transform translate-x-5" : ""
-                          }`}
+                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${element.estado ? "transform translate-x-5" : ""
+                            }`}
                         ></div>
                       </div>
                     </label>
@@ -573,43 +642,43 @@ const PaginaCategorias = () => {
 
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     {/* Ver detalles */}
-                    
-                      <Icon
-                        icon="mdi:eye-outline"
-                        width="24"
-                        height="24"
-                        className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
-                        onClick={() => mostrarDetalles(element.idCategoria)}
-                      />
-                      
-                    
+
+                    <Icon
+                      icon="mdi:eye-outline"
+                      width="24"
+                      height="24"
+                      className="text-green-700 cursor-pointer hover:text-green-900 transition-colors"
+                      onClick={() => mostrarDetalles(element.idCategoria)}
+                    />
+
+
 
                     {/* Editar */}
-                    
-                      <Icon
-                        icon="material-symbols:edit-outline"
-                        width="24"
-                        height="24"
-                        className={`cursor-pointer transition-colors ${
-                          element.estado
-                            ? "text-blue-700 hover:text-blue-900"
-                            : "text-gray-400 cursor-not-allowed"
+
+                    <Icon
+                      icon="material-symbols:edit-outline"
+                      width="24"
+                      height="24"
+                      className={`cursor-pointer transition-colors ${element.estado
+                        ? "text-blue-700 hover:text-blue-900"
+                        : "text-gray-400 cursor-not-allowed"
                         }`}
-                        onClick={() => mostrarEditar(element.idCategoria)}
-                      />
-                      
+                      onClick={() => mostrarEditar(element.idCategoria)}
+                    />
+
+
 
                     {/* Eliminar */}
-                    
-                      <Icon
-                        icon="tabler:trash"
-                        width="24"
-                        height="24"
-                        className="text-red-700 hover:text-red-900 cursor-pointer transition-colors"
-                        onClick={() => handleEliminar(element.idCategoria)}
-                        alt=""
-                      />
-                      
+
+                    <Icon
+                      icon="tabler:trash"
+                      width="24"
+                      height="24"
+                      className="text-red-700 hover:text-red-900 cursor-pointer transition-colors"
+                      onClick={() => handleEliminar(element.idCategoria)}
+                      alt=""
+                    />
+
                   </td>
                 </tr>
               ))
@@ -667,7 +736,10 @@ const PaginaCategorias = () => {
         close={closeDetalles}
         categoria={categoriaSeleccionada}
       />
-    </>
+
+      {/* Agregar Font Awesome para los iconos */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    </div>
   );
 };
 

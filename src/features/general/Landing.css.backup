@@ -16,7 +16,7 @@
   --btn-hover: #92400e;
 }
 
-.landing-page * {
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -33,12 +33,12 @@ body {
   overflow-x: hidden;
 }
 
-.landing-page h1,
-.landing-page h2,
-.landing-page h3,
-.landing-page h4,
-.landing-page h5,
-.landing-page h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Playfair Display', serif;
 }
 
@@ -234,11 +234,11 @@ body {
 /* =============================
    SECCIONES GENERALES
    ============================= */
-.landing-page section {
+section {
   padding: 6rem 0;
 }
 
-.landing-page .container {
+.container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
@@ -676,19 +676,204 @@ body {
 @media (max-width: 768px) {
   .navbar {
     padding: 1rem;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     background: rgba(10, 10, 10, 0.95);
     height: auto;
   }
 
-  .nav-brand {
-    display: none;
+  .nav-links {
+    margin-top: 1rem;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-  .logos {
-    gap: 0;
+  .hero-logo {
+    font-size: 3rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 2.2rem;
+  }
+
+  .filtros-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .search-wrapper,
+  .select-categoria {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* =============================
+   CONTACTO
+   ============================= */
+.contact-section {
+  background-color: #050505;
+  position: relative;
+  padding: 6rem 0;
+}
+
+.contact-form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #141414;
+  padding: 3rem;
+  border-radius: 12px;
+  border: 1px solid #222;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.form-group-contacto {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.form-group-contacto label {
+  display: block;
+  color: var(--primary-gold);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.form-group-contacto input,
+.form-group-contacto textarea {
+  width: 100%;
+  padding: 1rem;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group-contacto input:focus,
+.form-group-contacto textarea:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.1);
+}
+
+.form-group-contacto textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.btn-enviar-contacto {
+  width: 100%;
+  padding: 1rem;
+  background: var(--primary-gold);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-enviar-contacto:hover {
+  background: var(--secondary-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3);
+}
+
+.btn-enviar-contacto:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mensaje-exito,
+.mensaje-error {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.mensaje-exito {
+  font-size: 0.8rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2rem;
+}
+
+.footer-icons {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-icons img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  filter: grayscale(100%);
+}
+
+.footer-icons a:hover img {
+  transform: scale(1.2);
+  filter: grayscale(0%);
+}
+
+.footer-info p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+/* =============================
+   ANIMATIONS
+   ============================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* =============================
+   RESPONSIVE
+   ============================= */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
+    flex-direction: column;
+    background: rgba(10, 10, 10, 0.95);
+    height: auto;
   }
 
   .nav-links {
@@ -991,10 +1176,10 @@ body {
 
   .nav-menu {
     position: fixed;
-    top: 80px;
+    top: 70px;
     left: -100%;
     width: 100%;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 70px);
     background: #0a0a0a;
     flex-direction: column;
     align-items: center;

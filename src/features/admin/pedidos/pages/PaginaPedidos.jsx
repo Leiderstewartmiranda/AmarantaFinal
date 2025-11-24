@@ -8,15 +8,15 @@ import FormularioModificar from "../components/forms/FormularioModificar";
 import FormularioVer from "../components/forms/FormularioVer";
 import ModalConfirmacion from "../../../../compartidos/confirmacion/Confirmacion";
 import Paginacion from "../../../../compartidos/paginacion/Paginacion";
-import { 
+import {
   GetPedidos,
-  GetPedidoById, 
-  PostPedido, 
+  GetPedidoById,
+  PostPedido,
   CancelarPedido,
   GetClientes,
-  GetProductos 
+  GetProductos
 } from "../../../../services/pedidoService";
-import TituloSeccion from "../../../../compartidos/Titulo/Titulos"; 
+import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
 import Swal from "sweetalert2";
 
 const PaginaPedidos = () => {
@@ -86,7 +86,7 @@ const PaginaPedidos = () => {
         GetClientes(),
         GetProductos()
       ]);
-      
+
       // Mapear los pedidos con la estructura correcta según tu DTO
       const pedidosMapeados = pedidosData.map(pedido => mapearPedidoDesdeAPI(pedido));
       setListaPedidos(pedidosMapeados);
@@ -95,7 +95,7 @@ const PaginaPedidos = () => {
     } catch (err) {
       console.error("Error cargando datos:", err);
       setError("Error al cargar los datos");
-      
+
       Swal.fire({
         icon: "error",
         title: "❌ Error al cargar",
@@ -153,7 +153,7 @@ const PaginaPedidos = () => {
     if (ordenamiento.columna !== columna) {
       return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
     }
-    return ordenamiento.direccion === 'asc' 
+    return ordenamiento.direccion === 'asc'
       ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
       : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
   };
@@ -209,7 +209,7 @@ const PaginaPedidos = () => {
 
     // Aplicar filtro de cliente
     if (filtroCliente) {
-      filtrados = filtrados.filter(pedido => 
+      filtrados = filtrados.filter(pedido =>
         pedido.IdCliente === parseInt(filtroCliente)
       );
     }
@@ -223,7 +223,7 @@ const PaginaPedidos = () => {
     if (filtroFecha) {
       const hoy = new Date();
       const fechaPedido = new Date();
-      
+
       switch (filtroFecha) {
         case "hoy":
           filtrados = filtrados.filter(pedido => {
@@ -314,19 +314,19 @@ const PaginaPedidos = () => {
       if (nuevoEstado === "Cancelado") {
         await CancelarPedido(id);
       }
-      
+
       // Actualizar estado localmente
       setListaPedidos(
         listaPedidos.map((pedido) =>
           pedido.CodigoPedido === id ? { ...pedido, Estado: nuevoEstado } : pedido
         )
       );
-      
+
       // Recargar datos para asegurar consistencia
       if (nuevoEstado === "Cancelado") {
         await cargarDatosIniciales();
       }
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Estado actualizado",
@@ -346,7 +346,7 @@ const PaginaPedidos = () => {
     }
   };
 
-  const getCodigo = (p) => 
+  const getCodigo = (p) =>
     (p.codigoProducto ?? p.id ?? p.idProducto)?.toString();
 
   // 🛍️ Función para encontrar y agregar productos
@@ -380,22 +380,22 @@ const PaginaPedidos = () => {
 
       const nuevaLista = existe
         ? prev.map(p =>
-            getCodigo(p) === productId
-              ? {
-                  ...p,
-                  cantidad: p.cantidad + 1,
-                  subtotal: (p.cantidad + 1) * (p.precio || p.precioVenta || 0)
-                }
-              : p
-          )
+          getCodigo(p) === productId
+            ? {
+              ...p,
+              cantidad: p.cantidad + 1,
+              subtotal: (p.cantidad + 1) * (p.precio || p.precioVenta || 0)
+            }
+            : p
+        )
         : [
-            ...prev,
-            {
-              ...product,
-              cantidad: 1,
-              subtotal: product.precio || product.precioVenta || 0,
-            },
-          ];
+          ...prev,
+          {
+            ...product,
+            cantidad: 1,
+            subtotal: product.precio || product.precioVenta || 0,
+          },
+        ];
 
       calcularTotal(nuevaLista);
       return nuevaLista;
@@ -413,14 +413,14 @@ const PaginaPedidos = () => {
   // ❌ Función para eliminar producto de la lista
   const eliminarProducto = (productId) => {
     setProductosAgregados(prev => {
-        const nuevaLista = prev.filter(p => getCodigo(p) !== productId.toString());
-        calcularTotal(nuevaLista);
-        return nuevaLista;
-      });
-    };
+      const nuevaLista = prev.filter(p => getCodigo(p) !== productId.toString());
+      calcularTotal(nuevaLista);
+      return nuevaLista;
+    });
+  };
 
-    // 🔢 Función para cambiar cantidad de un producto
-    const cambiarCantidad = (productId, nuevaCantidad) => {
+  // 🔢 Función para cambiar cantidad de un producto
+  const cambiarCantidad = (productId, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarProducto(productId);
       return;
@@ -430,10 +430,10 @@ const PaginaPedidos = () => {
       const nuevaLista = prev.map(p =>
         getCodigo(p) === productId.toString()
           ? {
-              ...p,
-              cantidad: nuevaCantidad,
-              subtotal: nuevaCantidad * (p.precio || p.precioVenta || 0),
-            }
+            ...p,
+            cantidad: nuevaCantidad,
+            subtotal: nuevaCantidad * (p.precio || p.precioVenta || 0),
+          }
           : p
       );
       calcularTotal(nuevaLista);
@@ -461,7 +461,7 @@ const PaginaPedidos = () => {
       direccion: direccionRef.current?.value || "",
       correo: correoRef.current?.value || "",
       estado: estadoRef.current?.value || "Pendiente",
-      municipio: "", 
+      municipio: "",
       departamento: ""
     };
 
@@ -523,11 +523,35 @@ const PaginaPedidos = () => {
       return;
     }
 
+    // 🔻 VALIDAR STOCK DISPONIBLE
+    for (const item of datos.productosAgregados) {
+      const codigo = item.codigoProducto || item.CodigoProducto || item.id;
+      const productoOriginal = listaProductos.find(p => getCodigo(p) === codigo.toString());
+
+      if (productoOriginal) {
+        const stockDisponible = productoOriginal.stock || productoOriginal.Stock || 0;
+        const cantidadSolicitada = parseInt(item.cantidad);
+
+        if (cantidadSolicitada > stockDisponible) {
+          const nombreProducto = productoOriginal.nombreProducto || productoOriginal.NombreProducto || "Producto";
+          Swal.fire({
+            icon: "error",
+            title: "❌ Stock insuficiente",
+            text: `El producto "${nombreProducto}" solo tiene ${stockDisponible} unidades disponibles. No se pueden ordenar ${cantidadSolicitada} unidades.`,
+            confirmButtonColor: "#b45309",
+            background: "#fff8e7",
+          });
+          return;
+        }
+      }
+    }
+    // 🔺 FIN VALIDAR STOCK
+
     try {
-      const clienteId = datos.clienteSeleccionado.idCliente || 
-                      datos.clienteSeleccionado.codigoCliente || 
-                      datos.clienteSeleccionado.Id_Cliente || 
-                      datos.clienteSeleccionado.id;
+      const clienteId = datos.clienteSeleccionado.idCliente ||
+        datos.clienteSeleccionado.codigoCliente ||
+        datos.clienteSeleccionado.Id_Cliente ||
+        datos.clienteSeleccionado.id;
 
       console.log("👤 Cliente seleccionado:", datos.clienteSeleccionado);
       console.log("📍 Datos de envío:", {
@@ -558,14 +582,14 @@ const PaginaPedidos = () => {
       };
 
       console.log("🚀 Enviando pedido completo:", nuevoPedido);
-      
+
       const resultado = await PostPedido(nuevoPedido);
-      
+
       await cargarDatosIniciales();
       setShowAgregar(false);
       limpiarProductos();
       setClienteSeleccionado(null);
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Pedido creado",
@@ -573,7 +597,7 @@ const PaginaPedidos = () => {
         confirmButtonColor: "#b45309",
         background: "#fff8e7",
       });
-      
+
     } catch (error) {
       console.error("Error creando pedido:", error);
       Swal.fire({
@@ -595,18 +619,18 @@ const PaginaPedidos = () => {
       if (datosActualizados.Estado === "Cancelado") {
         await CancelarPedido(datosActualizados.CodigoPedido);
       }
-      
+
       // Actualizar localmente
       setListaPedidos(
         listaPedidos.map((pedido) =>
-          pedido.CodigoPedido === datosActualizados.CodigoPedido 
+          pedido.CodigoPedido === datosActualizados.CodigoPedido
             ? { ...pedido, Estado: datosActualizados.Estado }
             : pedido
         )
       );
-      
+
       closeModal();
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Pedido actualizado",
@@ -661,10 +685,10 @@ const PaginaPedidos = () => {
     try {
       // Cancelar en lugar de eliminar
       await CancelarPedido(pedido.CodigoPedido);
-      
+
       // Recargar datos
       await cargarDatosIniciales();
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Pedido cancelado",
@@ -693,11 +717,11 @@ const PaginaPedidos = () => {
   const mostrarVer = async (id) => {
     try {
       console.log("🔍 Abriendo detalles del pedido ID:", id);
-      
+
       // Establecer el pedido seleccionado con el ID
       setPedidoSeleccionado({ CodigoPedido: id });
       setShowVer(true);
-      
+
     } catch (error) {
       console.error("Error cargando detalles:", error);
       Swal.fire({
@@ -714,7 +738,7 @@ const PaginaPedidos = () => {
   const mostrarEditar = async (id) => {
     try {
       const pedido = listaPedidos.find((pedido) => pedido.CodigoPedido === id);
-      
+
       if (pedido) {
         setFormData({
           ...pedido,
@@ -746,7 +770,7 @@ const PaginaPedidos = () => {
       Direccion: "",
       PrecioTotal: "",
       Correo: "",
-        Estado: "",
+      Estado: "",
       Productos: [],
     });
   };
@@ -790,7 +814,7 @@ const PaginaPedidos = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-red-500 text-lg">{error}</div>
-        <button 
+        <button
           onClick={cargarDatosIniciales}
           className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
         >
@@ -801,71 +825,63 @@ const PaginaPedidos = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Gestión de Pedidos" />
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
         <section className="col-span-2">
-        <div className="filtros flex items-center gap-3 mb-1">
-          <select 
-            value={filtroCliente}
-            onChange={(e) => {
-              setFiltroCliente(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Todos los clientes</option>
-            {listaClientes.map(cliente => (
-              <option key={cliente.idCliente} value={cliente.idCliente}>
-                {cliente.nombre} {cliente.apellido}
-              </option>
-            ))}
-          </select>
-          
-          <select 
-            value={filtroEstado}
-            onChange={(e) => {
-              setFiltroEstado(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Todos los estados</option>
-            {estadosDisponibles.map(estado => (
-              <option key={estado} value={estado}>
-                {estado}
-              </option>
-            ))}
-          </select>
+          <div className="filtros flex items-center gap-2 mb-1">
+            <select
+              value={filtroCliente}
+              onChange={(e) => {
+                setFiltroCliente(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todos los clientes</option>
+              {listaClientes.map(cliente => (
+                <option key={cliente.idCliente} value={cliente.idCliente}>
+                  {cliente.nombre} {cliente.apellido}
+                </option>
+              ))}
+            </select>
 
-          <select 
-            value={filtroFecha}
-            onChange={(e) => {
-              setFiltroFecha(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Todas las fechas</option>
-            <option value="hoy">Hoy</option>
-            <option value="semana">Última semana</option>
-            <option value="mes">Último mes</option>
-          </select>
-          
-          {/* <button 
-            onClick={aplicarFiltros}
-            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
-          >
-            <i className="fa-solid fa-filter"></i>
-            Filtrar
-          </button> */}
-        </div>
-      </section>
+            <select
+              value={filtroEstado}
+              onChange={(e) => {
+                setFiltroEstado(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todos los estados</option>
+              {estadosDisponibles.map(estado => (
+                <option key={estado} value={estado}>
+                  {estado}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroFecha}
+              onChange={(e) => {
+                setFiltroFecha(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Todas las fechas</option>
+              <option value="hoy">Hoy</option>
+              <option value="semana">Última semana</option>
+              <option value="mes">Último mes</option>
+            </select>
+          </div>
+        </section>
         <div className="flex-shrink-0 w-80">
-          <BarraBusqueda 
+          <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar por cliente, estado o total"
             value={terminoBusqueda}
@@ -882,9 +898,6 @@ const PaginaPedidos = () => {
         </div>
       </section>
 
-      {/* 🔹 Sección de Filtros para Pedidos */}
-      
-
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
           <TablaAdmin listaCabecera={columnasConOrdenamiento}>
@@ -892,9 +905,8 @@ const PaginaPedidos = () => {
               pedidosPaginados.map((element) => (
                 <tr
                   key={element.CodigoPedido}
-                  className={`hover:bg-gray-100 border-t-2 border-gray-300 ${
-                    element.Estado === "Cancelado" ? "bg-red-50 text-gray-500" : ""
-                  }`}
+                  className={`hover:bg-gray-100 border-t-2 border-gray-300 ${element.Estado === "Cancelado" ? "bg-red-50 text-gray-500" : ""
+                    }`}
                 >
                   <td className="py-2 px-4 font-medium">{element.Cliente}</td>
                   <td className="py-2 px-4 text-sm text-black">
@@ -908,11 +920,10 @@ const PaginaPedidos = () => {
                       value={element.Estado}
                       onChange={(e) => handleCambiarEstado(element.CodigoPedido, e.target.value)}
                       disabled={element.Estado === "Completado" || element.Estado === "Cancelado"}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.Estado)} ${
-                        element.Estado === "Completado" || element.Estado === "Cancelado"
-                          ? 'cursor-not-allowed opacity-70' 
-                          : 'cursor-pointer hover:shadow-sm'
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.Estado)} ${element.Estado === "Completado" || element.Estado === "Cancelado"
+                        ? 'cursor-not-allowed opacity-70'
+                        : 'cursor-pointer hover:shadow-sm'
+                        }`}
                       title={
                         element.Estado === "Completado" || element.Estado === "Cancelado"
                           ? "No se puede cambiar el estado de un pedido completado o cancelado"
@@ -940,15 +951,14 @@ const PaginaPedidos = () => {
                       icon="tabler:trash"
                       width="24"
                       height="24"
-                      className={`cursor-pointer hover:text-red-800 ${
-                        element.Estado === "Cancelado" 
-                          ? "text-gray-400 cursor-not-allowed" 
-                          : "text-red-700"
-                      }`}
+                      className={`cursor-pointer hover:text-red-800 ${element.Estado === "Cancelado"
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-red-700"
+                        }`}
                       onClick={() => element.Estado !== "Cancelado" && handleEliminar(element.CodigoPedido)}
                       title={
-                        element.Estado === "Cancelado" 
-                          ? "Pedido ya cancelado" 
+                        element.Estado === "Cancelado"
+                          ? "Pedido ya cancelado"
                           : "Cancelar pedido"
                       }
                     />
@@ -958,8 +968,8 @@ const PaginaPedidos = () => {
             ) : (
               <tr>
                 <td colSpan="5" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda || filtroCliente || filtroEstado || filtroFecha ? 
-                    `No se encontraron pedidos que coincidan con los filtros aplicados` : 
+                  {terminoBusqueda || filtroCliente || filtroEstado || filtroFecha ?
+                    `No se encontraron pedidos que coincidan con los filtros aplicados` :
                     "No hay pedidos disponibles"}
                 </td>
               </tr>
@@ -969,29 +979,33 @@ const PaginaPedidos = () => {
       </section>
 
       {/* 🔹 Paginación con información de resultados */}
-      {totalPaginas > 1 && (
-        <div className="col-span-2 mt-4">
-          <Paginacion
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            handleCambioPagina={handleCambioPagina}
-          />
-          <p className="text-sm text-gray-600 text-center mt-2">
-            Página {paginaActual} de {totalPaginas} - {pedidosFiltrados.length} pedidos encontrados
-            {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
-          </p>
-        </div>
-      )}
+      {
+        totalPaginas > 1 && (
+          <div className="col-span-2 mt-4">
+            <Paginacion
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              handleCambioPagina={handleCambioPagina}
+            />
+            <p className="text-sm text-gray-600 text-center mt-2">
+              Página {paginaActual} de {totalPaginas} - {pedidosFiltrados.length} pedidos encontrados
+              {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
+            </p>
+          </div>
+        )
+      }
 
       {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
-      {totalPaginas === 1 && pedidosFiltrados.length > 0 && (
-        <div className="col-span-2 mt-4">
-          <p className="text-sm text-gray-600 text-center">
-            Mostrando {pedidosFiltrados.length} pedidos
-            {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
-          </p>
-        </div>
-      )}
+      {
+        totalPaginas === 1 && pedidosFiltrados.length > 0 && (
+          <div className="col-span-2 mt-4">
+            <p className="text-sm text-gray-600 text-center">
+              Mostrando {pedidosFiltrados.length} pedidos
+              {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}
+            </p>
+          </div>
+        )
+      }
 
       <FormularioAgregar
         show={showAgregar}
@@ -1016,8 +1030,8 @@ const PaginaPedidos = () => {
         clienteSeleccionado={clienteSeleccionado}
         onClienteChange={handleClienteChange}
         productos={listaProductos}
-        onMunicipioChange={(municipio) => setFormData(prev => ({...prev, Municipio: municipio}))}
-        onDepartamentoChange={(departamento) => setFormData(prev => ({...prev, Departamento: departamento}))}
+        onMunicipioChange={(municipio) => setFormData(prev => ({ ...prev, Municipio: municipio }))}
+        onDepartamentoChange={(departamento) => setFormData(prev => ({ ...prev, Departamento: departamento }))}
       />
 
       <FormularioModificar
@@ -1046,7 +1060,7 @@ const PaginaPedidos = () => {
 
       {/* Agregar Font Awesome para los iconos */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </>
+    </div >
   );
 };
 

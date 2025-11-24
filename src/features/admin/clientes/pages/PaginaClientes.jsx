@@ -164,10 +164,10 @@ const PaginaClientes = () => {
         prev.map((c) =>
           c.IdCliente === datosFormulario.IdCliente
             ? {
-                ...c,
-                ...actualizado,
-                NombreCompleto: `${actualizado.Nombre} ${actualizado.Apellido}`.trim(),
-              }
+              ...c,
+              ...actualizado,
+              NombreCompleto: `${actualizado.Nombre} ${actualizado.Apellido}`.trim(),
+            }
             : c
         )
       );
@@ -367,7 +367,7 @@ const PaginaClientes = () => {
     if (ordenamiento.columna !== columna) {
       return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
     }
-    return ordenamiento.direccion === 'asc' 
+    return ordenamiento.direccion === 'asc'
       ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
       : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
   };
@@ -408,39 +408,39 @@ const PaginaClientes = () => {
   ];
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Clientes" />
 
       <section className="col-span-2 flex justify-between items-center gap-4">
         <BotonAgregar action={() => setShowAgregar(true)} />
-          {/* 🔹 Sección de Filtros - Similar al HTML de referencia */}
+        {/* 🔹 Sección de Filtros - Similar al HTML de referencia */}
         <div className="filtros flex items-center gap-4 mb-1">
-          <select 
+          <select
             value={filtroTipoDoc}
             onChange={(e) => {
               setFiltroTipoDoc(e.target.value);
               setPaginaActual(1); // Resetear página al cambiar filtro
             }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="">Tipo documento</option>
             <option value="CC">Cédula</option>
             <option value="CE">Cédula Extranjería</option>
           </select>
-          
-          <select 
+
+          <select
             value={filtroEstado}
             onChange={(e) => {
               setFiltroEstado(e.target.value);
               setPaginaActual(1); // Resetear página al cambiar filtro
             }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="">Estado</option>
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
           </select>
-          
+
           {/* <button 
             onClick={aplicarFiltros}
             className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
@@ -464,7 +464,7 @@ const PaginaClientes = () => {
         </div>
       </section>
 
-      
+
 
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -485,11 +485,10 @@ const PaginaClientes = () => {
                   <td className="py-2 px-4">{c.Telefono}</td>
                   <td className="py-2 px-4">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        c.Estado === "Activo"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${c.Estado === "Activo"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                        }`}
                     >
                       {c.Estado}
                     </span>
@@ -573,7 +572,7 @@ const PaginaClientes = () => {
 
       {/* Agregar Font Awesome para los iconos */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </>
+    </div>
   );
 };
 

@@ -74,13 +74,14 @@ const FormularioAgregarProducto = ({
         Precio: precio,
         Stock: stock,
         Imagen: imagen,
+        Estado: true, // 🔹 Por defecto activo
       };
 
       const res = await CrearProducto(nuevoProducto);
       console.log("✅ Producto creado:", res);
 
       if (res) {
-        setListaProductos([...listaProductos, res]);
+        setListaProductos([res, ...listaProductos]); // 🔹 Agregar al principio (newest first)
         setShow(false);
       } else {
         alert("Error al crear el producto (sin respuesta)");
@@ -117,11 +118,13 @@ const FormularioAgregarProducto = ({
           <label>Categoría *</label>
           <select className={`mt-1 block w-full border rounded p-2 focus:border-orange-500 focus:outline-none bg-white ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`} ref={categoriaRef} defaultValue="">
             <option value="">Seleccionar categoría</option>
-            {categorias.map((cat) => (
-              <option key={cat.idCategoria} value={cat.idCategoria}>
-                {cat.nombreCategoria}
-              </option>
-            ))}
+            {categorias
+              .filter(cat => cat.estado) // 🔹 Solo mostrar categorías activas
+              .map((cat) => (
+                <option key={cat.idCategoria} value={cat.idCategoria}>
+                  {cat.nombreCategoria}
+                </option>
+              ))}
           </select>
           {errores.categoria && <p className="error-text">{errores.categoria}</p>}
         </div>

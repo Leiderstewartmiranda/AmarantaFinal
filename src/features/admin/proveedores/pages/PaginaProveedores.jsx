@@ -3,7 +3,7 @@ import BotonAgregar from "../../../../compartidos/buttons/BotonAgregar";
 import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
 import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
 import { useRef, useState, useMemo, useEffect } from "react";
-import { GetProveedores, PostProveedor, PutProveedor, DeleteProveedore } from "../../../../services/proveedorService";
+import { GetProveedores, PostProveedor, PutProveedor, DeleteProveedore, CambiarEstadoProveedor } from "../../../../services/proveedorService";
 import FormularioAgregarProveedor from "../components/forms/FormularioAgregar";
 import FormularioModificarProveedor from "../components/forms/FormularioModificar";
 import FormularioVerProveedor from "../components/forms/FormularioVer";
@@ -90,7 +90,7 @@ const PaginaProveedores = () => {
     if (ordenamiento.columna !== columna) {
       return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
     }
-    return ordenamiento.direccion === 'asc' 
+    return ordenamiento.direccion === 'asc'
       ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
       : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
   };
@@ -232,9 +232,9 @@ const PaginaProveedores = () => {
                 ...proveedor,
                 estado: nuevoEstado
               };
-              
-              await PutProveedor(id, datosActualizados);
-              
+
+              await CambiarEstadoProveedor(id, datosActualizados);
+
               setListaProveedores(
                 listaProveedores.map((proveedor) =>
                   proveedor.idProveedor === id ? { ...proveedor, estado: nuevoEstado } : proveedor
@@ -279,7 +279,7 @@ const PaginaProveedores = () => {
       setRecarga(prev => prev + 1);
       setListaProveedores([...listaProveedores, proveedorCreado]);
       setShowAgregar(false);
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Proveedor agregado",
@@ -319,19 +319,19 @@ const PaginaProveedores = () => {
 
       // Llamar al servicio
       await PutProveedor(proveedorActualizado.idProveedor, proveedorActualizado);
-      
+
       // ✅ ACTUALIZAR ESTADO LOCAL
-      setListaProveedores(prev => 
-        prev.map(proveedor => 
-          proveedor.idProveedor === proveedorActualizado.idProveedor 
+      setListaProveedores(prev =>
+        prev.map(proveedor =>
+          proveedor.idProveedor === proveedorActualizado.idProveedor
             ? { ...proveedor, ...proveedorActualizado }
             : proveedor
         )
       );
-      
+
       setRecarga(prev => prev + 1);
       closeModal();
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Proveedor actualizado",
@@ -339,7 +339,7 @@ const PaginaProveedores = () => {
         confirmButtonColor: "#b45309",
         background: "#fff8e7",
       });
-      
+
     } catch (error) {
       console.error("💥 Error actualizando proveedor:", error);
       Swal.fire({
@@ -391,7 +391,7 @@ const PaginaProveedores = () => {
       setListaProveedores(
         listaProveedores.filter((p) => p.idProveedor !== proveedor.idProveedor)
       );
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Proveedor eliminado",
@@ -399,16 +399,16 @@ const PaginaProveedores = () => {
         confirmButtonColor: "#b45309",
         background: "#fff8e7",
       });
-      
+
       setProveedorAEliminar(null);
       setShowConfirmacion(false);
     } catch (error) {
       console.error("Error eliminando proveedor:", error);
-      
-      if (error.message.includes("REFERENCE constraint") || 
-          error.message.includes("FK_Productos_Proveedores") ||
-          error.message.includes("Error 500")) {
-        
+
+      if (error.message.includes("REFERENCE constraint") ||
+        error.message.includes("FK_Productos_Proveedores") ||
+        error.message.includes("Error 500")) {
+
         Swal.fire({
           icon: "error",
           title: "❌ No se puede eliminar",
@@ -425,7 +425,7 @@ const PaginaProveedores = () => {
           background: "#fff8e7",
         });
       }
-      
+
       setProveedorAEliminar(null);
       setShowConfirmacion(false);
     }
@@ -506,54 +506,54 @@ const PaginaProveedores = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Proveedores" />
-      
+
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
         <section className="col-span-2">
-        <div className="filtros flex items-center gap-3 mb-1">
-          <select 
-            value={filtroTipoDoc}
-            onChange={(e) => {
-              setFiltroTipoDoc(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Tipo documento</option>
-            <option value="NIT">NIT</option>
-            <option value="RUT">RUT</option>
+          <div className="filtros flex items-center gap-3 mb-1">
+            <select
+              value={filtroTipoDoc}
+              onChange={(e) => {
+                setFiltroTipoDoc(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Tipo documento</option>
+              <option value="NIT">NIT</option>
+              <option value="RUT">RUT</option>
 
-            <option value="CC">CC</option>
-          </select>
-          
-          <select 
-            value={filtroEstado}
-            onChange={(e) => {
-              setFiltroEstado(e.target.value);
-              setPaginaActual(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">Estado</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-          </select>
-          
-          {/* <button 
+              <option value="CC">CC</option>
+            </select>
+
+            <select
+              value={filtroEstado}
+              onChange={(e) => {
+                setFiltroEstado(e.target.value);
+                setPaginaActual(1);
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Estado</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+
+            {/* <button 
             onClick={aplicarFiltros}
             className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
           >
             <i className="fa-solid fa-filter"></i>
             Filtrar
           </button> */}
-        </div>
-      </section>
+          </div>
+        </section>
         <div className="flex-shrink-0 w-80">
-          <BarraBusqueda 
+          <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar proveedores"
             value={terminoBusqueda}
@@ -571,7 +571,7 @@ const PaginaProveedores = () => {
       </section>
 
       {/* 🔹 Sección de Filtros para Proveedores */}
-      
+
 
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -617,11 +617,10 @@ const PaginaProveedores = () => {
                       icon="material-symbols:edit-outline"
                       width="24"
                       height="24"
-                      className={`cursor-pointer transition-colors ${
-                        element.estado 
-                          ? "text-blue-700 hover:text-blue-800" 
-                          : "text-gray-400 cursor-not-allowed"
-                      }`}
+                      className={`cursor-pointer transition-colors ${element.estado
+                        ? "text-blue-700 hover:text-blue-800"
+                        : "text-gray-400 cursor-not-allowed"
+                        }`}
                       onClick={() => mostrarEditar(element.idProveedor)}
                       title={element.estado ? "Editar proveedor" : "No editable (inactivo)"}
                     />
@@ -639,8 +638,8 @@ const PaginaProveedores = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda || filtroEstado || filtroTipoDoc ? 
-                    `No se encontraron proveedores que coincidan con los filtros aplicados` : 
+                  {terminoBusqueda || filtroEstado || filtroTipoDoc ?
+                    `No se encontraron proveedores que coincidan con los filtros aplicados` :
                     "No hay proveedores disponibles"
                   }
                 </td>
@@ -700,7 +699,7 @@ const PaginaProveedores = () => {
 
       {/* Agregar Font Awesome para los iconos */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </>
+    </div>
   );
 };
 

@@ -8,6 +8,7 @@ import {
   GetProveedores,
   GetProductos,
 } from "../../../../../services/compraService";
+import { ActualizarProducto } from "../../../../../services/productoService";
 import { Icon } from "@iconify/react";
 
 export default function FormularioAgregarCompra({ show, close, onCompraCreada }) {
@@ -17,7 +18,17 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
   const [productoSelect, setProductoSelect] = useState(null);
   const [productosAgregados, setProductosAgregados] = useState([]);
   const [totalCalculado, setTotalCalculado] = useState(0);
-  const [fechaCompra, setFechaCompra] = useState(new Date().toISOString().split("T")[0]);
+
+  // Obtener fecha local en formato YYYY-MM-DD
+  const getFechaLocal = () => {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [fechaCompra, setFechaCompra] = useState(getFechaLocal());
 
   // Cargar datos
   useEffect(() => {
@@ -38,11 +49,13 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
 
   // Opciones de Select
   const opcionesProveedores = useMemo(() =>
-    proveedores.map((p) => ({
-      value: p.idProveedor,
-      label: `${p.nombreEmpresa} — (${p.nit}) ${p.representante} `,
-      data: p,
-    })), [proveedores]
+    proveedores
+      .filter((p) => p.estado) // 🟢 Solo mostrar activos
+      .map((p) => ({
+        value: p.idProveedor,
+        label: `${p.nombreEmpresa} — (${p.nit}) ${p.representante} `,
+        data: p,
+      })), [proveedores]
   );
 
   const opcionesProductos = useMemo(() =>
@@ -54,7 +67,7 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
     })), [productos]
   );
 
-  // 🔥 AGREGAR PRODUCTO - CORREGIDO
+  // 🔥 AGREGAR PRODUCTO
   const agregarProducto = () => {
     if (!productoSelect) return;
 
@@ -69,11 +82,11 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
         // Si ya existe, incrementar la cantidad
         nuevaLista = prev.map((p) =>
           p.codigoProducto === productoSelect.value
-            ? { 
-                ...p, 
-                cantidad: p.cantidad + 1, 
-                subtotal: (p.cantidad + 1) * p.precio 
-              }
+            ? {
+              ...p,
+              cantidad: p.cantidad + 1,
+              subtotal: (p.cantidad + 1) * p.precio
+            }
             : p
         );
       } else {
@@ -156,7 +169,26 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
       // 🚀 Enviar todos los detalles en una sola petición
       await PostDetallesCompraMultiple(detalles);
 
-      
+      // 🔻 ACTUALIZAR STOCK (SUMAR)
+      for (const item of productosAgregados) {
+        // Buscar el producto original en la lista cargada
+        const productoOriginal = productos.find(p => p.codigoProducto === item.codigoProducto);
+
+        if (productoOriginal) {
+          const nuevoStock = (productoOriginal.stock || productoOriginal.Stock || 0) + parseInt(item.cantidad);
+
+          await ActualizarProducto(item.codigoProducto, {
+            NombreProducto: productoOriginal.nombreProducto || productoOriginal.NombreProducto,
+            Precio: productoOriginal.precio || productoOriginal.Precio,
+            Stock: nuevoStock,
+            IdCategoria: productoOriginal.idCategoria || productoOriginal.IdCategoria,
+            Estado: productoOriginal.estado !== undefined ? productoOriginal.estado : productoOriginal.Estado,
+            Imagen: null
+          });
+        }
+      }
+      // 🔺 FIN ACTUALIZAR STOCK
+
       setProductosAgregados([]);
       setProveedorSelect(null);
       setProductoSelect(null);
@@ -187,8 +219,8 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
       backgroundColor: state.isSelected
         ? "var(--naranjado)"
         : state.isFocused
-        ? "#fed7aa"
-        : "white",
+          ? "#fed7aa"
+          : "white",
       color: state.isSelected ? "white" : "black",
       "&:hover": { backgroundColor: "#fed7aa" },
     }),
@@ -243,11 +275,10 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
               type="button"
               onClick={agregarProducto}
               disabled={!productoSelect}
-              className={`font-semibold py-2 px-4 rounded transition duration-300 flex items-center gap-1 ${
-                productoSelect
-                  ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
-                  : "bg-gray-400 text-white cursor-not-allowed"
-              }`}
+              className={`font-semibold py-2 px-4 rounded transition duration-300 flex items-center gap-1 ${productoSelect
+                ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
+                : "bg-gray-400 text-white cursor-not-allowed"
+                }`}
             >
               <Icon icon="mdi:cart-plus" width="18" /> Agregar
             </button>
@@ -354,13 +385,12 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
             type="button"
             onClick={handleGuardar}
             disabled={!proveedorSelect || productosAgregados.length === 0}
-            className={`font-semibold py-2 px-4 rounded transition duration-300 ${
-              proveedorSelect && productosAgregados.length > 0
-                ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
-                : "bg-gray-400 text-white cursor-not-allowed"
-            }`}
+            className={`font-semibold py-2 px-4 rounded transition duration-300 ${proveedorSelect && productosAgregados.length > 0
+              ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
+              : "bg-gray-400 text-white cursor-not-allowed"
+              }`}
           >
-             Agregar Compra
+            Agregar Compra
           </button>
         </div>
       </form>

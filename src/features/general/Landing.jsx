@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./Landing.css";
 import AmaraLogo from "../../assets/AmaraLogo.png";
@@ -23,9 +23,30 @@ export default function Landing() {
   const [loadingProductos, setLoadingProductos] = useState(true);
   const [precioMin, setPrecioMin] = useState("");
   const [precioMax, setPrecioMax] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+  // === Efecto de scroll para navbar ===
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 50;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [scrolled]);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
   // === Cargar imagen del usuario ===
   useEffect(() => {
@@ -289,7 +310,7 @@ export default function Landing() {
   return (
     <div className="landing-page">
       {/* ===== Navbar ===== */}
-      <header className="navbar">
+      <header className={`navbar ${scrolled ? "scrolled" : ""}`}>
         <div className="logos">
           <img src={AmaraLogo} alt="Amaranta Logo" className="img-logo" />
           <div className="nav-brand">
@@ -298,12 +319,16 @@ export default function Landing() {
           </div>
         </div>
 
-        <nav>
+        <div className="hamburger-menu" onClick={toggleMobileMenu}>
+          <div className={`bar ${mobileMenuOpen ? "open" : ""}`}></div>
+          <div className={`bar ${mobileMenuOpen ? "open" : ""}`}></div>
+          <div className={`bar ${mobileMenuOpen ? "open" : ""}`}></div>
+        </div>
+
+        <nav className={`nav-menu ${mobileMenuOpen ? "active" : ""}`}>
           <ul className="nav-links">
-            <li><a href="#catalogo">Catálogo</a></li>
-            <li><a href="#productos">Líneas</a></li>
-            <li><a href="#origen">Origen</a></li>
-            <li><a href="#experiencia">Experiencia</a></li>
+            <li><a href="#catalogo" onClick={() => setMobileMenuOpen(false)}>Catálogo</a></li>
+            <li><Link to="/nosotros" onClick={() => setMobileMenuOpen(false)}>Origen & Experiencia</Link></li>
             {/* 🔹 Opciones dinámicas según el rol */}
             {renderUserOptions()}
           </ul>
@@ -312,6 +337,7 @@ export default function Landing() {
 
       {/* ===== Hero ===== */}
       <section id="inicio" className="hero-section">
+        <div className="hero-overlay"></div>
         <div className="hero-content">
           <div className="hero-brand">
             <h1 className="hero-logo">AMARANTA</h1>
@@ -334,13 +360,16 @@ export default function Landing() {
 
           {/* 🔍 Búsqueda y filtro */}
           <div className="filtros-container">
-            <input
-              type="text"
-              placeholder="Buscar producto..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="input-busqueda"
-            />
+            <div className="search-wrapper">
+              <i className="fas fa-search search-icon"></i>
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="input-busqueda"
+              />
+            </div>
             <select
               value={categoriaSeleccionada}
               onChange={(e) => setCategoriaSeleccionada(e.target.value)}
@@ -356,16 +385,16 @@ export default function Landing() {
             <div className="filtro-precio-container">
               <input
                 type="number"
-                placeholder="Precio mínimo"
+                placeholder="Min $"
                 value={precioMin}
                 onChange={(e) => setPrecioMin(e.target.value)}
                 className="filtro-precio"
                 min="0"
               />
-              <span>-</span>
+              <span className="separator">-</span>
               <input
                 type="number"
-                placeholder="Precio máximo"
+                placeholder="Max $"
                 value={precioMax}
                 onChange={(e) => setPrecioMax(e.target.value)}
                 className="filtro-precio"
@@ -376,6 +405,7 @@ export default function Landing() {
 
           {loadingProductos ? (
             <div className="loading-products">
+              <div className="spinner"></div>
               <p>Cargando productos...</p>
             </div>
           ) : (
@@ -386,11 +416,13 @@ export default function Landing() {
                     <img src={producto.imagen} alt={producto.nombreProducto} />
                   </div>
                   <div className="producto-info">
-                    <h3>{producto.nombreProducto}</h3>
-                    <p>{producto.descripcion}</p>
-                    <div className="producto-precio">
-                      ${(producto.precio || 0).toLocaleString()}
+                    <div className="producto-header">
+                      <h3>{producto.nombreProducto}</h3>
+                      <div className="producto-precio">
+                        ${(producto.precio || 0).toLocaleString()}
+                      </div>
                     </div>
+                    <p className="producto-descripcion">{producto.descripcion}</p>
                     <button
                       onClick={() => agregarAlCarrito(producto)}
                       className="btn-agregar-carrito"
@@ -419,138 +451,13 @@ export default function Landing() {
         </div>
       )}
 
-      {/* ===== Líneas ===== */}
-      <section id="productos" className="productos-section">
-        <h2 className="section-title">Nuestras Líneas</h2>
-        <div className="productos-grid">
-          <div className="producto-card">
-            <img src="https://res.cloudinary.com/dev1t6xl9/image/upload/v1762828346/AmarantaSur_w7p6b7.png" alt="Amaranta Sur" />
-            <h3>Amaranta Sur</h3>
-            <p>Del corazón del tabaco colombiano, una fumada que habla con acento propio.</p>
-          </div>
-          <div className="producto-card">
-            <img src="https://res.cloudinary.com/dev1t6xl9/image/upload/v1762828346/AmarantaCaribe_kwfmh6.png" alt="Amaranta Caribe" />
-            <h3>Amaranta Caribe</h3>
-            <p>Del corazón del tabaco caribeño, una experiencia fresca y vibrante.</p>
-          </div>
-          <div className="producto-card">
-            <img src="https://res.cloudinary.com/dev1t6xl9/image/upload/v1762828346/AmarantaAnimus_fgvbf5.png" alt="Amaranta Animus" />
-            <h3>Amaranta Animus</h3>
-            <p>Una experiencia envolvente que despierta los sentidos.</p>
-          </div>
+      {/* ===== Contact Form ===== */}
+      <section className="contact-section">
+        <div className="container">
+          <h2 className="section-title">Contáctanos</h2>
+          <ContactForm />
         </div>
       </section>
-
-      {/* ===== Origen ===== */}
-      <section id="origen" className="origen-section">
-        <div className="container">
-            <h2 className="section-title">Nuestro Origen</h2>
-            <p style={{ marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.8' }}>
-                Amaranta Cigars nace de la pasión por el arte ancestral de los buenos tabacos. Fundada en el corazón de las tierras más fértiles para el cultivo del tabaco, nuestra marca representa la herencia, el conocimiento y la dedicación de generaciones de maestros torcedores.
-            </p>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '3rem' }}>
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Nuestra Herencia</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Desde 2020, hemos preservado las técnicas tradicionales de cultivo y secado, combinándolas con innovaciones modernas que respetan la esencia del auténtico puro. Cada hoja es seleccionada manualmente tras un riguroso proceso de curación natural.
-                    </p>
-                </div>
-                
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>El Arte del Torcido</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Nuestros maestros torcedores, con más de 20 años de experiencia, dan forma a cada cigarro con paciencia y precisión. Este proceso artesanal garantiza un tiro perfecto y una combustión uniforme en cada una de nuestras vitolas.
-                    </p>
-                </div>
-                
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Filosofía Amaranta</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Creemos que un buen cigarro no es solo un producto, es una experiencia. Una tradición que se comparte, un momento de reflexión y placer que conecta a los conocedores con la esencia más pura del tabaco.
-                    </p>
-                </div>
-            </div>
-            
-            <div style={{ marginTop: '3rem', padding: '2rem', background: 'linear-gradient(135deg, #1a1a1a, #2a2a2a)', borderRadius: '10px', border: '1px solid #444' }}>
-                <h3 style={{ color: '#d4a574', textAlign: 'center', marginBottom: '1rem', fontSize: '1.4rem' }}>
-                    "Cada Amaranta es una promesa de excelencia, un tributo a la tradición tabacalera"
-                </h3>
-                <p style={{ color: '#ccc', textAlign: 'center', fontStyle: 'italic' }}>
-                    - Familia Rodríguez, Fundadores
-                </p>
-            </div>
-        </div>
-    </section>
-
-      {/* ===== Experiencia ===== */}
-      <section id="experiencia" className="experiencia-section">
-        <div className="container">
-            <h2 className="section-title">La Experiencia Amaranta</h2>
-            <p style={{ marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.8', textAlign: 'center' }}>
-                Sumérgete en el arte del tabaco premium a través de una tradición que honra los sentidos y celebra el tiempo pausado.
-            </p>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '3rem' }}>
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>El Ritual del Aroma</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Cada Amaranta libera una sinfonía de aromas que evolucionan con cada calada. Notas de madera noble, toques de nuez y un final especiado que perdura en el paladar, creando una experiencia olfativa única.
-                    </p>
-                </div>
-                
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Sabores que Perduran</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        La complejidad de nuestros blends ofrece un viaje gustativo que comienza suave, se intensifica en el desarrollo y concluye con un retrogusto elegante. Un diálogo entre fuerza y sutileza en cada vitola.
-                    </p>
-                </div>
-                
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Combustión Perfecta</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Gracias al torcido artesanal, cada cigarro mantiene una combustión uniforme y lenta, permitiendo disfrutar de la experiencia durante el tiempo perfecto. La ceniza compacta y grisácea es testimonio de calidad.
-                    </p>
-                </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Tiempo y Paciencia</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Un Amaranta no se fuma, se saborea. Es una invitación a detener el tiempo, a disfrutar del momento presente y a convertir una simple pausa en una experiencia contemplativa y enriquecedora.
-                    </p>
-                </div>
-                
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Ingredientes Naturales</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Utilizamos exclusivamente hojas de tabaco de primera calidad, sin aditivos ni acelerantes. La pureza de nuestros ingredientes garantiza una experiencia auténtica y libre de artificios.
-                    </p>
-                </div>
-                
-                <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', border: '1px solid #333' }}>
-                    <h3 style={{ color: '#d4a574', marginBottom: '1rem', fontSize: '1.3rem' }}>Arte en Cada Detalle</h3>
-                    <p style={{ color: '#ccc', lineHeight: '1.6' }}>
-                        Desde la selección de la capa hasta el anillado final, cada elemento es cuidadosamente considerado. La estética de nuestros puros refleja la elegancia y sofisticación que definen la marca.
-                    </p>
-                </div>
-            </div>
-            
-            <div style={{ marginTop: '3rem', padding: '2rem', background: 'linear-gradient(135deg, #1a1a1a, #2a2a2a)', borderRadius: '10px', border: '1px solid #444' }}>
-                <h3 style={{ color: '#d4a574', textAlign: 'center', marginBottom: '1rem', fontSize: '1.4rem' }}>
-                    "La verdadera experiencia Amaranta trasciende el humo: es un encuentro con la tradición, los sentidos y el arte del buen vivir"
-                </h3>
-                <p style={{ color: '#ccc', textAlign: 'center', fontStyle: 'italic' }}>
-                    - Filosofía de la Casa Amaranta
-                </p>
-            </div>
-        </div>
-    </section>
-
-      {/* ===== Contact Form ===== */}
-      
-        <ContactForm />
 
       {/* ===== Modal Pedido ===== */}
       <ModalPedido
@@ -564,19 +471,56 @@ export default function Landing() {
 
       {/* ===== Footer ===== */}
       <footer className="footer">
-        <div className="footer-icons">
-          <a href="https://www.facebook.com/share/17KYrWg3x8/" target="blank">
-            <img src="https://i.pinimg.com/736x/07/52/f5/0752f5634bcf549014cb18a9cf6b4481.jpg" alt="Facebook" />
-          </a>
-          <a href="https://www.instagram.com/amarantacigars" target="blank">
-            <img src="https://i.pinimg.com/564x/25/38/de/2538ded09c774ccd821d768b92f24e5a.jpg" alt="Instagram" />
-          </a>
-          <a href="https://w.app/yyivp3" target="blank">
-            <img src="https://i.pinimg.com/1200x/fa/6b/2c/fa6b2c3835597812db7407c06f4d6f3f.jpg" alt="WhatsApp" />
-          </a>
+        <div className="container">
+          <div className="footer-grid">
+            <div className="footer-column brand-column">
+              <div className="footer-brand">
+                <h2>AMARANTA</h2>
+                <span>Cigars</span>
+              </div>
+              <p className="footer-desc">
+                Tradición y excelencia en cada cigarro. Llevando el mejor tabaco colombiano al mundo.
+              </p>
+            </div>
+
+            <div className="footer-column">
+              <h3>Enlaces Rápidos</h3>
+              <ul className="footer-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#catalogo">Catálogo</a></li>
+                <li><Link to="/nosotros">Origen & Experiencia</Link></li>
+              </ul>
+            </div>
+
+            <div className="footer-column">
+              <h3>Contacto</h3>
+              <ul className="footer-contact">
+                <li><i className="fas fa-phone"></i> 321 0000000</li>
+                <li><i className="fas fa-envelope"></i> info@amarantacigars.com</li>
+                <li><i className="fas fa-map-marker-alt"></i> Colombia</li>
+              </ul>
+            </div>
+
+            <div className="footer-column">
+              <h3>Síguenos</h3>
+              <div className="footer-icons">
+                <a href="https://www.facebook.com/share/17KYrWg3x8/" target="blank">
+                  <img src="https://i.pinimg.com/736x/07/52/f5/0752f5634bcf549014cb18a9cf6b4481.jpg" alt="Facebook" />
+                </a>
+                <a href="https://www.instagram.com/amarantacigars" target="blank">
+                  <img src="https://i.pinimg.com/564x/25/38/de/2538ded09c774ccd821d768b92f24e5a.jpg" alt="Instagram" />
+                </a>
+                <a href="https://w.app/yyivp3" target="blank">
+                  <img src="https://i.pinimg.com/1200x/fa/6b/2c/fa6b2c3835597812db7407c06f4d6f3f.jpg" alt="WhatsApp" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <p>© 2025 Amaranta Cigars | Todos los derechos reservados</p>
+          </div>
         </div>
-        <p>Tel: 321 0000000</p>
-        <p>© 2025 Amaranta Cigars | Todos los derechos reservados</p>
       </footer>
     </div>
   );
