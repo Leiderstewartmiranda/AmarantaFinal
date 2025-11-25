@@ -1,38 +1,84 @@
 import React, { useEffect, useState } from "react";
-import ModalBase from "../../../../../compartidos/modal/modalbase"; // 👈 Ajusta la ruta si es necesario
-import { Icon } from "@iconify/react";
+import ModalBase from "../../../../../compartidos/modal/modalbase";
+import { UbicacionService } from "../../../../../services/ubicacionService";
 
 export default function FormularioModificar({ show, close, formData, onSubmit }) {
   const [form, setForm] = useState({
-    IdCliente: "",
+    IdUsuario: "",
     TipoDocumento: "",
     Documento: "",
-    NombreCompleto: "",
+    Nombre: "",
+    Apellido: "",
     Correo: "",
     Telefono: "",
     Direccion: "",
+    Departamento: "",
+    Municipio: "",
     Estado: "",
   });
+
+  const [departamentos, setDepartamentos] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
+  // Cargar departamentos al montar
+  useEffect(() => {
+    const cargarDepartamentos = async () => {
+      try {
+        const deps = await UbicacionService.obtenerDepartamentos();
+        setDepartamentos(deps);
+      } catch (error) {
+        console.error("Error cargando departamentos", error);
+      }
+    };
+    cargarDepartamentos();
+  }, []);
+
+  // Cargar municipios cuando cambia departamento
+  useEffect(() => {
+    const cargarMunicipios = async () => {
+      if (form.Departamento) {
+        try {
+          const muns = await UbicacionService.obtenerMunicipios(form.Departamento);
+          setMunicipios(muns);
+        } catch (error) {
+          console.error("Error cargando municipios", error);
+          setMunicipios([]);
+        }
+      } else {
+        setMunicipios([]);
+      }
+    };
+    cargarMunicipios();
+  }, [form.Departamento]);
 
   // 👇 Cuando se abre el modal, se llenan los campos con los datos actuales del cliente
   useEffect(() => {
     if (formData) {
       setForm({
-        IdCliente: formData.IdCliente || "",
+        IdUsuario: formData.IdUsuario || formData.IdCliente || "",
         TipoDocumento: formData.TipoDocumento || "",
         Documento: formData.Documento || "",
-        NombreCompleto: formData.NombreCompleto || "",
+        Nombre: formData.Nombre || "",
+        Apellido: formData.Apellido || "",
         Correo: formData.Correo || "",
         Telefono: formData.Telefono || "",
         Direccion: formData.Direccion || "",
-        Estado: formData.Estado || "",
+        Departamento: formData.Departamento || "",
+        Municipio: formData.Municipio || "",
+        // formData.Estado viene como "Activo"/"Inactivo" desde PaginaClientes
+        Estado: formData.Estado || "Activo",
       });
     }
   }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      // Si cambia departamento, limpiar municipio
+      ...(name === "Departamento" ? { Municipio: "" } : {})
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -56,7 +102,9 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             >
               <option value="">Seleccione...</option>
               <option value="CC">Cédula</option>
+              <option value="CE">Cédula de Extranjería</option>
               <option value="TI">Tarjeta de Identidad</option>
+              <option value="PAS">Pasaporte</option>
               <option value="NIT">NIT</option>
             </select>
           </div>
@@ -75,16 +123,29 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
         </div>
 
         {/* FILA 2 */}
-        <div>
-          <label className="block font-semibold text-gray-700">Nombre Completo</label>
-          <input
-            type="text"
-            name="NombreCompleto"
-            value={form.NombreCompleto}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
-            required
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold text-gray-700">Nombre</label>
+            <input
+              type="text"
+              name="Nombre"
+              value={form.Nombre}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-gray-700">Apellido</label>
+            <input
+              type="text"
+              name="Apellido"
+              value={form.Apellido}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
+              required
+            />
+          </div>
         </div>
 
         {/* FILA 3 */}
@@ -114,32 +175,67 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
           </div>
         </div>
 
-        {/* FILA 4 */}
-        <div>
-          <label className="block font-semibold text-gray-700">Dirección</label>
-          <input
-            type="text"
-            name="Direccion"
-            value={form.Direccion}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
-          />
+        {/* FILA 4 - Ubicación */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold text-gray-700">Departamento</label>
+            <select
+              name="Departamento"
+              value={form.Departamento}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="">Seleccione...</option>
+              {departamentos.map((dep) => (
+                <option key={dep} value={dep}>{dep}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700">Municipio</label>
+            <select
+              name="Municipio"
+              value={form.Municipio}
+              onChange={handleChange}
+              disabled={!form.Departamento}
+              className="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="">Seleccione...</option>
+              {municipios.map((mun) => (
+                <option key={mun} value={mun}>{mun}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* FILA 5 */}
-        <div>
-          <label className="block font-semibold text-gray-700">Estado</label>
-          <select
-            name="Estado"
-            value={form.Estado}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:border-blue-500"
-            required
-          >
-            <option value="">Seleccione...</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold text-gray-700">Dirección</label>
+            <input
+              type="text"
+              name="Direccion"
+              value={form.Direccion}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700">Estado</label>
+            <select
+              name="Estado"
+              value={form.Estado}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:border-blue-500"
+              required
+            >
+              <option value="">Seleccione...</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
         </div>
 
         {/* BOTONES */}

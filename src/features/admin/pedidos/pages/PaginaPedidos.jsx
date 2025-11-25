@@ -669,7 +669,7 @@ const PaginaPedidos = () => {
         showCancelButton: true,
         cancelButtonColor: "#6b7280",
         confirmButtonText: "Sí, cancelar",
-        cancelButtonText: "Mantener"
+        cancelButtonText: "Cerrar"
       }).then((result) => {
         if (result.isConfirmed) {
           confirmarEliminacion(pedido);

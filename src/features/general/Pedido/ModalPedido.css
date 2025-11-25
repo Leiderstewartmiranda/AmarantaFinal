@@ -1,0 +1,256 @@
+/* ModalPedido.css */
+
+/* Overlay con efecto glassmorphism */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Contenedor del modal */
+.modal-pedido {
+    background: #141414;
+    /* --card-bg */
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    border: 1px solid #333;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+    color: #f3f3f3;
+    /* --text-light */
+}
+
+.modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #d4a574;
+    /* --primary-gold */
+    margin-bottom: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.2);
+    padding-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+/* Resumen del pedido */
+.resumen-pedido {
+    background-color: #0a0a0a;
+    /* --dark-bg */
+    padding: 1.2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #222;
+}
+
+.resumen-pedido h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #d4a574;
+    /* --primary-gold */
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.resumen-items-container {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizado */
+.resumen-items-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.resumen-items-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.resumen-items-container::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 2px;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    color: #a0a0a0;
+    /* --text-dim */
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #222;
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.resumen-nombre {
+    font-weight: 500;
+    color: #f3f3f3;
+}
+
+.resumen-total {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #333;
+    font-size: 1.2rem;
+    color: #d4a574;
+    /* --primary-gold */
+    font-family: 'Playfair Display', serif;
+}
+
+/* Formulario */
+.form-pedido {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.labelpedido {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #d4a574;
+    /* --primary-gold */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-pedido,
+.textarea-pedido {
+    padding: 0.8rem;
+    background: #0a0a0a;
+    /* --dark-bg */
+    border: 1px solid #333;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: #f3f3f3;
+    transition: all 0.3s ease;
+    outline: none;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.input-pedido:focus,
+.textarea-pedido:focus {
+    border-color: #d4a574;
+    /* --primary-gold */
+    box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.2);
+}
+
+.textarea-pedido {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Botones */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #222;
+}
+
+.btn-cancelar {
+    padding: 0.8rem 1.5rem;
+    border: 1px solid #333;
+    background: transparent;
+    color: #a0a0a0;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+.btn-cancelar:hover {
+    border-color: #666;
+    color: #f3f3f3;
+}
+
+.btn-confirmar {
+    padding: 0.8rem 1.5rem;
+    background: transparent;
+    color: #d4a574;
+    /* --primary-gold */
+    border: 1px solid #d4a574;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+.btn-confirmar:hover {
+    background: #d4a574;
+    color: #000;
+    box-shadow: 0 0 15px rgba(212, 165, 116, 0.3);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

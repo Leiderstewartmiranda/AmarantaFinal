@@ -1,5 +1,5 @@
 import React from "react";
-import ModalBase from "../../../../../compartidos/modal/modalbase"; // ajusta la ruta
+import ModalBase from "../../../../../compartidos/modal/modalbase";
 
 const FormularioVerDetalles = ({ show, setShow, cliente }) => {
   if (!cliente) return null;
@@ -58,6 +58,25 @@ const FormularioVerDetalles = ({ show, setShow, cliente }) => {
           </div>
         </div>
 
+        {/* Ubicación */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-gray-700 font-medium">
+              Departamento
+            </label>
+            <p className="mt-1 p-2 bg-gray-50 rounded border border-gray-200">
+              {cliente.Departamento || "No especificado"}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium">Municipio</label>
+            <p className="mt-1 p-2 bg-gray-50 rounded border border-gray-200">
+              {cliente.Municipio || "No especificado"}
+            </p>
+          </div>
+        </div>
+
         {/* Dirección */}
         <div className="mb-4">
           <label className="block text-gray-700 font-medium">Dirección</label>
@@ -71,13 +90,12 @@ const FormularioVerDetalles = ({ show, setShow, cliente }) => {
           <label className="block text-gray-700 font-medium">Estado</label>
           <p className="mt-1 p-2 bg-gray-50 rounded border border-gray-200">
             <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                cliente.Estado === "Activo"
+              className={`px-2 py-1 rounded-full text-xs font-medium ${cliente.Estado === "Activo"
                   ? "bg-green-100 text-green-800"
                   : cliente.Estado === "Inactivo"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}
+                    ? "bg-red-100 text-red-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}
             >
               {cliente.Estado}
             </span>

@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5201/api/Productos";
+const API_URL = "http://amarantaapi.somee.com/api/Productos";
 // http://amarantaapi.somee.com/
 
 // Obtener todos

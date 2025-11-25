@@ -75,7 +75,7 @@ export default function Register() {
           label: muni
         }));
         setMunicipios(opciones);
-        
+
         // Limpiar municipio seleccionado
         setMunicipioSelect(null);
         setForm(prev => ({ ...prev, municipio: "" }));
@@ -99,7 +99,7 @@ export default function Register() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
-    
+
     // Limpiar error del campo cuando el usuario escribe
     if (errores[name]) {
       setErrores(prev => ({ ...prev, [name]: "" }));
@@ -109,9 +109,9 @@ export default function Register() {
   // 🟣 Manejo de cambios para departamento (react-select)
   const handleDepartamentoChange = (selectedOption) => {
     setDepartamentoSelect(selectedOption);
-    setForm(prev => ({ 
-      ...prev, 
-      departamento: selectedOption ? selectedOption.value : "" 
+    setForm(prev => ({
+      ...prev,
+      departamento: selectedOption ? selectedOption.value : ""
     }));
     setErrores(prev => ({ ...prev, departamento: "" }));
   };
@@ -119,9 +119,9 @@ export default function Register() {
   // 🟣 Manejo de cambios para municipio (react-select)
   const handleMunicipioChange = (selectedOption) => {
     setMunicipioSelect(selectedOption);
-    setForm(prev => ({ 
-      ...prev, 
-      municipio: selectedOption ? selectedOption.value : "" 
+    setForm(prev => ({
+      ...prev,
+      municipio: selectedOption ? selectedOption.value : ""
     }));
     setErrores(prev => ({ ...prev, municipio: "" }));
   };
@@ -129,7 +129,7 @@ export default function Register() {
   const handleConfirmarClave = (e) => {
     const value = e.target.value;
     setConfirmarClave(value);
-    
+
     // Validar en tiempo real si las contraseñas coinciden
     if (value && form.clave && value !== form.clave) {
       setErrores(prev => ({
@@ -320,8 +320,8 @@ export default function Register() {
 
         // 🧭 Redirige al componente de verificación con los datos correctos
         navigate("/verification", {
-          state: { 
-            correo: form.correo, 
+          state: {
+            correo: form.correo,
             rol: data.rol || "Usuario",
             usuario: data.usuario || {
               idUsuario: data.idUsuario,
@@ -338,7 +338,7 @@ export default function Register() {
 
     } catch (error) {
       console.error("❌ Error en registro:", error);
-      
+
       Swal.fire({
         icon: "error",
         title: "Error en el registro",
@@ -355,80 +355,25 @@ export default function Register() {
   const customStyles = {
     control: (base, state) => ({
       ...base,
-      border: "1.5px solid #d6d3d1",
-      borderRadius: "6px",
+      border: "1px solid #d1d5db",
+      borderRadius: "0.375rem",
       padding: "0.125rem",
-      backgroundColor: "#fff",
-      minHeight: "48px",
-      borderColor: state.isFocused ? "#a78bfa" : errores.departamento || errores.municipio ? "#ef4444" : "#d6d3d1",
-      boxShadow: state.isFocused ? "0 0 5px rgba(167, 139, 250, 0.4)" : "none",
+      backgroundColor: "white",
+      "&:hover": { borderColor: "var(--naranjado)" },
+      boxShadow: state.isFocused ? "0 0 0 1px var(--naranjado)" : "none",
+      borderColor: state.isFocused
+        ? "var(--naranjado)"
+        : (errores.departamento || errores.municipio ? "#ef4444" : "#d1d5db"),
     }),
     option: (base, state) => ({
       ...base,
-      backgroundColor: state.isSelected 
-        ? "#a78bfa"
-        : state.isFocused 
-        ? "#f3f4f6"
-        : "white",
-      color: state.isSelected ? "white" : "#1c1917",
-      fontSize: "0.95rem",
-      padding: "10px 12px",
-      "&:hover": {
-        backgroundColor: "#a78bfa",
-        color: "white"
-      },
-    }),
-    menu: (base) => ({
-      ...base,
-      borderRadius: "6px",
-      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-      border: "1px solid #d6d3d1",
-      marginTop: "4px",
-      zIndex: 9999,
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "#a8a29e",
-      fontSize: "0.95rem",
-    }),
-    dropdownIndicator: (base, state) => ({
-      ...base,
-      color: "#6b7280",
-      padding: "4px 8px",
-      transition: "all 0.25s ease",
-      transform: state.selectProps.menuIsOpen ? "rotate(180deg)" : "rotate(0)",
-      "&:hover": {
-        color: "#a78bfa",
-      },
-    }),
-    clearIndicator: (base) => ({
-      ...base,
-      color: "#6b7280",
-      padding: "4px 8px",
-      "&:hover": {
-        color: "#ef4444",
-      },
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "#1c1917",
-      fontSize: "0.95rem",
-      fontWeight: "400",
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: "0 12px",
-    }),
-    indicatorSeparator: (base) => ({
-      ...base,
-      backgroundColor: "#d6d3d1",
-    }),
-    input: (base) => ({
-      ...base,
-      color: "#1c1917",
-      fontSize: "0.95rem",
-      margin: "0",
-      padding: "0",
+      backgroundColor: state.isSelected
+        ? "var(--naranjado)"
+        : state.isFocused
+          ? "#fed7aa"
+          : "white",
+      color: state.isSelected ? "white" : "black",
+      "&:hover": { backgroundColor: "#fed7aa" },
     }),
   };
 
@@ -558,8 +503,8 @@ export default function Register() {
                   onChange={handleDepartamentoChange}
                   options={departamentos}
                   placeholder={
-                    cargandoDepartamentos 
-                      ? "Cargando departamentos..." 
+                    cargandoDepartamentos
+                      ? "Cargando departamentos..."
                       : "Buscar departamento..."
                   }
                   noOptionsMessage={() => "No se encontraron departamentos"}
@@ -580,11 +525,11 @@ export default function Register() {
                   onChange={handleMunicipioChange}
                   options={municipios}
                   placeholder={
-                    !departamentoSelect 
-                      ? "Primero selecciona un departamento" 
-                      : municipios.length === 0 
-                      ? "Cargando municipios..." 
-                      : "Buscar municipio..."
+                    !departamentoSelect
+                      ? "Primero selecciona un departamento"
+                      : municipios.length === 0
+                        ? "Cargando municipios..."
+                        : "Buscar municipio..."
                   }
                   noOptionsMessage={() => "No se encontraron municipios"}
                   styles={customStyles}
@@ -628,8 +573,8 @@ export default function Register() {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className={`register-button ${loading ? 'button-loading' : ''}`}
               disabled={loading}
             >
@@ -648,7 +593,7 @@ export default function Register() {
               <a
                 onClick={() => navigate("/login")}
                 className="link"
-                style={{ cursor: "pointer"}}
+                style={{ cursor: "pointer" }}
               >
                 Inicia sesión
               </a>
