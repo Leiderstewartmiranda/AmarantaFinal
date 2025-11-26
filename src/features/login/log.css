@@ -164,7 +164,7 @@
 }
 
 .login-button:hover {
-  background-color: #92400e;
+  background-color: #92400e !important;
 }
 
 /* ===============================
@@ -225,7 +225,8 @@
 .form-group .labellogin {
   font-weight: 600;
   color: #1c1917;
-  margin-bottom: 0.4rem; /* 🔹 Espacio entre etiqueta e input */
+  margin-bottom: 0.4rem;
+  /* 🔹 Espacio entre etiqueta e input */
   font-size: 0.95rem;
 }
 
@@ -239,5 +240,3 @@ form {
   flex-direction: column;
   gap: 0.5rem;
 }
-
-

@@ -108,7 +108,7 @@
 }
 
 .verify-button:hover {
-  background-color: #92400e;
+  background-color: #92400e !important;
   transform: scale(1.02);
 }
 

@@ -80,7 +80,8 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 5rem; /* Espacio entre grupos */
+  margin-bottom: 5rem;
+  /* Espacio entre grupos */
 }
 
 .form-group .labelregister {
@@ -101,7 +102,7 @@
   transition: all 0.25s ease;
 }
 
-.form-group input{
+.form-group input {
   margin-bottom: 1rem;
 }
 
@@ -134,7 +135,7 @@
 }
 
 .register-button:hover {
-  background-color: #92400e;
+  background-color: #92400e !important;
   transform: translateY(-2px);
 }
 
@@ -159,15 +160,20 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem; /* Espacio entre grupos */
+  margin-bottom: 1rem;
+  /* Espacio entre grupos */
 }
 
 .error {
-  color: #e63946;          /* rojo elegante */
-  font-size: 0.85rem;      /* texto más pequeño */
+  color: #e63946;
+  /* rojo elegante */
+  font-size: 0.85rem;
+  /* texto más pequeño */
   font-weight: 600;
-  margin-top: 10px;         /* espacio debajo del input */
-  text-align: left;        /* alineado a la izquierda */
+  margin-top: 10px;
+  /* espacio debajo del input */
+  text-align: left;
+  /* alineado a la izquierda */
   display: block;
 }
 
