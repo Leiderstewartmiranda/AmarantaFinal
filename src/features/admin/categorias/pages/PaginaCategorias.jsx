@@ -38,10 +38,10 @@ const PaginaCategorias = () => {
   const [categoriaCambioEstado, setCategoriaCambioEstado] = useState(null);
   const [errores, setErrores] = useState({});
 
-  // Estado para ordenamiento
+  // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por ID
   const [ordenamiento, setOrdenamiento] = useState({
-    columna: null,
-    direccion: 'asc'
+    columna: 'idCategoria', // Ordenar por ID por defecto
+    direccion: 'desc' // Orden descendente por defecto (más recientes primero)
   });
 
   // Refs
@@ -122,7 +122,7 @@ const PaginaCategorias = () => {
     "Acciones"
   ];
 
-  // Filtrar y ordenar categorías
+  // Filtrar y ordenar categorías - MEJORADA la lógica de ordenamiento
   const categoriasFiltradas = useMemo(() => {
     let filtrados = listaCategorias;
 
@@ -152,6 +152,12 @@ const PaginaCategorias = () => {
           bValue = bValue ? 1 : 0;
         }
 
+        // Para columna idCategoria (orden numérico)
+        if (ordenamiento.columna === 'idCategoria') {
+          aValue = Number(aValue) || 0;
+          bValue = Number(bValue) || 0;
+        }
+
         // Manejar valores null/undefined en strings
         if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
         if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
@@ -172,6 +178,15 @@ const PaginaCategorias = () => {
   const indiceInicio = (paginaActual - 1) * categoriasPorPagina;
   const indiceFin = indiceInicio + categoriasPorPagina;
   const categoriasPaginadas = categoriasFiltradas.slice(indiceInicio, indiceFin);
+
+  // 🔹 CORRECCIÓN: Asegurar que la página actual no exceda el total de páginas
+  useEffect(() => {
+    if (paginaActual > totalPaginas && totalPaginas > 0) {
+      setPaginaActual(totalPaginas);
+    } else if (paginaActual < 1 && totalPaginas > 0) {
+      setPaginaActual(1);
+    }
+  }, [totalPaginas, paginaActual]);
 
   // Manejar cambios en la barra de búsqueda
   const handleBusquedaChange = (e) => {
@@ -532,42 +547,6 @@ const PaginaCategorias = () => {
     setCategoriaCambioEstado(null);
   };
 
-  // Función para generar los números de página
-  const generarNumerosPagina = () => {
-    const numeros = [];
-    const maxVisible = 7;
-
-    if (totalPaginas <= maxVisible) {
-      for (let i = 1; i <= totalPaginas; i++) {
-        numeros.push(i);
-      }
-    } else {
-      if (paginaActual <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      } else if (paginaActual >= totalPaginas - 3) {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
-          numeros.push(i);
-        }
-      } else {
-        numeros.push(1);
-        numeros.push('...');
-        for (let i = paginaActual - 1; i <= paginaActual + 1; i++) {
-          numeros.push(i);
-        }
-        numeros.push('...');
-        numeros.push(totalPaginas);
-      }
-    }
-
-    return numeros;
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -642,7 +621,6 @@ const PaginaCategorias = () => {
 
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     {/* Ver detalles */}
-
                     <Icon
                       icon="mdi:eye-outline"
                       width="24"
@@ -651,10 +629,7 @@ const PaginaCategorias = () => {
                       onClick={() => mostrarDetalles(element.idCategoria)}
                     />
 
-
-
                     {/* Editar */}
-
                     <Icon
                       icon="material-symbols:edit-outline"
                       width="24"
@@ -666,10 +641,7 @@ const PaginaCategorias = () => {
                       onClick={() => mostrarEditar(element.idCategoria)}
                     />
 
-
-
                     {/* Eliminar */}
-
                     <Icon
                       icon="tabler:trash"
                       width="24"
@@ -678,7 +650,6 @@ const PaginaCategorias = () => {
                       onClick={() => handleEliminar(element.idCategoria)}
                       alt=""
                     />
-
                   </td>
                 </tr>
               ))
@@ -692,19 +663,35 @@ const PaginaCategorias = () => {
               </tr>
             )}
           </TablaAdmin>
-
         </div>
       </section>
 
-      {/* Paginación */}
-      {totalPaginas > 1 && (
-        <Paginacion
-          paginaActual={paginaActual}
-          totalPaginas={totalPaginas}
-          handleCambioPagina={handleCambioPagina}
-          generarNumerosPagina={generarNumerosPagina}
-        />
-      )}
+      {/* Paginación con el mismo formato que clientes */}
+      {
+        totalPaginas > 1 && (
+          <div className="col-span-2 mt-4">
+            <Paginacion
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              handleCambioPagina={handleCambioPagina}
+            />
+            <p className="text-sm text-gray-600 text-center mt-2">
+              Página {paginaActual} de {totalPaginas} - {categoriasFiltradas.length} categorías encontradas
+            </p>
+          </div>
+        )
+      }
+
+      {
+        totalPaginas === 1 && categoriasFiltradas.length > 0 && (
+          <div className="col-span-2 mt-4">
+            <p className="text-sm text-gray-600 text-center">
+              Mostrando {categoriasFiltradas.length} categorías
+              {terminoBusqueda && " (filtradas)"}
+            </p>
+          </div>
+        )
+      }
 
       {/* Modales */}
       <FormularioAgregar

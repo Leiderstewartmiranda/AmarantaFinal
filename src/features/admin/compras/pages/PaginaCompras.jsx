@@ -35,10 +35,10 @@ const PaginaCompras = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const comprasPorPagina = 9;
 
-  // Estado para ordenamiento
+  // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por código de compra
   const [ordenamiento, setOrdenamiento] = useState({
-    columna: null,
-    direccion: 'asc'
+    columna: 'codigoCompra', // Ordenar por código de compra por defecto
+    direccion: 'desc' // Orden descendente por defecto (más recientes primero)
   });
 
   const busquedaRef = useRef();
@@ -133,7 +133,7 @@ const PaginaCompras = () => {
     "Acciones"
   ];
 
-  // 🔹 Filtrar y ordenar compras
+  // 🔹 Filtrar y ordenar compras - MEJORADA la lógica de ordenamiento
   const comprasFiltradas = useMemo(() => {
     let filtrados = listaCompras;
 
@@ -219,14 +219,15 @@ const PaginaCompras = () => {
           bValue = new Date(bValue).getTime();
         }
 
-        // Para columnas numéricas
+        // Para columnas numéricas (código de compra y precio total)
         if (ordenamiento.columna === 'precioTotal' || ordenamiento.columna === 'codigoCompra') {
           aValue = parseFloat(aValue) || 0;
           bValue = parseFloat(bValue) || 0;
         }
 
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        // Manejar valores null/undefined en strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
 
         if (ordenamiento.direccion === 'asc') {
           return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;

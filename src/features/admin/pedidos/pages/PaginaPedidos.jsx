@@ -44,10 +44,10 @@ const PaginaPedidos = () => {
   const [pedidoAEliminar, setPedidoAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
-  // Estado para ordenamiento
+  // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por código de pedido
   const [ordenamiento, setOrdenamiento] = useState({
-    columna: null,
-    direccion: 'asc'
+    columna: 'CodigoPedido', // Ordenar por código de pedido por defecto
+    direccion: 'desc' // Orden descendente por defecto (más recientes primero)
   });
 
   const [formData, setFormData] = useState({
@@ -183,7 +183,7 @@ const PaginaPedidos = () => {
     "Acciones"
   ];
 
-  // 🔹 Filtrar y ordenar pedidos
+  // 🔹 Filtrar y ordenar pedidos - MEJORADA la lógica de ordenamiento
   const pedidosFiltrados = useMemo(() => {
     let filtrados = listaPedidos;
 
@@ -264,14 +264,15 @@ const PaginaPedidos = () => {
           bValue = new Date(bValue).getTime();
         }
 
-        // Para columnas numéricas
-        if (ordenamiento.columna === 'PrecioTotal') {
+        // Para columnas numéricas (código de pedido y precio total)
+        if (ordenamiento.columna === 'PrecioTotal' || ordenamiento.columna === 'CodigoPedido') {
           aValue = parseFloat(aValue) || 0;
           bValue = parseFloat(bValue) || 0;
         }
 
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        // Manejar valores null/undefined en strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
 
         if (ordenamiento.direccion === 'asc') {
           return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;

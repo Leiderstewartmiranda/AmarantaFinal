@@ -25,10 +25,10 @@ const PaginaProveedores = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const proveedoresPorPagina = 9;
 
-  // Estado para ordenamiento
+  // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por ID
   const [ordenamiento, setOrdenamiento] = useState({
-    columna: null,
-    direccion: 'asc'
+    columna: 'idProveedor', // Ordenar por ID de proveedor por defecto
+    direccion: 'desc' // Orden descendente por defecto (más recientes primero)
   });
 
   const [showAgregar, setShowAgregar] = useState(false);
@@ -120,7 +120,7 @@ const PaginaProveedores = () => {
     "Acciones"
   ];
 
-  // 🔹 Filtrar y ordenar proveedores
+  // 🔹 Filtrar y ordenar proveedores - MEJORADA la lógica de ordenamiento
   const proveedoresFiltrados = useMemo(() => {
     let filtrados = listaProveedores;
 
@@ -167,8 +167,15 @@ const PaginaProveedores = () => {
           bValue = bValue ? 1 : 0;
         }
 
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        // Para columna idProveedor (orden numérico)
+        if (ordenamiento.columna === 'idProveedor') {
+          aValue = Number(aValue) || 0;
+          bValue = Number(bValue) || 0;
+        }
+
+        // Manejar valores null/undefined en strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
 
         if (ordenamiento.direccion === 'asc') {
           return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;

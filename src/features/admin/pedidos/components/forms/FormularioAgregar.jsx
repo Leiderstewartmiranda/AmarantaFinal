@@ -47,6 +47,11 @@ const FormularioAgregar = ({
     cargarDepartamentos();
   }, []);
 
+  useEffect(() => {
+    console.log("Clientes:", clientes);
+    console.log("Productos:", productos);
+  }, [clientes, productos]);
+
   // ✅ Cargar municipios al cambiar el departamento
   useEffect(() => {
     const cargarMunicipios = async () => {
@@ -62,33 +67,38 @@ const FormularioAgregar = ({
     cargarMunicipios();
   }, [departamento]);
 
-  // 🔸 Opciones para clientes y productos
+  // 🔸 Opciones para clientes (Filtrando los inactivos)
   const opcionesClientes = useMemo(() => {
-    return clientes.map((cliente) => {
-      const id = cliente.idCliente || cliente.codigoCliente || cliente.Id_Cliente;
-      const nombre = cliente.nombreCompleto ||
-        `${cliente.nombre || ""} ${cliente.apellido || ""}`.trim() ||
-        cliente.Nombre || "Cliente";
-      const doc = cliente.documento || cliente.Documento || "Sin documento";
-      return {
-        value: id,
-        label: `${nombre} - ${doc}`,
-        data: cliente,
-      };
-    });
+    return clientes
+      .filter((cliente) => cliente.estado !== "Inactivo") // Filtramos solo los clientes activos
+      .map((cliente) => {
+        const id = cliente.idCliente || cliente.codigoCliente || cliente.Id_Cliente;
+        const nombre = cliente.nombreCompleto ||
+          `${cliente.nombre || ""} ${cliente.apellido || ""}`.trim() ||
+          cliente.Nombre || "Cliente";
+        const doc = cliente.documento || cliente.Documento || "Sin documento";
+        return {
+          value: id,
+          label: `${nombre} - ${doc}`,
+          data: cliente,
+        };
+      });
   }, [clientes]);
 
+  // 🔸 Opciones para productos (Filtrando los inactivos)
   const opcionesProductos = useMemo(() => {
-    return productos.map((producto) => {
-      const id = producto.codigoProducto || producto.idProducto || producto.id;
-      const nombre = producto.nombreProducto || producto.nombre || producto.Nombre || "Producto";
-      const precio = producto.precio || producto.precioVenta || producto.Precio || 0;
-      return {
-        value: id,
-        label: `${nombre} - ${formatearMoneda ? formatearMoneda(precio) : precio}`,
-        data: producto,
-      };
-    });
+    return productos
+      .filter((producto) => producto.estado === true) // Filtramos solo los productos activos
+      .map((producto) => {
+        const id = producto.codigoProducto || producto.idProducto || producto.id;
+        const nombre = producto.nombreProducto || producto.nombre || producto.Nombre || "Producto";
+        const precio = producto.precio || producto.precioVenta || producto.Precio || 0;
+        return {
+          value: id,
+          label: `${nombre} - ${formatearMoneda ? formatearMoneda(precio) : precio}`,
+          data: producto,
+        };
+      });
   }, [productos, formatearMoneda]);
 
   // 🔸 Manejo del cambio de cliente

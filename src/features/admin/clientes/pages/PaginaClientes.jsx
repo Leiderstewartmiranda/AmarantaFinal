@@ -30,10 +30,10 @@ const PaginaClientes = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const clientesPorPagina = 9;
 
-  // Estado para ordenamiento
+  // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por ID
   const [ordenamiento, setOrdenamiento] = useState({
-    columna: null,
-    direccion: 'asc' // 'asc' o 'desc'
+    columna: 'IdUsuario', // Ordenar por ID de usuario por defecto
+    direccion: 'desc' // Orden descendente por defecto (más recientes primero)
   });
 
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
@@ -356,7 +356,7 @@ const PaginaClientes = () => {
     setPaginaActual(1); // Resetear a primera página al aplicar filtros
   };
 
-  // 🔹 Filtrar y ordenar clientes
+  // 🔹 Filtrar y ordenar clientes - MEJORADA la lógica de ordenamiento
   const clientesFiltrados = useMemo(() => {
     let filtrados = listaClientes;
 
@@ -394,13 +394,20 @@ const PaginaClientes = () => {
           bValue = parseInt(bValue?.replace(/\D/g, '')) || 0;
         }
 
+        // Para columna IdUsuario (orden numérico)
+        if (ordenamiento.columna === 'IdUsuario') {
+          aValue = Number(aValue) || 0;
+          bValue = Number(bValue) || 0;
+        }
+
         if (ordenamiento.columna === 'NombreCompleto') {
           aValue = a.NombreCompleto;
           bValue = b.NombreCompleto;
         }
 
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        // Manejar valores null/undefined en strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase() || '';
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase() || '';
 
         if (ordenamiento.direccion === 'asc') {
           return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;

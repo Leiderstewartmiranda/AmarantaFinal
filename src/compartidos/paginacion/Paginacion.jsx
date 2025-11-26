@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import "./paginacion.css";
+import "./Paginacion.css";
 
 const Paginacion = ({ paginaActual, totalPaginas, handleCambioPagina }) => {
   const generarNumerosPagina = () => {
