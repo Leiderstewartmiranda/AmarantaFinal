@@ -1,5 +1,5 @@
 import React from "react";
-import "./Carrito.css";
+import "./carrito.css";
 
 const Carrito = ({ carrito, onActualizarCantidad, onEliminarProducto, onRealizarPedido, onLimpiarCarrito, total }) => {
   

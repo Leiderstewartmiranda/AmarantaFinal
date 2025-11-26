@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./Landing.css";
+import "./orders-grid.css";
 import AmaraLogo from "../../assets/AmaraLogo.png";
 import ContactForm from "./contactForm/contactForm";
 
@@ -169,6 +170,7 @@ export default function Landing() {
     const nombre = (p.nombreProducto || "").toLowerCase();
     const precio = p.precio || p.precioVenta || 0;
     const estaActivo = p.estado || p.Estado; // 🟢 Verificar estado
+    const tieneStock = (p.stock || p.Stock || 0) > 0; // 🟢 Verificar stock
 
     const coincideBusqueda = nombre.includes(busqueda.toLowerCase());
     const coincideCategoria =
@@ -182,6 +184,7 @@ export default function Landing() {
 
     return (
       estaActivo &&
+      tieneStock &&
       coincideBusqueda &&
       coincideCategoria &&
       coincidePrecioMin &&
