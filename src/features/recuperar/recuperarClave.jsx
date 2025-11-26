@@ -11,7 +11,7 @@ export default function RecuperarClave() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/SolicitarRecuperacion", {
+      const response = await fetch("https://amarantaapi.somee.com/api/Usuarios/SolicitarRecuperacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo }),

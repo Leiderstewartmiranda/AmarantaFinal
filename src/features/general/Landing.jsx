@@ -56,7 +56,7 @@ export default function Landing() {
   // === Cargar imagen del usuario ===
   useEffect(() => {
     if (!usuario?.correo) return;
-    fetch(`http://amarantaapi.somee.com/api/Usuarios/ObtenerPorCorreo?correo=${usuario.correo}`)
+    fetch(`https://amarantaapi.somee.com/api/Usuarios/ObtenerPorCorreo?correo=${usuario.correo}`)
       .then((response) => {
         if (!response.ok) throw new Error("No se encontró usuario");
         return response.json();
@@ -282,7 +282,7 @@ export default function Landing() {
     try {
       let clienteId = usuario.idCliente || usuario.id;
       if (!clienteId) {
-        const response = await fetch(`http://amarantaapi.somee.com/api/Clientes/por-correo?correo=${usuario.correo}`);
+        const response = await fetch(`https://amarantaapi.somee.com/api/Clientes/por-correo?correo=${usuario.correo}`);
         if (response.ok) {
           const clienteData = await response.json();
           clienteId = clienteData.idCliente || clienteData.id;

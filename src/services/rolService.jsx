@@ -1,5 +1,5 @@
 // services/roleService.js
-const API_URL = "http://amarantaapi.somee.com/api/roles";
+const API_URL = "https://amarantaapi.somee.com/api/roles";
 
 // Obtener todos los roles
 export const GetRoles = async () => {

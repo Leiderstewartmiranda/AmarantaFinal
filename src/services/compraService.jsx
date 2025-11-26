@@ -1,8 +1,8 @@
 // services/comprasService.js
-const API_URL_COMPRAS = "http://amarantaapi.somee.com/api/Compras";
-const API_URL_DETALLE_COMPRAS = "http://amarantaapi.somee.com/api/DetallesCompras";
-const API_URL_PRODUCTOS = "http://amarantaapi.somee.com/api/Productos";
-const API_URL_PROVEEDORES = "http://amarantaapi.somee.com/api/Proveedores";
+const API_URL_COMPRAS = "https://amarantaapi.somee.com/api/Compras";
+const API_URL_DETALLE_COMPRAS = "https://amarantaapi.somee.com/api/DetallesCompras";
+const API_URL_PRODUCTOS = "https://amarantaapi.somee.com/api/Productos";
+const API_URL_PROVEEDORES = "https://amarantaapi.somee.com/api/Proveedores";
 
 
 // Servicios para Compras
@@ -104,7 +104,7 @@ export async function PostDetalleCompra(detalle) {
       Cantidad: detalle.Cantidad,
       PrecioUnitario: detalle.Precio || detalle.PrecioUnitario,
       PrecioTotal: detalle.Subtotal || detalle.PrecioTotal,
-      NombreProducto: detalle.NombreProducto 
+      NombreProducto: detalle.NombreProducto
     };
 
     console.log('🔗 URL de detalles:', API_URL_DETALLE_COMPRAS);
@@ -165,7 +165,7 @@ export async function GetProveedores() {
 // ✅ Nuevo método: registrar varios detalles de una compra
 export async function PostDetallesCompraMultiple(detalles) {
   try {
-    const response = await fetch("http://amarantaapi.somee.com/api/DetallesCompras/multiple", {
+    const response = await fetch("https://amarantaapi.somee.com/api/DetallesCompras/multiple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(detalles),

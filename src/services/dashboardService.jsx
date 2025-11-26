@@ -1,4 +1,4 @@
-const API_URL = "http://amarantaapi.somee.com/api";
+const API_URL = "https://amarantaapi.somee.com/api";
 
 // 📦 Obtener resumen general del dashboard
 export async function GetDashboardData() {

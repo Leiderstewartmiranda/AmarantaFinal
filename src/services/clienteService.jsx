@@ -1,4 +1,4 @@
-const API_URL = "http://amarantaapi.somee.com/api/Clientes";
+const API_URL = "https://amarantaapi.somee.com/api/Clientes";
 
 export async function GetClientes() {
   const response = await fetch(API_URL);

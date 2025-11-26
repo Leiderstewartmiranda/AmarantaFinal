@@ -69,7 +69,7 @@ export default function EditarPerfil() {
 
     try {
       const response = await fetch(
-        `http://amarantaapi.somee.com/api/Usuarios/ActualizarPorCorreo/${correo}`,
+        `https://amarantaapi.somee.com/api/Usuarios/ActualizarPorCorreo/${correo}`,
         {
           method: "PUT",
           body: formData,

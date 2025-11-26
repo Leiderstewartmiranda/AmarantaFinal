@@ -1,4 +1,4 @@
-const API_URL = "http://amarantaapi.somee.com/api/Usuarios";
+const API_URL = "https://amarantaapi.somee.com/api/Usuarios";
 
 export async function GetUsuarios() {
     const response = await fetch(API_URL);

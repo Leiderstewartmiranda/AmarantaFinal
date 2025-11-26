@@ -26,8 +26,8 @@ export default function NuevaClave() {
     }
 
     try {
-        console.log("Datos que envío:", { correo, codigo, nuevaClave });
-      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/RestablecerClave", {
+      console.log("Datos que envío:", { correo, codigo, nuevaClave });
+      const response = await fetch("https://amarantaapi.somee.com/api/Usuarios/RestablecerClave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, codigo, nuevaClave }),

@@ -1,6 +1,6 @@
 //La variable representante es la que utilizo como documento JAJAJAJA. y la de nit como tipo de documento
 
-const API_URL = "http://amarantaapi.somee.com/api/Proveedores"; 
+const API_URL = "https://amarantaapi.somee.com/api/Proveedores";
 
 export async function GetProveedores() {
   const response = await fetch(API_URL);

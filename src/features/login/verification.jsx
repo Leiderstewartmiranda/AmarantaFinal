@@ -32,7 +32,7 @@ export default function Verification() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/VerificarCodigo", {
+      const response = await fetch("https://amarantaapi.somee.com/api/Usuarios/VerificarCodigo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, codigo }),
@@ -44,14 +44,14 @@ export default function Verification() {
         //GUARDAR LOS DATOS COMPLETOS DEL USUARIO EN LOCALSTORAGE
         const usuarioData = {
           id: data.usuario.idUsuario,
-          idCliente: data.usuario.idCliente, 
+          idCliente: data.usuario.idCliente,
           nombre: data.usuario.nombre,
           apellido: data.usuario.apellido,
           correo: data.usuario.correo,
           rol: data.usuario.rol,
-          verificado: true 
+          verificado: true
         };
-        
+
         localStorage.setItem("usuario", JSON.stringify(usuarioData));
         console.log("✅ Usuario verificado y guardado en localStorage:", usuarioData);
 
@@ -160,8 +160,8 @@ export default function Verification() {
               required
               disabled={loading}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="verify-button"
               disabled={loading}
             >
@@ -169,9 +169,9 @@ export default function Verification() {
             </button>
           </form>
 
-          <button 
-            type="button" 
-            className="resend-button" 
+          <button
+            type="button"
+            className="resend-button"
             onClick={handleResend}
             disabled={loading}
           >
@@ -179,6 +179,6 @@ export default function Verification() {
           </button>
         </div>
       </section>
-    </div>  
+    </div>
   );
 }

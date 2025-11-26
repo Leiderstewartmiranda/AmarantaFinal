@@ -1,4 +1,4 @@
-const API_URL = "http://amarantaapi.somee.com/api/CProductos";
+const API_URL = "https://amarantaapi.somee.com/api/CProductos";
 
 // GET - Obtener todas las categorías
 export async function GetCProductos() {
@@ -73,6 +73,6 @@ export async function DeleteCProducto(id) {
     const errorData = await res.text();
     throw new Error(`Error ${res.status}: ${errorData}`);
   }
-  
+
   return { success: true, message: "Categoría eliminada correctamente" };
 }

@@ -1,7 +1,7 @@
 // services/pedidosService.js
-const API_URL_PEDIDOS = "http://amarantaapi.somee.com/api/Pedidos";
-const API_URL_CLIENTES = "http://amarantaapi.somee.com/api/Clientes";
-const API_URL_PRODUCTOS = "http://amarantaapi.somee.com/api/Productos";
+const API_URL_PEDIDOS = "https://amarantaapi.somee.com/api/Pedidos";
+const API_URL_CLIENTES = "https://amarantaapi.somee.com/api/Clientes";
+const API_URL_PRODUCTOS = "https://amarantaapi.somee.com/api/Productos";
 
 // ✅ Obtener todos los pedidos
 export async function GetPedidos() {

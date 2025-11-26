@@ -14,7 +14,7 @@ export default function VerificarCodigoRecuperacion() {
     e.preventDefault();
     try {
       // 🔥 CAMBIO: Usar VerificarCodigoRecuperacion en lugar de VerificarCodigo
-      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/VerificarCodigoRecuperacion", {
+      const response = await fetch("https://amarantaapi.somee.com/api/Usuarios/VerificarCodigoRecuperacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, codigo }),
@@ -49,7 +49,7 @@ export default function VerificarCodigoRecuperacion() {
   const handleResend = async () => {
     try {
       // 🔥 CAMBIO: Usar SolicitarRecuperacion para reenviar
-      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/SolicitarRecuperacion", {
+      const response = await fetch("https://amarantaapi.somee.com/api/Usuarios/SolicitarRecuperacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo }),

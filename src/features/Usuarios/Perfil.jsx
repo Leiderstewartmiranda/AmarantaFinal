@@ -24,7 +24,7 @@ export default function Perfil() {
 
     // 🔹 Petición al backend con el correo del usuario
     fetch(
-      `http://amarantaapi.somee.com/api/Usuarios/ObtenerPorCorreo?correo=${usuarioLocal.correo}`
+      `https://amarantaapi.somee.com/api/Usuarios/ObtenerPorCorreo?correo=${usuarioLocal.correo}`
     )
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener datos");
@@ -139,13 +139,13 @@ export default function Perfil() {
             className="btn-volver"
             onClick={handleVolver}
           >
-           Volver
+            Volver
           </button>
           <button
             className="btn-editar"
             onClick={() => navigate("/editar-perfil", { state: { usuario } })}
           >
-             Editar Perfil
+            Editar Perfil
           </button>
           <button
             className="btn-cerrar"
@@ -154,7 +154,7 @@ export default function Perfil() {
               window.location.href = "/";
             }}
           >
-             Cerrar Sesión
+            Cerrar Sesión
           </button>
         </div>
       </div>

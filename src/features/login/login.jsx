@@ -41,10 +41,10 @@ export default function Login() {
 
     try {
       console.log("🔄 Iniciando proceso de login...");
-      
-      const response = await fetch("http://amarantaapi.somee.com/api/Usuarios/Login", {
+
+      const response = await fetch("https://amarantaapi.somee.com/api/Usuarios/Login", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
@@ -56,14 +56,14 @@ export default function Login() {
       // Verificar el tipo de contenido
       const contentType = response.headers.get("content-type");
       let data;
-      
+
       if (contentType && contentType.includes("application/json")) {
         data = await response.json();
         console.log("✅ Respuesta JSON:", data);
       } else {
         const textResponse = await response.text();
         console.error("❌ Respuesta no JSON:", textResponse.substring(0, 500));
-        
+
         // Si es un timeout de SQL Server
         if (textResponse.includes("SqlException") && textResponse.includes("Timeout")) {
           throw new Error("El servidor está experimentando problemas de conexión. Por favor, intenta nuevamente en unos momentos.");
@@ -91,7 +91,7 @@ export default function Login() {
           rol: data.usuario.rol,
           verificado: false // Inicialmente no verificado hasta ingresar código
         };
-        
+
         localStorage.setItem("usuario", JSON.stringify(usuarioData));
         console.log("✅ Usuario guardado en localStorage:", usuarioData);
 
@@ -105,12 +105,12 @@ export default function Login() {
         });
 
         // Redirigir a verificación
-        navigate("/verification", { 
-          state: { 
-            correo, 
+        navigate("/verification", {
+          state: {
+            correo,
             rol: data.usuario.rol,
-            usuario: data.usuario 
-          } 
+            usuario: data.usuario
+          }
         });
       } else {
         throw new Error(data.mensaje || "Error en el proceso de login");
@@ -118,9 +118,9 @@ export default function Login() {
 
     } catch (err) {
       console.error("💥 Error completo en login:", err);
-      
+
       let errorMessage = err.message;
-      
+
       // Manejo específico de errores
       if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
         errorMessage = "❌ No se puede conectar al servidor. Verifica tu conexión a internet.";
@@ -131,7 +131,7 @@ export default function Login() {
       }
 
       setErrorGlobal(errorMessage);
-      
+
       Swal.fire({
         icon: "error",
         title: "Error de autenticación",
@@ -223,8 +223,8 @@ export default function Login() {
                 </div>
               )}
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className={`login-button ${loading ? 'button-loading' : ''}`}
                 disabled={loading}
               >
