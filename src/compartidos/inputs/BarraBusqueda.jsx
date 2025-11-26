@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
-import "./barraBusqueda.css";
+import "./BarraBusqueda.css";
 
 const BarraBusqueda = ({
   ref,
