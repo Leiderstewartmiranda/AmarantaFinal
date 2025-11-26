@@ -20,10 +20,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  
+
 }
 
 html {
-  scroll-behavior: smooth;
+  overflow: scroll;
 }
 
 body {
@@ -45,6 +47,7 @@ body {
 .landing-page {
   width: 100%;
   overflow-x: hidden;
+  
 }
 
 /* =============================
@@ -1054,4 +1057,283 @@ body {
   .footer-icons {
     justify-content: center;
   }
+}/* =============================
+   ORDERS GRID STYLES
+   ============================= */
+.pedidos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 0.5rem;
+    border-radius: 18px;
+    
+    
+    
+}
+
+.modal-body-pedidos {
+    border-radius: 18px;
+    overflow: hidden;
+    background: linear-gradient(300deg, #af804e, #67523b) ;
+}
+
+
+/* Para pantallas más grandes, mostrar 3 columnas */
+@media (min-width: 1400px) {
+    .pedidos-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        overflow: hidden;
+    }
+}
+
+/* Responsive: 1 columna en móviles */
+@media (max-width: 768px) {
+    .pedidos-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* =============================
+   MODALES GENERALES
+   ============================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-pedidos-lista {
+  width: 95%;
+  max-width: 1300px;
+  overflow: scroll;
+  scrollbar-color: var(--primary-gold) #141414;
+  scrollbar-width: thin;
+}
+
+.modal-pedidos-lista,
+.modal-detalles-pedido {
+  overflow-x: hidden;
+  background: #141414;
+  border: 1px solid rgba(212, 165, 116, 0.15);
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 650px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.35s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 1.5rem;
+  cursor: pointer;
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: var(--primary-gold);
+}
+
+.modal-title {
+  font-size: 2rem;
+  color: var(--primary-gold);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* =============================
+   MODAL: MIS PEDIDOS
+   ============================= */
+.no-pedidos {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 3rem 1rem;
+}
+
+.no-pedidos i {
+  font-size: 3rem;
+  color: var(--primary-gold);
+  margin-bottom: 1rem;
+}
+
+.btn-explorar {
+  background: transparent;
+  border: 1px solid var(--primary-gold);
+  color: var(--primary-gold);
+  padding: 0.8rem 1.5rem;
+  margin-top: 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-explorar:hover {
+  background: var(--primary-gold);
+  color: #000;
+}
+
+.pedidos-grid {
+  display: grid;
+  gap: 1.5rem;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.pedido-card {
+  background: #1a1a1a;
+  border: 1px solid rgba(212,165,116,0.15);
+  padding: 1.5rem;
+  border-radius: 10px;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.pedido-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-gold);
+}
+
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.pedido-numero {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ESTADOS */
+.pedido-estado {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.pedido-estado.pendiente { background: #8a2be233; color: #d2b3ff; }
+.pedido-estado.enviado { background: rgba(255,215,0,0.25); color: gold; }
+.pedido-estado.entregado { background: rgba(50,205,50,0.25); color: #8cff8c; }
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.btn-ver-detalles {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.7rem;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--primary-gold);
+  color: var(--primary-gold);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-ver-detalles:hover {
+  background: var(--primary-gold);
+  color: #000;
+}
+
+/* =============================
+   MODAL: DETALLES DEL PEDIDO
+   ============================= */
+.detalles-info {
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(212,165,116,0.12);
+  margin-bottom: 2rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  color: var(--text-light);
+}
+
+.label {
+  color: var(--primary-gold);
+  font-weight: 600;
+}
+
+.badge {
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge.pendiente { background: #8a2be233; color: #d2b3ff; }
+.badge.enviado { background: rgba(255,215,0,0.25); color: gold; }
+.badge.entregado { background: rgba(50,205,50,0.25); color: #9eff9e; }
+
+.detalles-productos h4 {
+  color: var(--primary-gold);
+  margin-bottom: 1rem;
+}
+
+.productos-list {
+  background: #1a1a1a;
+  border: 1px solid rgba(212,165,116,0.12);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.producto-item {
+  padding: 1rem;
+  border-bottom: 1px solid #333;
+  color: var(--text-light);
+}
+
+.producto-item:last-child {
+  border-bottom: none;
+}
+
+.producto-nombre {
+  font-weight: 600;
+  margin-bottom: 5px;
 }

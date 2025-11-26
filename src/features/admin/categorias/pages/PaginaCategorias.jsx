@@ -49,7 +49,7 @@ const PaginaCategorias = () => {
   const descripcionRef = useRef();
   const busquedaRef = useRef();
 
-  const categoriasPorPagina = 5;
+  const categoriasPorPagina = 9;
 
   // Cargar categorías al iniciar
   useEffect(() => {

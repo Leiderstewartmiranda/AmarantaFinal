@@ -39,7 +39,7 @@ const PaginaPedidos = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroFecha, setFiltroFecha] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const pedidosPorPagina = 5;
+  const pedidosPorPagina = 9;
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [pedidoAEliminar, setPedidoAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);

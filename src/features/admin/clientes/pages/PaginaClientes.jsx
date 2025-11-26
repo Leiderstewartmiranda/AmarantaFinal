@@ -28,7 +28,7 @@ const PaginaClientes = () => {
   const [filtroTipoDoc, setFiltroTipoDoc] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const clientesPorPagina = 5;
+  const clientesPorPagina = 9;
 
   // Estado para ordenamiento
   const [ordenamiento, setOrdenamiento] = useState({
@@ -506,23 +506,18 @@ const PaginaClientes = () => {
     "Acciones"
   ];
 
-  const getEstadoColor = (estadoBool) => {
-    return estadoBool ? "bg-green-100 text-green-800 border-green-300" : "bg-red-100 text-red-800 border-red-300";
-  };
-
   return (
     <div className="flex flex-col gap-6">
       <TituloSeccion titulo="Clientes" />
-
-      <section className="col-span-2 flex justify-between items-center gap-4">
+      <section className="col-span-2 flex justify-between items-center gap-4" >
         <BotonAgregar action={() => setShowAgregar(true)} />
-        {/* 🔹 Sección de Filtros - Similar al HTML de referencia */}
+        {/* 🔹 Sección de Filtros */}
         <div className="filtros flex items-center gap-4 mb-1">
           <select
             value={filtroTipoDoc}
             onChange={(e) => {
               setFiltroTipoDoc(e.target.value);
-              setPaginaActual(1); // Resetear página al cambiar filtro
+              setPaginaActual(1);
             }}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
@@ -535,7 +530,7 @@ const PaginaClientes = () => {
             value={filtroEstado}
             onChange={(e) => {
               setFiltroEstado(e.target.value);
-              setPaginaActual(1); // Resetear página al cambiar filtro
+              setPaginaActual(1);
             }}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
@@ -557,9 +552,7 @@ const PaginaClientes = () => {
             </p>
           )}
         </div>
-      </section>
-
-
+      </section >
 
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -578,14 +571,23 @@ const PaginaClientes = () => {
                   <td className="py-2 px-4 text-sm text-black">{c.Documento}</td>
                   <td className="py-2 px-4 text-sm text-black max-w-xs truncate">{c.Correo}</td>
                   <td className="py-1 px-4">
-                    <select
-                      value={c.EstadoBool ? "Activo" : "Inactivo"}
-                      onChange={(e) => handleCambiarEstado(c.IdUsuario, e.target.value === "Activo")}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(c.EstadoBool)} cursor-pointer hover:shadow-sm`}
-                    >
-                      <option value="Activo">Activo</option>
-                      <option value="Inactivo">Inactivo</option>
-                    </select>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={c.EstadoBool || false}
+                        onChange={() => handleCambiarEstado(c.IdUsuario, !c.EstadoBool)}
+                      />
+                      <div
+                        className={`w-11 h-6 rounded-full peer ${c.EstadoBool ? "bg-green-500" : "bg-gray-300"
+                          } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                      >
+                        <div
+                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${c.EstadoBool ? "transform translate-x-5" : ""
+                            }`}
+                        ></div>
+                      </div>
+                    </label>
                   </td>
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
@@ -626,29 +628,31 @@ const PaginaClientes = () => {
         </div>
       </section>
 
-      {/* 🔹 CORRECCIÓN: Mostrar paginación solo si hay más de una página */}
-      {totalPaginas > 1 && (
-        <div className="col-span-2 mt-4">
-          <Paginacion
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            handleCambioPagina={handleCambioPagina}
-          />
-          <p className="text-sm text-gray-600 text-center mt-2">
-            Página {paginaActual} de {totalPaginas} - {clientesFiltrados.length} clientes encontrados
-          </p>
-        </div>
-      )}
+      {
+        totalPaginas > 1 && (
+          <div className="col-span-2 mt-4">
+            <Paginacion
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              handleCambioPagina={handleCambioPagina}
+            />
+            <p className="text-sm text-gray-600 text-center mt-2">
+              Página {paginaActual} de {totalPaginas} - {clientesFiltrados.length} clientes encontrados
+            </p>
+          </div>
+        )
+      }
 
-      {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
-      {totalPaginas === 1 && clientesFiltrados.length > 0 && (
-        <div className="col-span-2 mt-4">
-          <p className="text-sm text-gray-600 text-center">
-            Mostrando {clientesFiltrados.length} clientes
-            {(filtroTipoDoc || filtroEstado || terminoBusqueda) && " (filtrados)"}
-          </p>
-        </div>
-      )}
+      {
+        totalPaginas === 1 && clientesFiltrados.length > 0 && (
+          <div className="col-span-2 mt-4">
+            <p className="text-sm text-gray-600 text-center">
+              Mostrando {clientesFiltrados.length} clientes
+              {(filtroTipoDoc || filtroEstado || terminoBusqueda) && " (filtrados)"}
+            </p>
+          </div>
+        )
+      }
 
       <FormularioAgregar
         show={showAgregar}
@@ -670,9 +674,8 @@ const PaginaClientes = () => {
         cliente={clienteSeleccionado}
       />
 
-      {/* Agregar Font Awesome para los iconos */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </div>
+    </div >
   );
 };
 

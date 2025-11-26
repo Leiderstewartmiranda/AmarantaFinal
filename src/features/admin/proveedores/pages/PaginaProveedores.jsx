@@ -23,7 +23,7 @@ const PaginaProveedores = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroTipoDoc, setFiltroTipoDoc] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const proveedoresPorPagina = 5;
+  const proveedoresPorPagina = 9;
 
   // Estado para ordenamiento
   const [ordenamiento, setOrdenamiento] = useState({
@@ -78,11 +78,6 @@ const PaginaProveedores = () => {
         };
       }
     });
-  };
-
-  // 🔹 Función para aplicar filtros
-  const aplicarFiltros = () => {
-    setPaginaActual(1);
   };
 
   // 🔹 Función para obtener el icono de ordenamiento
@@ -526,7 +521,6 @@ const PaginaProveedores = () => {
               <option value="">Tipo documento</option>
               <option value="NIT">NIT</option>
               <option value="RUT">RUT</option>
-
               <option value="CC">CC</option>
             </select>
 
@@ -542,14 +536,6 @@ const PaginaProveedores = () => {
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
             </select>
-
-            {/* <button 
-            onClick={aplicarFiltros}
-            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
-          >
-            <i className="fa-solid fa-filter"></i>
-            Filtrar
-          </button> */}
           </div>
         </section>
         <div className="flex-shrink-0 w-80">
@@ -569,9 +555,6 @@ const PaginaProveedores = () => {
           )}
         </div>
       </section>
-
-      {/* 🔹 Sección de Filtros para Proveedores */}
-
 
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -595,14 +578,20 @@ const PaginaProveedores = () => {
                     {element.representante}
                   </td>
                   <td className="py-1 px-4">
-                    <select
-                      value={element.estado ? "Activo" : "Inactivo"}
-                      onChange={(e) => handleCambiarEstado(element.idProveedor, e.target.value === "Activo")}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${getEstadoColor(element.estado)} cursor-pointer hover:shadow-sm`}
-                    >
-                      <option value="Activo">Activo</option>
-                      <option value="Inactivo">Inactivo</option>
-                    </select>
+                    {/* 🔄 SWITCH PARA CAMBIAR ESTADO */}
+                    <div className="flex items-center justify-center">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={element.estado}
+                          onChange={(e) => handleCambiarEstado(element.idProveedor, e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-11 h-6 rounded-full peer ${element.estado ? 'bg-green-500' : 'bg-gray-300'} peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-300 transition-colors duration-200`}>
+                          <div className={`absolute top-0.5 left-0.5 bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform duration-200 ${element.estado ? 'transform translate-x-5' : ''}`}></div>
+                        </div>
+                      </label>
+                    </div>
                   </td>
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
@@ -620,7 +609,8 @@ const PaginaProveedores = () => {
                       className={`cursor-pointer transition-colors ${element.estado
                         ? "text-blue-700 hover:text-blue-800"
                         : "text-gray-400 cursor-not-allowed"
-                        }`}
+                        }`
+                      }
                       onClick={() => mostrarEditar(element.idProveedor)}
                       title={element.estado ? "Editar proveedor" : "No editable (inactivo)"}
                     />

@@ -33,7 +33,7 @@ const PaginaCompras = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroFecha, setFiltroFecha] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const comprasPorPagina = 5;
+  const comprasPorPagina = 9;
 
   // Estado para ordenamiento
   const [ordenamiento, setOrdenamiento] = useState({
@@ -632,7 +632,7 @@ const PaginaCompras = () => {
 
       {/* Paginación */}
       {totalPaginas > 1 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <Paginacion
             paginaActual={paginaActual}
             totalPaginas={totalPaginas}

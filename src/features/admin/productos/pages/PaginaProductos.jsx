@@ -27,7 +27,7 @@ const PaginaProductos = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroStock, setFiltroStock] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const productosPorPagina = 5;
+  const productosPorPagina = 9;
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
   // Estado para ordenamiento

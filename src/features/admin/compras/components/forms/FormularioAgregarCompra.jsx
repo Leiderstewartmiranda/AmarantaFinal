@@ -59,12 +59,14 @@ export default function FormularioAgregarCompra({ show, close, onCompraCreada })
   );
 
   const opcionesProductos = useMemo(() =>
-    productos.map((p) => ({
-      value: p.codigoProducto,
-      label: `${p.nombreProducto} — $${p.precio || p.precioVenta || 0}`,
-      precio: p.precio || p.precioVenta || 0,
-      data: p,
-    })), [productos]
+    productos
+      .filter((p) => p.estado || p.Estado) // 🟢 Solo mostrar productos activos
+      .map((p) => ({
+        value: p.codigoProducto,
+        label: `${p.nombreProducto} — $${p.precio || p.precioVenta || 0}`,
+        precio: p.precio || p.precioVenta || 0,
+        data: p,
+      })), [productos]
   );
 
   // 🔥 AGREGAR PRODUCTO

@@ -8,8 +8,8 @@ import ContactForm from "./contactForm/contactForm";
 // Componentes para el sistema de pedidos
 import Carrito from "./carrito/Carrito";
 import ModalPedido from "./Pedido/PedidoCl";
-import { PostPedido } from "../../services/pedidoService";
-import { GetProductos } from "../../services/productoService";
+import { PostPedido, GetPedidos } from "../../services/pedidoService";
+import { GetProductos, ActualizarProducto } from "../../services/productoService";
 import { GetCProductos } from "../../services/categoriaService";
 
 export default function Landing() {
@@ -25,6 +25,10 @@ export default function Landing() {
   const [precioMax, setPrecioMax] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pedidos, setPedidos] = useState([]);
+  const [showModalPedidos, setShowModalPedidos] = useState(false);
+  const [showDetallesPedido, setShowDetallesPedido] = useState(false);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
 
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -79,6 +83,32 @@ export default function Landing() {
     cargarDatos();
   }, []);
 
+  // === Cargar pedidos del cliente ===
+  useEffect(() => {
+    const cargarPedidos = async () => {
+      if (!usuario || usuario.rol === "Admin") return;
+
+      try {
+        const todosPedidos = await GetPedidos();
+        const clienteId = usuario.idCliente || usuario.id;
+
+        // Filtrar solo los pedidos del cliente actual
+        const pedidosCliente = todosPedidos.filter(
+          p => p.idCliente === clienteId || p.IdCliente === clienteId
+        );
+
+        // Ordenar por fecha más reciente primero
+        pedidosCliente.sort((a, b) => new Date(b.fechaPedido || b.FechaPedido) - new Date(a.fechaPedido || a.FechaPedido));
+
+        setPedidos(pedidosCliente);
+      } catch (error) {
+        console.error("Error cargando pedidos:", error);
+      }
+    };
+    cargarPedidos();
+  }, [usuario]);
+
+
   // === Funciones del carrito ===
   const agregarAlCarrito = (producto) => {
     setCarrito((prev) => {
@@ -132,8 +162,34 @@ export default function Landing() {
   };
 
   const limpiarCarrito = () => setCarrito([]);
+  const totalCarrito = carrito.reduce((sum, producto) => sum + (producto.subtotal || 0), 0);
 
-  const realizarPedido = () => {
+  // === FILTRAR productos ===
+  const productosFiltrados = productos.filter((p) => {
+    const nombre = (p.nombreProducto || "").toLowerCase();
+    const precio = p.precio || p.precioVenta || 0;
+    const estaActivo = p.estado || p.Estado; // 🟢 Verificar estado
+
+    const coincideBusqueda = nombre.includes(busqueda.toLowerCase());
+    const coincideCategoria =
+      categoriaSeleccionada === "" ||
+      p.idCategoria === parseInt(categoriaSeleccionada);
+
+    const coincidePrecioMin =
+      precioMin === "" || precio >= parseFloat(precioMin);
+    const coincidePrecioMax =
+      precioMax === "" || precio <= parseFloat(precioMax);
+
+    return (
+      estaActivo &&
+      coincideBusqueda &&
+      coincideCategoria &&
+      coincidePrecioMin &&
+      coincidePrecioMax
+    );
+  });
+
+  const realizarPedido = async () => {
     if (!usuario) {
       Swal.fire({
         icon: "warning",
@@ -158,7 +214,65 @@ export default function Landing() {
       return;
     }
 
-    setShowModalPedido(true);
+    // 🟢 NUEVA VALIDACIÓN DE STOCK (Con datos frescos)
+    try {
+      // Mostrar loading opcional si se desea, o simplemente esperar
+      const productosFrescos = await GetProductos();
+      const productosSinStock = [];
+
+      carrito.forEach(item => {
+        const productoOriginal = productosFrescos.find(p => (p.codigoProducto || p.id) === (item.codigoProducto || item.id));
+
+        // Si no se encuentra el producto, asumimos que no hay stock o fue eliminado
+        if (!productoOriginal) {
+          productosSinStock.push({
+            nombre: item.nombreProducto || item.nombre,
+            solicitado: item.cantidad,
+            disponible: 0,
+            mensaje: "Producto no disponible"
+          });
+          return;
+        }
+
+        const stockDisponible = parseInt(productoOriginal.stock || productoOriginal.Stock || 0);
+        const cantidadSolicitada = parseInt(item.cantidad);
+
+        if (cantidadSolicitada > stockDisponible) {
+          productosSinStock.push({
+            nombre: item.nombreProducto || item.nombre,
+            solicitado: cantidadSolicitada,
+            disponible: stockDisponible
+          });
+        }
+      });
+
+      if (productosSinStock.length > 0) {
+        const mensajeError = productosSinStock
+          .map(p => p.mensaje ? `• ${p.nombre}: ${p.mensaje}` : `• ${p.nombre}: Solicitado ${p.solicitado}, Disponible ${p.disponible}`)
+          .join('<br/>');
+
+        Swal.fire({
+          icon: "error",
+          title: "Stock insuficiente",
+          html: `<div style="text-align: left">Algunos productos no tienen suficiente stock o ya no están disponibles:<br/><br/>${mensajeError}</div>`,
+          confirmButtonColor: "#d15113",
+          background: "#fff8e7",
+        });
+        return;
+      }
+
+      setShowModalPedido(true);
+
+    } catch (error) {
+      console.error("Error al validar stock:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo verificar el stock. Intenta nuevamente.",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+    }
   };
 
   const confirmarPedido = async (datosEnvio) => {
@@ -188,6 +302,30 @@ export default function Landing() {
 
       await PostPedido(pedidoData);
 
+      // 🔻 ACTUALIZAR STOCK (RESTAR)
+      // Obtenemos productos frescos para asegurar consistencia
+      const productosFrescos = await GetProductos();
+
+      for (const item of carrito) {
+        const productoOriginal = productosFrescos.find(p => (p.codigoProducto || p.id) === (item.codigoProducto || item.id));
+
+        if (productoOriginal) {
+          const stockActual = parseInt(productoOriginal.stock || productoOriginal.Stock || 0);
+          const cantidadComprada = parseInt(item.cantidad);
+          const nuevoStock = Math.max(0, stockActual - cantidadComprada);
+
+          await ActualizarProducto(item.codigoProducto || item.id, {
+            NombreProducto: productoOriginal.nombreProducto || productoOriginal.NombreProducto,
+            Precio: productoOriginal.precio || productoOriginal.Precio,
+            Stock: nuevoStock,
+            IdCategoria: productoOriginal.idCategoria || productoOriginal.IdCategoria,
+            Estado: productoOriginal.estado !== undefined ? productoOriginal.estado : productoOriginal.Estado,
+            Imagen: null // O mantener la imagen si es necesario, pero la API suele manejar esto
+          });
+        }
+      }
+      // 🔺 FIN ACTUALIZAR STOCK
+
       Swal.fire({
         icon: "success",
         title: "¡Pedido realizado!",
@@ -198,7 +336,13 @@ export default function Landing() {
 
       setCarrito([]);
       setShowModalPedido(false);
+
+      // Recargar productos para actualizar la vista
+      const nuevosProductos = await GetProductos();
+      setProductos(nuevosProductos);
+
     } catch (error) {
+      console.error("Error al confirmar pedido:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -208,31 +352,6 @@ export default function Landing() {
       });
     }
   };
-
-  const totalCarrito = carrito.reduce((sum, producto) => sum + (producto.subtotal || 0), 0);
-
-  // === FILTRAR productos ===
-  const productosFiltrados = productos.filter((p) => {
-    const nombre = (p.nombreProducto || "").toLowerCase();
-    const precio = p.precio || p.precioVenta || 0;
-
-    const coincideBusqueda = nombre.includes(busqueda.toLowerCase());
-    const coincideCategoria =
-      categoriaSeleccionada === "" ||
-      p.idCategoria === parseInt(categoriaSeleccionada);
-
-    const coincidePrecioMin =
-      precioMin === "" || precio >= parseFloat(precioMin);
-    const coincidePrecioMax =
-      precioMax === "" || precio <= parseFloat(precioMax);
-
-    return (
-      coincideBusqueda &&
-      coincideCategoria &&
-      coincidePrecioMin &&
-      coincidePrecioMax
-    );
-  });
 
   const renderUserOptions = () => {
     if (!usuario) {
@@ -329,6 +448,19 @@ export default function Landing() {
           <ul className="nav-links">
             <li><a href="#catalogo" onClick={() => setMobileMenuOpen(false)}>Catálogo</a></li>
             <li><Link to="/nosotros" onClick={() => setMobileMenuOpen(false)}>Origen & Experiencia</Link></li>
+            {usuario && usuario.rol !== "Admin" && (
+              <li>
+                <a
+                  onClick={() => {
+                    setShowModalPedidos(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  Mis Pedidos
+                </a>
+              </li>
+            )}
             {/* 🔹 Opciones dinámicas según el rol */}
             {renderUserOptions()}
           </ul>
@@ -431,11 +563,161 @@ export default function Landing() {
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              ))}            </div>
           )}
         </div>
       </section>
+
+      {/* ===== Modal Mis Pedidos ===== */}
+      {showModalPedidos && usuario && usuario.rol === "Usuario" && (
+        <div className="modal-overlay" onClick={() => setShowModalPedidos(false)}>
+          <div className="modal-pedidos-lista" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowModalPedidos(false)}>
+              <i className="fas fa-times"></i>
+            </button>
+
+            <h3 className="modal-title">
+              <i className="fas fa-shopping-bag"></i>
+              Mis Pedidos
+            </h3>
+
+            <div className="modal-body-pedidos">
+              {pedidos.length === 0 ? (
+                <div className="no-pedidos">
+                  <i className="fas fa-box-open"></i>
+                  <p>Aún no has realizado ningún pedido</p>
+                  <button
+                    className="btn-explorar"
+                    onClick={() => {
+                      setShowModalPedidos(false);
+                      document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    Explorar Catálogo
+                  </button>
+                </div>
+              ) : (
+                <div className="pedidos-grid">
+                  {pedidos.map((pedido) => {
+                    const fecha = new Date(pedido.fechaPedido || pedido.FechaPedido);
+                    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+
+                    const estadoClass = (pedido.estado || pedido.Estado || '').toLowerCase();
+                    const estadoTexto = pedido.estado || pedido.Estado || 'Pendiente';
+
+                    return (
+                      <div key={pedido.codigoPedido || pedido.IdPedido} className="pedido-card">
+                        <div className="pedido-header">
+                          <div className="pedido-numero">
+                            <i className="fas fa-receipt"></i>
+                            <span>Pedido #{pedido.codigoPedido || pedido.IdPedido}</span>
+                          </div>
+                          <span className={`pedido-estado ${estadoClass}`}>
+                            {estadoTexto}
+                          </span>
+                        </div>
+
+                        <div className="pedido-info">
+                          <div className="info-item">
+                            <i className="fas fa-calendar-alt"></i>
+                            <span>{fechaFormateada}</span>
+                          </div>
+                          <div className="info-item">
+                            <i className="fas fa-map-marker-alt"></i>
+                            <span>{pedido.municipio || pedido.Municipio}, {pedido.departamento || pedido.Departamento}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          className="btn-ver-detalles"
+                          onClick={() => {
+                            setPedidoSeleccionado(pedido);
+                            setShowDetallesPedido(true);
+                          }}
+                        >
+                          Ver Detalles
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Modal Detalles Pedido ===== */}
+      {showDetallesPedido && pedidoSeleccionado && (
+        <div className="modal-overlay" onClick={() => setShowDetallesPedido(false)}>
+          <div className="modal-detalles-pedido" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowDetallesPedido(false)}>
+              <i className="fas fa-times"></i>
+            </button>
+
+            <h3 className="modal-title">
+              <i className="fas fa-receipt"></i>
+              Detalles del Pedido #{pedidoSeleccionado.codigoPedido || pedidoSeleccionado.IdPedido}
+            </h3>
+
+            <div className="modal-body">
+              <div className="detalles-info">
+                <div className="info-row">
+                  <span className="label">Estado:</span>
+                  <span className={`badge ${(pedidoSeleccionado.estado || pedidoSeleccionado.Estado || '').toLowerCase()}`}>
+                    {pedidoSeleccionado.estado || pedidoSeleccionado.Estado}
+                  </span>
+                </div>
+                <div className="info-row">
+                  <span className="label">Fecha:</span>
+                  <span>{new Date(pedidoSeleccionado.fechaPedido || pedidoSeleccionado.FechaPedido).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}</span>
+                </div>
+                <div className="info-row">
+                  <span className="label">Dirección:</span>
+                  <span>{pedidoSeleccionado.direccion || pedidoSeleccionado.Direccion}</span>
+                </div>
+                <div className="info-row">
+                  <span className="label">Municipio:</span>
+                  <span>{pedidoSeleccionado.municipio || pedidoSeleccionado.Municipio}</span>
+                </div>
+                <div className="info-row">
+                  <span className="label">Departamento:</span>
+                  <span>{pedidoSeleccionado.departamento || pedidoSeleccionado.Departamento}</span>
+                </div>
+              </div>
+
+              <div className="detalles-productos">
+                <h4>Productos</h4>
+                {(pedidoSeleccionado.detalles || pedidoSeleccionado.Detalles || []).length > 0 ? (
+                  <div className="productos-list">
+                    {(pedidoSeleccionado.detalles || pedidoSeleccionado.Detalles).map((detalle, index) => (
+                      <div key={index} className="producto-item">
+                        <div className="producto-nombre">
+                          {detalle.nombreProducto || detalle.NombreProducto || `Producto #${detalle.codigoProducto || detalle.CodigoProducto}`}
+                        </div>
+                        <div className="producto-cantidad">
+                          Cantidad: {detalle.cantidad || detalle.Cantidad}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="no-detalles">No hay detalles de productos disponibles</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* ===== Carrito ===== */}
       {carrito.length > 0 && (

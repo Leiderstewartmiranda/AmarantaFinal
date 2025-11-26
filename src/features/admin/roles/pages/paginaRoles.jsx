@@ -36,7 +36,7 @@ const PaginaRoles = () => {
   const nombreRef = useRef();
   const busquedaRef = useRef();
 
-  const rolesPorPagina = 5;
+  const rolesPorPagina = 9;
 
   // Cargar roles al iniciar
   useEffect(() => {
@@ -442,28 +442,6 @@ const PaginaRoles = () => {
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
-        <section className="col-span-2">
-        <div className="filtros flex items-center gap-3 mb-1">
-          <input 
-            type="text"
-            value={filtroID}
-            onChange={(e) => {
-              setFiltroID(e.target.value);
-              setPaginaActual(1);
-            }}
-            placeholder="Filtrar por ID"
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          
-          {/* <button 
-            onClick={aplicarFiltros}
-            className="btn-filtrar px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-amber-700 transition-colors duration-200 flex items-center gap-2"
-          >
-            <i className="fa-solid fa-filter"></i>
-            Filtrar
-          </button> */}
-        </div>
-      </section>
         <div className="flex-shrink-0 w-80">
           <BarraBusqueda 
             ref={busquedaRef}
