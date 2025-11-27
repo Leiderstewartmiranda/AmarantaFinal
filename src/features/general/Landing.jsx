@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FaSearch, FaTimes, FaShoppingBag, FaBoxOpen, FaReceipt, FaCalendarAlt, FaMapMarkerAlt, FaShoppingCart, FaPhone, FaEnvelope } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./Landing.css";
@@ -30,6 +31,7 @@ export default function Landing() {
   const [showModalPedidos, setShowModalPedidos] = useState(false);
   const [showDetallesPedido, setShowDetallesPedido] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
+  const [showMobileCart, setShowMobileCart] = useState(false); // 🆕 Estado para carrito móvil
 
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -496,7 +498,7 @@ export default function Landing() {
           {/* 🔍 Búsqueda y filtro */}
           <div className="filtros-container">
             <div className="search-wrapper">
-              <i className="fas fa-search search-icon"></i>
+              <FaSearch className="search-icon" />
               <input
                 type="text"
                 placeholder="Buscar producto..."
@@ -576,18 +578,18 @@ export default function Landing() {
         <div className="modal-overlay" onClick={() => setShowModalPedidos(false)}>
           <div className="modal-pedidos-lista" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowModalPedidos(false)}>
-              <i className="fas fa-times"></i>
+              <FaTimes />
             </button>
 
             <h3 className="modal-title">
-              <i className="fas fa-shopping-bag"></i>
+              <FaShoppingBag />
               Mis Pedidos
             </h3>
 
             <div className="modal-body-pedidos">
               {pedidos.length === 0 ? (
                 <div className="no-pedidos">
-                  <i className="fas fa-box-open"></i>
+                  <FaBoxOpen />
                   <p>Aún no has realizado ningún pedido</p>
                   <button
                     className="btn-explorar"
@@ -616,7 +618,7 @@ export default function Landing() {
                       <div key={pedido.codigoPedido || pedido.IdPedido} className="pedido-card">
                         <div className="pedido-header">
                           <div className="pedido-numero">
-                            <i className="fas fa-receipt"></i>
+                            <FaReceipt />
                             <span>Pedido #{pedido.codigoPedido || pedido.IdPedido}</span>
                           </div>
                           <span className={`pedido-estado ${estadoClass}`}>
@@ -626,11 +628,11 @@ export default function Landing() {
 
                         <div className="pedido-info">
                           <div className="info-item">
-                            <i className="fas fa-calendar-alt"></i>
+                            <FaCalendarAlt />
                             <span>{fechaFormateada}</span>
                           </div>
                           <div className="info-item">
-                            <i className="fas fa-map-marker-alt"></i>
+                            <FaMapMarkerAlt />
                             <span>{pedido.municipio || pedido.Municipio}, {pedido.departamento || pedido.Departamento}</span>
                           </div>
                         </div>
@@ -659,11 +661,11 @@ export default function Landing() {
         <div className="modal-overlay" onClick={() => setShowDetallesPedido(false)}>
           <div className="modal-detalles-pedido" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowDetallesPedido(false)}>
-              <i className="fas fa-times"></i>
+              <FaTimes />
             </button>
 
             <h3 className="modal-title">
-              <i className="fas fa-receipt"></i>
+              <FaReceipt />
               Detalles del Pedido #{pedidoSeleccionado.codigoPedido || pedidoSeleccionado.IdPedido}
             </h3>
 
@@ -722,7 +724,7 @@ export default function Landing() {
       )}
 
 
-      {/* ===== Carrito ===== */}
+      {/* ===== Carrito (Desktop) ===== */}
       {carrito.length > 0 && (
         <div className="carrito-flotante">
           <Carrito
@@ -733,6 +735,41 @@ export default function Landing() {
             onLimpiarCarrito={limpiarCarrito}
             total={totalCarrito}
           />
+        </div>
+      )}
+
+      {/* ===== Icono Carrito Flotante (Móvil) ===== */}
+      {carrito.length > 0 && (
+        <div className="mobile-cart-icon-container">
+          <button
+            className="mobile-cart-btn"
+            onClick={() => setShowMobileCart(true)}
+          >
+            <FaShoppingCart />
+            <span className="cart-badge">{carrito.reduce((acc, item) => acc + item.cantidad, 0)}</span>
+          </button>
+        </div>
+      )}
+
+      {/* ===== Modal Carrito (Móvil) ===== */}
+      {showMobileCart && (
+        <div className="mobile-cart-overlay" onClick={() => setShowMobileCart(false)}>
+          <div className="mobile-cart-content" onClick={(e) => e.stopPropagation()}>
+            <button className="close-mobile-cart" onClick={() => setShowMobileCart(false)}>
+              <FaTimes />
+            </button>
+            <Carrito
+              carrito={carrito}
+              onActualizarCantidad={actualizarCantidad}
+              onEliminarProducto={eliminarProducto}
+              onRealizarPedido={() => {
+                setShowMobileCart(false);
+                realizarPedido();
+              }}
+              onLimpiarCarrito={limpiarCarrito}
+              total={totalCarrito}
+            />
+          </div>
         </div>
       )}
 
@@ -780,9 +817,9 @@ export default function Landing() {
             <div className="footer-column">
               <h3>Contacto</h3>
               <ul className="footer-contact">
-                <li><i className="fas fa-phone"></i> 321 0000000</li>
-                <li><i className="fas fa-envelope"></i> info@amarantacigars.com</li>
-                <li><i className="fas fa-map-marker-alt"></i> Colombia</li>
+                <li><FaPhone /> 321 0000000</li>
+                <li><FaEnvelope /> info@amarantacigars.com</li>
+                <li><FaMapMarkerAlt /> Colombia</li>
               </ul>
             </div>
 

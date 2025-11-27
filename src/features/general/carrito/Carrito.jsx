@@ -2,7 +2,7 @@ import React from "react";
 import "./carrito.css";
 
 const Carrito = ({ carrito, onActualizarCantidad, onEliminarProducto, onRealizarPedido, onLimpiarCarrito, total }) => {
-  
+
   return (
     <div className="carrito">
       <h3>Tu Carrito</h3>
@@ -12,40 +12,44 @@ const Carrito = ({ carrito, onActualizarCantidad, onEliminarProducto, onRealizar
         <>
           <div className="carrito-items">
             {carrito.map((producto, index) => {
-              // 🔥 CORRECCIÓN: Usar la misma lógica de identificación
               const productoId = producto.codigoProducto || producto.id;
               const nombre = producto.nombreProducto || producto.nombre || "Producto";
               const precio = producto.precio || producto.precioVenta || 0;
               const subtotal = producto.subtotal || (precio * producto.cantidad);
-              
+
               return (
                 <div key={`${productoId}-${index}`} className="carrito-item">
-                  <div className="item-info">
-                    <h4>{nombre}</h4>
-                    <p>${precio.toLocaleString()} c/u</p>
+                  {/* Fila 1: Nombre y Precio Unitario */}
+                  <div className="carrito-row-top">
+                    <h4 title={nombre}>{nombre}</h4>
+                    <span className="precio-unitario">${precio.toLocaleString()} c/u</span>
                   </div>
-                  <div className="item-controls">
-                    <button 
-                      onClick={() => onActualizarCantidad(productoId, producto.cantidad - 1)}
-                      disabled={producto.cantidad <= 1}
-                    >
-                      -
-                    </button>
-                    <span>{producto.cantidad}</span>
-                    <button 
-                      onClick={() => onActualizarCantidad(productoId, producto.cantidad + 1)}
-                    >
-                      +
-                    </button>
-                    <button 
-                      onClick={() => onEliminarProducto(productoId)}
-                      className="btn-eliminar"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                  <div className="item-subtotal">
-                    ${subtotal.toLocaleString()}
+
+                  {/* Fila 2: Controles y Subtotal */}
+                  <div className="carrito-row-bottom">
+                    <div className="item-controls">
+                      <button
+                        onClick={() => onActualizarCantidad(productoId, producto.cantidad - 1)}
+                        disabled={producto.cantidad <= 1}
+                      >
+                        -
+                      </button>
+                      <span>{producto.cantidad}</span>
+                      <button
+                        onClick={() => onActualizarCantidad(productoId, producto.cantidad + 1)}
+                      >
+                        +
+                      </button>
+                      <button
+                        onClick={() => onEliminarProducto(productoId)}
+                        className="btn-eliminar"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <div className="item-subtotal">
+                      ${subtotal.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               );
@@ -54,14 +58,14 @@ const Carrito = ({ carrito, onActualizarCantidad, onEliminarProducto, onRealizar
           <div className="carrito-total">
             <strong>Total: ${total.toLocaleString()}</strong>
           </div>
-          <button 
+          <button
             onClick={onRealizarPedido}
             className="btn-pedido"
           >
             Realizar Pedido
           </button>
           {onLimpiarCarrito && (
-            <button 
+            <button
               onClick={onLimpiarCarrito}
               className="btn-limpiar"
             >
