@@ -5,7 +5,7 @@ import BarraBusqueda from "../../../../compartidos/inputs/BarraBusqueda";
 import TablaAdmin from "../../../../compartidos/tablas/TablaAdmin";
 import Paginacion from "../../../../compartidos/paginacion/Paginacion";
 import { useRef, useState, useMemo, useEffect } from "react";
-import { GetRoles, PostRole, PutRole, DeleteRole } from "../../../../services/rolService";
+import { GetRoles, PostRole, PutRole, DeleteRole, GetPermisos } from "../../../../services/rolService";
 import FormularioAgregarRol from "../components/forms/FormularioAgregar";
 import FormularioModificarRol from "../components/forms/FormularioModificar";
 import FormularioVerDetallesRol from "../components/forms/FormularioVerDetalles";
@@ -16,6 +16,7 @@ const PaginaRoles = () => {
   // Estados principales
   const [listaRoles, setListaRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [permisosDisponibles, setPermisosDisponibles] = useState([]); // Estado para permisos
 
   // Estados de UI
   const [showAgregar, setShowAgregar] = useState(false);
@@ -23,6 +24,7 @@ const PaginaRoles = () => {
   const [showDetalles, setShowDetalles] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [filtroID, setFiltroID] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState(""); // Nuevo filtro
   const [paginaActual, setPaginaActual] = useState(1);
   const [rolSeleccionado, setRolSeleccionado] = useState(null);
 
@@ -38,27 +40,62 @@ const PaginaRoles = () => {
 
   const rolesPorPagina = 9;
 
-  // Cargar roles al iniciar
+  // Cargar roles y permisos al iniciar
   useEffect(() => {
-    cargarRoles();
+    cargarDatos();
   }, []);
 
-  const cargarRoles = async () => {
+  const cargarDatos = async () => {
     try {
       setLoading(true);
-      const data = await GetRoles();
-      setListaRoles(data);
+      const [rolesData, permisosData] = await Promise.all([
+        GetRoles(),
+        GetPermisos()
+      ]);
+
+      // Adaptar datos de roles
+      const adaptados = rolesData.map(r => ({
+        ...r,
+        Estado: r.estado !== undefined ? r.estado : true,
+        Permisos: r.permisos || []
+      }));
+
+      setListaRoles(adaptados);
+
+      // Mapear permisos si es necesario (dependiendo de cómo vengan del back)
+      // Asumimos que vienen como { idPermiso, nombrePermiso }
+      const permisosFormateados = permisosData.map(p => ({
+        id: p.idPermiso,
+        nombre: p.nombrePermiso
+      }));
+      setPermisosDisponibles(permisosFormateados);
+
     } catch (error) {
-      console.error("Error cargando los roles:", error);
+      console.error("Error cargando datos:", error);
       Swal.fire({
         icon: "error",
         title: "❌ Error al cargar",
-        text: "No se pudieron cargar los roles",
+        text: "No se pudieron cargar los roles o permisos",
         confirmButtonColor: "#b45309",
         background: "#fff8e7",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función auxiliar para recargar solo roles (usada después de crear/editar)
+  const cargarRoles = async () => {
+    try {
+      const data = await GetRoles();
+      const adaptados = data.map(r => ({
+        ...r,
+        Estado: r.estado !== undefined ? r.estado : true,
+        Permisos: r.permisos || []
+      }));
+      setListaRoles(adaptados);
+    } catch (error) {
+      console.error("Error recargando roles:", error);
     }
   };
 
@@ -89,7 +126,7 @@ const PaginaRoles = () => {
     if (ordenamiento.columna !== columna) {
       return <i className="fa-solid fa-sort ml-1 text-xs opacity-70"></i>;
     }
-    return ordenamiento.direccion === 'asc' 
+    return ordenamiento.direccion === 'asc'
       ? <i className="fa-solid fa-sort-up ml-1 text-xs opacity-70"></i>
       : <i className="fa-solid fa-sort-down ml-1 text-xs opacity-70"></i>;
   };
@@ -106,6 +143,11 @@ const PaginaRoles = () => {
       onClick: () => handleOrdenar('nombreRol'),
       icono: getSortIcon('nombreRol')
     },
+    {
+      titulo: "Estado",
+      onClick: () => handleOrdenar('Estado'),
+      icono: getSortIcon('Estado')
+    },
     "Acciones"
   ];
 
@@ -119,7 +161,7 @@ const PaginaRoles = () => {
       filtrados = filtrados.filter((rol) => {
         const nombre = rol.nombreRol?.toLowerCase() || '';
         const id = rol.idRol?.toString() || '';
-        
+
         return (
           nombre.includes(termino) ||
           id.includes(termino)
@@ -133,6 +175,12 @@ const PaginaRoles = () => {
         const idRol = rol.idRol?.toString() || '';
         return idRol.includes(filtroID);
       });
+    }
+
+    // Aplicar filtro de Estado
+    if (filtroEstado !== "") {
+      const estadoBool = filtroEstado === "Activo";
+      filtrados = filtrados.filter(rol => rol.Estado === estadoBool);
     }
 
     // Aplicar ordenamiento
@@ -159,7 +207,7 @@ const PaginaRoles = () => {
     }
 
     return filtrados;
-  }, [listaRoles, terminoBusqueda, filtroID, ordenamiento]);
+  }, [listaRoles, terminoBusqueda, filtroID, filtroEstado, ordenamiento]);
 
   // Calcular datos de paginación
   const totalPaginas = Math.ceil(rolesFiltrados.length / rolesPorPagina);
@@ -232,11 +280,13 @@ const PaginaRoles = () => {
   };
 
   // AGREGAR rol
-  const handleAgregarSubmit = async (e) => {
-    e.preventDefault();
+  const handleAgregarSubmit = async (datosFormulario) => {
+    // datosFormulario viene del componente hijo con { nombreRol, permisos, estado }
 
     const nuevoRol = {
-      NombreRol: nombreRef.current.value.trim()
+      NombreRol: datosFormulario.nombreRol.trim(),
+      Permisos: datosFormulario.permisos || [],
+      Estado: datosFormulario.estado !== undefined ? datosFormulario.estado : true
     };
 
     // Verificar si ya existe un rol con el mismo nombre
@@ -263,7 +313,7 @@ const PaginaRoles = () => {
       await PostRole(nuevoRol);
       await cargarRoles();
       setShowAgregar(false);
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Rol agregado",
@@ -284,16 +334,18 @@ const PaginaRoles = () => {
   };
 
   // EDITAR rol
-  const handleEditarSubmit = async (e) => {
-    e.preventDefault();
+  const handleEditarSubmit = async (datosFormulario) => {
+    // datosFormulario viene del componente hijo con { nombreRol, permisos, estado }
 
     const rolActualizado = {
-      NombreRol: nombreRef.current.value.trim()
+      NombreRol: datosFormulario.nombreRol.trim(),
+      Permisos: datosFormulario.permisos || [],
+      Estado: datosFormulario.estado
     };
 
     // Verificar si ya existe otro rol con el mismo nombre (excluyendo el actual)
     const existeDuplicado = listaRoles.some(
-      (r) => 
+      (r) =>
         r.nombreRol?.toLowerCase() === rolActualizado.NombreRol.toLowerCase() &&
         r.idRol !== rolSeleccionado.idRol
     );
@@ -317,7 +369,7 @@ const PaginaRoles = () => {
       await PutRole(rolSeleccionado.idRol, rolActualizado);
       await cargarRoles();
       closeModal();
-      
+
       Swal.fire({
         icon: "success",
         title: "✅ Rol actualizado",
@@ -335,6 +387,63 @@ const PaginaRoles = () => {
         background: "#fff8e7",
       });
     }
+  };
+
+  // 🔹 Cambiar Estado (Toggle)
+  const handleCambiarEstado = async (rol, nuevoEstado) => {
+    const nuevoEstadoStr = nuevoEstado ? "Activo" : "Inactivo";
+
+    Swal.fire({
+      icon: "question",
+      title: "🔄 Cambiar estado",
+      html: `¿Estás seguro de que deseas <strong>${nuevoEstado ? 'activar' : 'desactivar'}</strong> este rol?<br><br>
+             <div class="text-left">
+               <p><strong>Rol:</strong> ${rol.nombreRol}</p>
+               <p><strong>Estado actual:</strong> ${rol.Estado ? "Activo" : "Inactivo"}</p>
+               <p><strong>Nuevo estado:</strong> ${nuevoEstadoStr}</p>
+             </div>`,
+      confirmButtonColor: "#d15153",
+      background: "#fff8e7",
+      showCancelButton: true,
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: nuevoEstado ? 'Activar' : 'Desactivar',
+      cancelButtonText: "Cancelar"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Mantener los datos existentes y solo cambiar el estado
+          const rolActualizado = {
+            NombreRol: rol.nombreRol,
+            Permisos: rol.Permisos || [],
+            Estado: nuevoEstado
+          };
+
+          await PutRole(rol.idRol, rolActualizado);
+
+          // Actualizar estado localmente para reflejo inmediato
+          setListaRoles(prev =>
+            prev.map(r => r.idRol === rol.idRol ? { ...r, Estado: nuevoEstado } : r)
+          );
+
+          Swal.fire({
+            icon: "success",
+            title: "✅ Estado actualizado",
+            text: `El rol ha sido ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`,
+            confirmButtonColor: "#d15153",
+            background: "#fff8e7",
+          });
+        } catch (error) {
+          console.error("Error cambiando estado:", error);
+          Swal.fire({
+            icon: "error",
+            title: "❌ Error al cambiar estado",
+            text: "No se pudo cambiar el estado del rol",
+            confirmButtonColor: "#d15153",
+            background: "#fff8e7",
+          });
+        }
+      }
+    });
   };
 
   // ELIMINAR rol
@@ -359,7 +468,7 @@ const PaginaRoles = () => {
           try {
             await DeleteRole(rol.idRol);
             await cargarRoles();
-            
+
             Swal.fire({
               icon: "success",
               title: "✅ Rol eliminado",
@@ -369,12 +478,12 @@ const PaginaRoles = () => {
             });
           } catch (error) {
             console.error("Error eliminando rol:", error);
-            
+
             // Manejar específicamente el error de integridad referencial
-            if (error.message.includes("REFERENCE constraint") || 
-                error.message.includes("FK_") ||
-                error.message.includes("Error 500")) {
-              
+            if (error.message.includes("REFERENCE constraint") ||
+              error.message.includes("FK_") ||
+              error.message.includes("Error 500")) {
+
               Swal.fire({
                 icon: "error",
                 title: "❌ No se puede eliminar",
@@ -436,14 +545,31 @@ const PaginaRoles = () => {
   return (
     <>
       <TituloSeccion titulo="Roles" />
-      
+
       {/* Sección de botón y búsqueda */}
       <section className="col-span-2 flex justify-between items-center gap-4">
         <div className="flex-shrink-0">
           <BotonAgregar action={() => setShowAgregar(true)} />
         </div>
+
+        {/* Filtro de Estado */}
+        <div className="flex items-center gap-4">
+          <select
+            value={filtroEstado}
+            onChange={(e) => {
+              setFiltroEstado(e.target.value);
+              setPaginaActual(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+
         <div className="flex-shrink-0 w-80">
-          <BarraBusqueda 
+          <BarraBusqueda
             ref={busquedaRef}
             placeholder="Buscar rol"
             value={terminoBusqueda}
@@ -460,9 +586,6 @@ const PaginaRoles = () => {
         </div>
       </section>
 
-      {/* 🔹 Sección de Filtros para Roles */}
-      
-
       {/* Tabla de roles */}
       <section className="col-span-2">
         <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
@@ -475,6 +598,25 @@ const PaginaRoles = () => {
                 >
                   <td className="py-2 px-4 font-medium">{element.idRol}</td>
                   <td className="py-2 px-4">{element.nombreRol}</td>
+                  <td className="py-1 px-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={element.Estado || false}
+                        onChange={() => handleCambiarEstado(element, !element.Estado)}
+                      />
+                      <div
+                        className={`w-11 h-6 rounded-full peer ${element.Estado ? "bg-green-500" : "bg-gray-300"
+                          } peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors`}
+                      >
+                        <div
+                          className={`absolute top-0.5 left-0.5 bg-white border rounded-full h-5 w-5 transition-transform ${element.Estado ? "transform translate-x-5" : ""
+                            }`}
+                        ></div>
+                      </div>
+                    </label>
+                  </td>
                   <td className="py-2 px-4 flex gap-2 justify-center">
                     <Icon
                       icon="mdi:eye-outline"
@@ -505,9 +647,9 @@ const PaginaRoles = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="py-8 px-4 text-center text-gray-500">
-                  {terminoBusqueda || filtroID ? 
-                    `No se encontraron roles que coincidan con los filtros aplicados` : 
+                <td colSpan="4" className="py-8 px-4 text-center text-gray-500">
+                  {terminoBusqueda || filtroID || filtroEstado ?
+                    `No se encontraron roles que coincidan con los filtros aplicados` :
                     "No hay roles disponibles"
                   }
                 </td>
@@ -527,7 +669,7 @@ const PaginaRoles = () => {
           />
           <p className="text-sm text-gray-600 text-center mt-2">
             Página {paginaActual} de {totalPaginas} - {rolesFiltrados.length} roles encontrados
-            {(filtroID || terminoBusqueda) && " (filtrados)"}
+            {(filtroID || terminoBusqueda || filtroEstado) && " (filtrados)"}
           </p>
         </div>
       )}
@@ -537,7 +679,7 @@ const PaginaRoles = () => {
         <div className="col-span-2 mt-4">
           <p className="text-sm text-gray-600 text-center">
             Mostrando {rolesFiltrados.length} roles
-            {(filtroID || terminoBusqueda) && " (filtrados)"}
+            {(filtroID || terminoBusqueda || filtroEstado) && " (filtrados)"}
           </p>
         </div>
       )}
@@ -547,7 +689,7 @@ const PaginaRoles = () => {
         show={showAgregar}
         setShow={setShowAgregar}
         onSubmit={handleAgregarSubmit}
-        nombreRef={nombreRef}
+        permisosDisponibles={permisosDisponibles}
       />
 
       <FormularioModificarRol
@@ -555,7 +697,7 @@ const PaginaRoles = () => {
         close={closeModal}
         rol={rolSeleccionado}
         onSubmit={handleEditarSubmit}
-        nombreRef={nombreRef}
+        permisosDisponibles={permisosDisponibles}
       />
 
       <FormularioVerDetallesRol

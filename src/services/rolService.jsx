@@ -1,5 +1,7 @@
-// services/roleService.js
-const API_URL = "https://amarantaapi.somee.com/api/roles";
+// services/rolService.jsx
+const API_URL = "https://amarantaapi.somee.com/api/Roles";
+// Endpoint de permisos dentro del controlador de roles
+const API_PERMISOS_URL = `${API_URL}/permisos`;
 
 // Obtener todos los roles
 export const GetRoles = async () => {
@@ -25,7 +27,10 @@ export const PostRole = async (role) => {
     body: JSON.stringify(role),
   });
 
-  if (!res.ok) throw new Error("Error al crear el rol");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error al crear el rol");
+  }
   return await res.json();
 };
 
@@ -39,7 +44,10 @@ export const PutRole = async (id, role) => {
     body: JSON.stringify(role),
   });
 
-  if (!res.ok) throw new Error("Error al actualizar el rol");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error al actualizar el rol");
+  }
   return true;
 };
 
@@ -49,6 +57,21 @@ export const DeleteRole = async (id) => {
     method: "DELETE",
   });
 
-  if (!res.ok) throw new Error("Error al eliminar el rol");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error al eliminar el rol");
+  }
   return true;
+};
+
+// Obtener lista de permisos
+export const GetPermisos = async () => {
+  try {
+    const res = await fetch(API_PERMISOS_URL);
+    if (!res.ok) throw new Error("Error al obtener permisos");
+    return await res.json();
+  } catch (error) {
+    console.warn("No se pudo cargar permisos del API, verifique el endpoint.");
+    return [];
+  }
 };
