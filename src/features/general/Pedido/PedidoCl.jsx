@@ -16,7 +16,8 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
     direccion: "",
     municipio: "",
     departamento: "",
-    telefono: ""
+    telefono: "",
+    factu: null
   });
 
   // 🎨 Estilos para react-select (Tema Dark Premium)
@@ -97,7 +98,8 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
     onConfirmarPedido({
       ...formData,
       departamento: departamentoSelect?.value || "",
-      municipio: municipioSelect?.value || ""
+      municipio: municipioSelect?.value || "",
+      factu: formData.factu
     });
   };
 
@@ -196,6 +198,23 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
               required
               placeholder="Tu número de teléfono"
             />
+          </div>
+
+          {/* Comprobante de Transferencia (Factu) */}
+          <div className="form-group">
+            <label className="labelpedido">Comprobante de Transferencia *</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                setFormData({ ...formData, factu: file });
+              }}
+              required
+              className="input-pedido file-input"
+              style={{ color: "#f3f3f3" }} // Asegurar visibilidad en dark mode
+            />
+            {!formData.factu && <small style={{ color: "#d4a574" }}>Debes subir el comprobante para continuar.</small>}
           </div>
 
           {/* acciones */}

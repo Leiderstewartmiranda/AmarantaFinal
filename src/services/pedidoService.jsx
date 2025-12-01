@@ -30,25 +30,33 @@ export async function GetPedidoById(id) {
 // ✅ Crear pedido con detalles
 export async function PostPedido(pedido) {
   try {
-    const pedidoData = {
-      FechaPedido: pedido.FechaPedido || new Date().toISOString().split("T")[0],
-      IdCliente: parseInt(pedido.IdCliente),
-      Detalles: pedido.Detalles.map((d) => ({
-        CodigoProducto: d.CodigoProducto,
-        Cantidad: d.Cantidad,
-      })),
-      Correo: pedido.Correo || "",
-      Direccion: pedido.Direccion || "",
-      Municipio: pedido.Municipio || "",
-      Departamento: pedido.Departamento || ""
-    };
+    const formData = new FormData();
+    formData.append("FechaPedido", pedido.FechaPedido || new Date().toISOString().split("T")[0]);
+    formData.append("IdCliente", parseInt(pedido.IdCliente));
+    formData.append("Correo", pedido.Correo || "");
+    formData.append("Direccion", pedido.Direccion || "");
+    formData.append("Municipio", pedido.Municipio || "");
+    formData.append("Departamento", pedido.Departamento || "");
+    formData.append("Estado", "Pendiente");
 
-    console.log("📦 Pedido a enviar:", pedidoData);
+    // Agregar archivo si existe
+    if (pedido.Factu) {
+      formData.append("Factu", pedido.Factu);
+    }
+
+    // Agregar detalles con índice para que el backend (ASP.NET) lo reconozca
+    pedido.Detalles.forEach((d, index) => {
+      formData.append(`Detalles[${index}].CodigoProducto`, d.CodigoProducto);
+      formData.append(`Detalles[${index}].Cantidad`, d.Cantidad);
+    });
+
+    console.log("📦 Pedido a enviar (FormData):", pedido);
 
     const response = await fetch(`${API_URL_PEDIDOS}/crear-con-detalles`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(pedidoData),
+      // No establecer Content-Type explícitamente cuando se usa FormData, el navegador lo hace
+      headers: { Accept: "application/json" },
+      body: formData,
     });
 
     const responseText = await response.text();

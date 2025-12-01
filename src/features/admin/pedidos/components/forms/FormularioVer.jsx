@@ -67,6 +67,33 @@ const FormularioVer = ({ show, close, codigoPedido, titulo, formatearMoneda }) =
             </div>
           )}
 
+          {/* 🧾 Comprobante de Transferencia */}
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <h3 className="text-lg font-semibold mb-2 text-green-800">Comprobante de Pago</h3>
+            {pedido.factu || pedido.Factu ? (
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  src={pedido.factu || pedido.Factu}
+                  alt="Comprobante de Transferencia"
+                  className="max-w-full h-auto rounded-lg shadow-md border border-gray-300"
+                  style={{ maxHeight: "300px", objectFit: "contain" }}
+                />
+                <a
+                  href={pedido.factu || pedido.Factu}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                >
+                  Ver imagen en tamaño completo
+                </a>
+              </div>
+            ) : (
+              <div className="bg-yellow-100 p-3 rounded text-yellow-800 text-sm border border-yellow-200">
+                ⚠️ No hay comprobante de transferencia adjunto en este pedido.
+              </div>
+            )}
+          </div>
+
           {/* 📦 Detalles del pedido */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <h3 className="text-lg font-semibold mb-3 text-gray-800">Productos del Pedido</h3>

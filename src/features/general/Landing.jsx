@@ -302,6 +302,7 @@ export default function Landing() {
         Direccion: datosEnvio.direccion || "",
         Municipio: datosEnvio.municipio || "",
         Departamento: datosEnvio.departamento || "",
+        Factu: datosEnvio.factu,
         Estado: "Pendiente",
       };
 
