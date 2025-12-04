@@ -27,7 +27,7 @@ const PaginaProductos = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroStock, setFiltroStock] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const productosPorPagina = 9;
+  const productosPorPagina = 7;
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
   // Estado para ordenamiento
@@ -684,7 +684,7 @@ const PaginaProductos = () => {
 
       {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <Paginacion
             paginaActual={paginaActual}
             totalPaginas={totalPaginas}
@@ -699,7 +699,7 @@ const PaginaProductos = () => {
 
       {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
       {totalPaginas === 1 && productosFiltrados.length > 0 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <p className="text-sm text-gray-600 text-center">
             Mostrando {productosFiltrados.length} productos
             {(filtroCategoria || filtroEstado || filtroStock || terminoBusqueda) && " (filtrados)"}

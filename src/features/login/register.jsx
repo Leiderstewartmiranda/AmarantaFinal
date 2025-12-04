@@ -38,8 +38,8 @@ export default function Register() {
       try {
         const deptos = await UbicacionService.obtenerDepartamentos();
         const opciones = deptos.map(depto => ({
-          value: depto,
-          label: depto
+          value: depto.name,
+          label: depto.name
         }));
         setDepartamentos(opciones);
       } catch (error) {
@@ -71,8 +71,8 @@ export default function Register() {
       try {
         const munis = await UbicacionService.obtenerMunicipios(departamentoSelect.value);
         const opciones = munis.map(muni => ({
-          value: muni,
-          label: muni
+          value: muni.name,
+          label: muni.name
         }));
         setMunicipios(opciones);
 

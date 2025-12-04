@@ -81,6 +81,12 @@
   border-radius: 6px;
   font-size: 1rem;
   transition: all 0.3s ease;
+  color: #1c1917;
+  background-color: #ffffff;
+}
+
+.verification-form input::placeholder {
+  color: #a8a29e;
 }
 
 .verification-form input:focus {

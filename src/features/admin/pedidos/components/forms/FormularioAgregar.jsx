@@ -41,7 +41,12 @@ const FormularioAgregar = ({
   useEffect(() => {
     const cargarDepartamentos = async () => {
       const data = await UbicacionService.obtenerDepartamentos();
-      const opciones = data.map(dep => ({ value: dep, label: dep }));
+      // Guardamos el objeto completo en 'data' para tener acceso al ID
+      const opciones = data.map(dep => ({
+        value: dep.name,
+        label: dep.name,
+        data: dep
+      }));
       setDepartamentos(opciones);
     };
     cargarDepartamentos();
@@ -60,8 +65,16 @@ const FormularioAgregar = ({
         setMunicipio(null);
         return;
       }
-      const data = await UbicacionService.obtenerMunicipios(departamento.value);
-      const opciones = data.map(mun => ({ value: mun, label: mun }));
+
+      // Usamos el ID del departamento si está disponible en 'data', sino el valor (nombre)
+      const depId = departamento.data?.id || departamento.value;
+      const data = await UbicacionService.obtenerMunicipios(depId);
+
+      const opciones = data.map(mun => ({
+        value: mun.name,
+        label: mun.name,
+        data: mun
+      }));
       setMunicipios(opciones);
     };
     cargarMunicipios();
@@ -178,8 +191,8 @@ const FormularioAgregar = ({
       backgroundColor: state.isSelected
         ? "var(--naranjado)"
         : state.isFocused
-        ? "#fed7aa"
-        : "white",
+          ? "#fed7aa"
+          : "white",
       color: state.isSelected ? "white" : "black",
       "&:hover": { backgroundColor: "#fed7aa" },
     }),
@@ -297,11 +310,10 @@ const FormularioAgregar = ({
               type="button"
               onClick={handleAgregarProducto}
               disabled={!productoSelect}
-              className={`font-semibold py-2 px-4 rounded transition duration-300 flex items-center gap-1 ${
-                productoSelect
+              className={`font-semibold py-2 px-4 rounded transition duration-300 flex items-center gap-1 ${productoSelect
                   ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
                   : "bg-gray-400 text-white cursor-not-allowed"
-              }`}
+                }`}
             >
               <Icon icon="mdi:cart-arrow-down" width="18" /> Agregar
             </button>
@@ -424,11 +436,10 @@ const FormularioAgregar = ({
           <button
             type="submit"
             disabled={!puedeCrear}
-            className={`font-semibold py-2 px-4 rounded transition duration-300 ${
-              puedeCrear
+            className={`font-semibold py-2 px-4 rounded transition duration-300 ${puedeCrear
                 ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
                 : "bg-gray-400 text-white cursor-not-allowed"
-            }`}
+              }`}
           >
             Agregar Pedido
           </button>

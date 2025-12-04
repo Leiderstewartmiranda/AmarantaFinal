@@ -38,7 +38,7 @@ const PaginaRoles = () => {
   const nombreRef = useRef();
   const busquedaRef = useRef();
 
-  const rolesPorPagina = 9;
+  const rolesPorPagina = 7;
 
   // Cargar roles y permisos al iniciar
   useEffect(() => {
@@ -661,7 +661,7 @@ const PaginaRoles = () => {
 
       {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <Paginacion
             paginaActual={paginaActual}
             totalPaginas={totalPaginas}
@@ -676,7 +676,7 @@ const PaginaRoles = () => {
 
       {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
       {totalPaginas === 1 && rolesFiltrados.length > 0 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <p className="text-sm text-gray-600 text-center">
             Mostrando {rolesFiltrados.length} roles
             {(filtroID || terminoBusqueda || filtroEstado) && " (filtrados)"}

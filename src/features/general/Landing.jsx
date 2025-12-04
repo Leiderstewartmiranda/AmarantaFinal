@@ -4,6 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./Landing.css";
 import "./orders-grid.css";
+import "./pedidos-mejoras.css";
+import "./detalles-pedido-mejoras.css";
 import AmaraLogo from "../../assets/AmaraLogo.png";
 import ContactForm from "./contactForm/contactForm";
 
@@ -32,6 +34,8 @@ export default function Landing() {
   const [showDetallesPedido, setShowDetallesPedido] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
   const [showMobileCart, setShowMobileCart] = useState(false); // 🆕 Estado para carrito móvil
+  const [paginaActual, setPaginaActual] = useState(1); // 🆕 Estado para paginación
+  const productosPorPagina = 9;
 
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -193,6 +197,11 @@ export default function Landing() {
       coincidePrecioMax
     );
   });
+
+  // Resetear paginación cuando cambien los filtros
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, categoriaSeleccionada, precioMin, precioMax]);
 
   const realizarPedido = async () => {
     if (!usuario) {
@@ -359,6 +368,26 @@ export default function Landing() {
     }
   };
 
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "¿Estás seguro de que deseas salir?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b45309",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+      background: "#fff8e7",
+    });
+
+    if (result.isConfirmed) {
+      localStorage.removeItem("usuario");
+      navigate("/");
+      window.location.reload();
+    }
+  };
+
   const renderUserOptions = () => {
     if (!usuario) {
       // 🟠 Usuario no logueado
@@ -382,11 +411,7 @@ export default function Landing() {
           </li>
           <li>
             <a
-              onClick={() => {
-                localStorage.removeItem("usuario");
-                navigate("/");
-                window.location.reload();
-              }}
+              onClick={handleLogout}
               className="link"
               style={{ cursor: "pointer" }}
             >
@@ -416,11 +441,7 @@ export default function Landing() {
         </li>
         <li>
           <a
-            onClick={() => {
-              localStorage.removeItem("usuario");
-              navigate("/");
-              window.location.reload();
-            }}
+            onClick={handleLogout}
             className="link"
             style={{ cursor: "pointer" }}
           >
@@ -547,29 +568,67 @@ export default function Landing() {
               <p>Cargando productos...</p>
             </div>
           ) : (
-            <div className="catalogo-grid">
-              {productosFiltrados.map((producto) => (
-                <div key={producto.codigoProducto || producto.id} className="producto-catalogo-card">
-                  <div className="producto-imagen">
-                    <img src={producto.imagen} alt={producto.nombreProducto} />
-                  </div>
-                  <div className="producto-info">
-                    <div className="producto-header">
-                      <h3>{producto.nombreProducto}</h3>
-                      <div className="producto-precio">
-                        ${(producto.precio || 0).toLocaleString()}
+            <>
+              <div className="catalogo-grid">
+                {productosFiltrados
+                  .slice((paginaActual - 1) * productosPorPagina, paginaActual * productosPorPagina)
+                  .map((producto) => (
+                    <div key={producto.codigoProducto || producto.id} className="producto-catalogo-card">
+                      <div className="producto-imagen">
+                        <img src={producto.imagen} alt={producto.nombreProducto} />
+                      </div>
+                      <div className="producto-info">
+                        <div className="producto-header">
+                          <h3>{producto.nombreProducto}</h3>
+                          <div className="producto-precio">
+                            ${(producto.precio || 0).toLocaleString()}
+                          </div>
+                        </div>
+                        <p className="producto-descripcion">{producto.descripcion}</p>
+                        <button
+                          onClick={() => agregarAlCarrito(producto)}
+                          className="btn-agregar-carrito"
+                        >
+                          Agregar al Carrito
+                        </button>
                       </div>
                     </div>
-                    <p className="producto-descripcion">{producto.descripcion}</p>
-                    <button
-                      onClick={() => agregarAlCarrito(producto)}
-                      className="btn-agregar-carrito"
-                    >
-                      Agregar al Carrito
-                    </button>
+                  ))}
+              </div>
+
+              {/* Paginación */}
+              {productosFiltrados.length > productosPorPagina && (
+                <div className="paginacion-container">
+                  <button
+                    className="paginacion-btn"
+                    onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+                    disabled={paginaActual === 1}
+                  >
+                    Anterior
+                  </button>
+
+                  <div className="paginacion-numeros">
+                    {Array.from({ length: Math.ceil(productosFiltrados.length / productosPorPagina) }, (_, i) => i + 1).map(numero => (
+                      <button
+                        key={numero}
+                        className={`paginacion-numero ${paginaActual === numero ? 'active' : ''}`}
+                        onClick={() => setPaginaActual(numero)}
+                      >
+                        {numero}
+                      </button>
+                    ))}
                   </div>
+
+                  <button
+                    className="paginacion-btn"
+                    onClick={() => setPaginaActual(prev => Math.min(prev + 1, Math.ceil(productosFiltrados.length / productosPorPagina)))}
+                    disabled={paginaActual === Math.ceil(productosFiltrados.length / productosPorPagina)}
+                  >
+                    Siguiente
+                  </button>
                 </div>
-              ))}            </div>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -704,16 +763,28 @@ export default function Landing() {
                 <h4>Productos</h4>
                 {(pedidoSeleccionado.detalles || pedidoSeleccionado.Detalles || []).length > 0 ? (
                   <div className="productos-list">
-                    {(pedidoSeleccionado.detalles || pedidoSeleccionado.Detalles).map((detalle, index) => (
-                      <div key={index} className="producto-item">
-                        <div className="producto-nombre">
-                          {detalle.nombreProducto || detalle.NombreProducto || `Producto #${detalle.codigoProducto || detalle.CodigoProducto}`}
-                        </div>
-                        <div className="producto-cantidad">
-                          Cantidad: {detalle.cantidad || detalle.Cantidad}
-                        </div>
-                      </div>
-                    ))}
+                    <table className="productos-table">
+                      <thead>
+                        <tr>
+                          <th>Producto</th>
+                          <th>Cantidad</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(pedidoSeleccionado.detalles || pedidoSeleccionado.Detalles).map((detalle, index) => (
+                          <tr key={index}>
+                            <td className="producto-nombre">
+                              {detalle.nombreProducto || detalle.NombreProducto || `Producto #${detalle.codigoProducto || detalle.CodigoProducto}`}
+                            </td>
+                            <td>
+                              <span className="producto-cantidad-badge">
+                                {detalle.cantidad || detalle.Cantidad}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <p className="no-detalles">No hay detalles de productos disponibles</p>

@@ -250,6 +250,17 @@ export default function Login() {
                   Regístrate aquí
                 </a>
               </div>
+              <div className="register-link" style={{ marginTop: '0.5rem' }}>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/");
+                  }}
+                >
+                  ← Volver al inicio
+                </a>
+              </div>
             </form>
           </div>
         </section>

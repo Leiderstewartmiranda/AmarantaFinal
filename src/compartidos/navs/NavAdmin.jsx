@@ -1,4 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
   ShoppingBag,
   FileText,
@@ -8,6 +9,7 @@ import {
   Tags,
   BarChart3,
   LogOut,
+  Home,
 } from "lucide-react";
 import AmaraLogo from "../../assets/AmaraLogo.png";
 import "./navAd.css";
@@ -17,21 +19,35 @@ export default function NavAdmin() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    const correo = usuario?.correo;
+    const result = await Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "¿Estás seguro de que deseas salir?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b45309",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+      background: "#fff8e7",
+    });
 
-    try {
-      await fetch("http://localhost:5201/api/Usuarios/CerrarSesion", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo }),
-      });
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+    if (result.isConfirmed) {
+      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      const correo = usuario?.correo;
+
+      try {
+        await fetch("http://localhost:5201/api/Usuarios/CerrarSesion", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ correo }),
+        });
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+      }
+
+      localStorage.clear();
+      navigate("/");
     }
-
-    localStorage.clear();
-    navigate("/");
   };
 
   const location = useLocation();
@@ -79,11 +95,15 @@ export default function NavAdmin() {
           <BarChart3 size={18} />
           <span>Dashboard</span>
         </NavLink>
+        <NavLink to="/" className="menu-item">
+          <Home size={18} />
+          <span>Ir al inicio</span>
+        </NavLink>
       </div>
       <NavLink to="/perfil" className="menu-item">
-          <LogOut size={18} />
-          <span>Perfil</span>
-        </NavLink>
+        <LogOut size={18} />
+        <span>Perfil</span>
+      </NavLink>
       <div className="sidebar-footer">
         <button onClick={handleLogout} className="logout-btn">
           <LogOut size={18} />

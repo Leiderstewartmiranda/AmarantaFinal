@@ -261,7 +261,7 @@ const FormularioAgregar = ({
             >
               <option value="">Seleccionar departamento</option>
               {departamentos.map((dep) => (
-                <option key={dep} value={dep}>{dep}</option>
+                <option key={dep.name} value={dep.name}>{dep.name}</option>
               ))}
             </select>
             {errores.departamento && (
@@ -281,7 +281,7 @@ const FormularioAgregar = ({
             >
               <option value="">Seleccionar municipio</option>
               {municipios.map((mun) => (
-                <option key={mun} value={mun}>{mun}</option>
+                <option key={mun.name} value={mun.name}>{mun.name}</option>
               ))}
             </select>
             {errores.municipio && (

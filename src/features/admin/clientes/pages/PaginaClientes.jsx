@@ -28,7 +28,7 @@ const PaginaClientes = () => {
   const [filtroTipoDoc, setFiltroTipoDoc] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const clientesPorPagina = 9;
+  const clientesPorPagina = 7;
 
   // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por ID
   const [ordenamiento, setOrdenamiento] = useState({
@@ -637,7 +637,7 @@ const PaginaClientes = () => {
 
       {
         totalPaginas > 1 && (
-          <div className="col-span-2 mt-4">
+          <div className="col-span-2 mt-1">
             <Paginacion
               paginaActual={paginaActual}
               totalPaginas={totalPaginas}
@@ -652,7 +652,7 @@ const PaginaClientes = () => {
 
       {
         totalPaginas === 1 && clientesFiltrados.length > 0 && (
-          <div className="col-span-2 mt-4">
+          <div className="col-span-2 mt-1">
             <p className="text-sm text-gray-600 text-center">
               Mostrando {clientesFiltrados.length} clientes
               {(filtroTipoDoc || filtroEstado || terminoBusqueda) && " (filtrados)"}

@@ -1,0 +1,197 @@
+/* =============================
+   MEJORAS MODAL DETALLES DE PEDIDO
+   ============================= */
+
+/* Modal de detalles más grande y fondo oscuro */
+.modal-detalles-pedido {
+    max-width: 1000px !important;
+    background: #0a0a0a !important;
+}
+
+/* Asegurar que el body del modal también sea oscuro */
+.modal-body {
+    background: transparent !important;
+}
+
+/* Contenedor de información mejorado */
+.detalles-info {
+    background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%) !important;
+    padding: 1.5rem !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(212, 165, 116, 0.2) !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Filas de información mejoradas */
+.info-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 1rem !important;
+    padding-bottom: 0.8rem !important;
+    color: var(--text-light) !important;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.1) !important;
+}
+
+.info-row:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Labels mejorados */
+.label {
+    color: var(--primary-gold) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+}
+
+/* Badges de estado mejorados */
+.badge {
+    padding: 0.4rem 1rem !important;
+    border-radius: 20px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.badge.pendiente {
+    background: linear-gradient(135deg, #8a2be233 0%, #6a1bb233 100%) !important;
+    color: #d2b3ff !important;
+    border: 1px solid #8a2be255 !important;
+}
+
+.badge.enviado {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(218, 165, 32, 0.25) 100%) !important;
+    color: gold !important;
+    border: 1px solid rgba(255, 215, 0, 0.4) !important;
+}
+
+.badge.entregado {
+    background: linear-gradient(135deg, rgba(50, 205, 50, 0.25) 0%, rgba(34, 139, 34, 0.25) 100%) !important;
+    color: #9eff9e !important;
+    border: 1px solid rgba(50, 205, 50, 0.4) !important;
+}
+
+/* Sección de productos mejorada */
+.detalles-productos {
+    margin-top: 1.5rem !important;
+}
+
+.detalles-productos h4 {
+    color: var(--primary-gold) !important;
+    margin-bottom: 1.2rem !important;
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Lista de productos mejorada */
+.productos-list {
+    background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%) !important;
+    border: 1px solid rgba(212, 165, 116, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Tabla de productos mejorada */
+.productos-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+.productos-table thead {
+    background: rgba(212, 165, 116, 0.15) !important;
+}
+
+.productos-table th {
+    padding: 1.2rem !important;
+    text-align: left !important;
+    color: var(--primary-gold) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-bottom: 2px solid rgba(212, 165, 116, 0.3) !important;
+}
+
+.productos-table th:last-child {
+    text-align: center !important;
+}
+
+.productos-table tbody tr {
+    border-bottom: 1px solid rgba(212, 165, 116, 0.1) !important;
+    transition: background 0.2s ease !important;
+}
+
+.productos-table tbody tr:hover {
+    background: rgba(212, 165, 116, 0.08) !important;
+}
+
+.productos-table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+.productos-table td {
+    padding: 1.2rem !important;
+    color: var(--text-light) !important;
+    font-size: 0.95rem !important;
+}
+
+.productos-table td:last-child {
+    text-align: center !important;
+}
+
+/* Nombre de producto mejorado */
+.producto-nombre {
+    font-weight: 600 !important;
+    color: #fff !important;
+    font-size: 1rem !important;
+}
+
+/* Badge de cantidad mejorado */
+.producto-cantidad-badge {
+    display: inline-block !important;
+    padding: 0.4rem 1rem !important;
+    background: linear-gradient(135deg, rgba(212, 165, 116, 0.2) 0%, rgba(212, 165, 116, 0.15) 100%) !important;
+    color: var(--primary-gold) !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    border: 1px solid rgba(212, 165, 116, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Mensaje sin detalles */
+.no-detalles {
+    text-align: center !important;
+    color: var(--text-dim) !important;
+    padding: 2rem !important;
+    font-style: italic !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-detalles-pedido {
+        width: 95% !important;
+        padding: 1.5rem !important;
+    }
+
+    .detalles-info {
+        padding: 1.2rem !important;
+    }
+
+    .info-row {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    .productos-table th,
+    .productos-table td {
+        padding: 0.8rem !important;
+        font-size: 0.85rem !important;
+    }
+}

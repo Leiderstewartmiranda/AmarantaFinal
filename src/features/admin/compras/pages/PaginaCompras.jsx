@@ -33,7 +33,7 @@ const PaginaCompras = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroFecha, setFiltroFecha] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const comprasPorPagina = 9;
+  const comprasPorPagina = 7;
 
   // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por código de compra
   const [ordenamiento, setOrdenamiento] = useState({
@@ -668,6 +668,8 @@ const PaginaCompras = () => {
         close={closeDetalles}
         compra={compraSeleccionada}
         formatoMoneda={formatoMoneda}
+        descargarFactura={descargarFactura}
+        proveedores={proveedores}
       />
     </div>
   );

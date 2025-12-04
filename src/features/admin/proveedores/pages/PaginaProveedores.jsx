@@ -23,7 +23,7 @@ const PaginaProveedores = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroTipoDoc, setFiltroTipoDoc] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const proveedoresPorPagina = 9;
+  const proveedoresPorPagina = 7;
 
   // Estado para ordenamiento - MODIFICADO: orden por defecto descendente por ID
   const [ordenamiento, setOrdenamiento] = useState({
@@ -648,7 +648,7 @@ const PaginaProveedores = () => {
 
       {/* 🔹 Paginación con información de resultados */}
       {totalPaginas > 1 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <Paginacion
             paginaActual={paginaActual}
             totalPaginas={totalPaginas}
@@ -663,7 +663,7 @@ const PaginaProveedores = () => {
 
       {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
       {totalPaginas === 1 && proveedoresFiltrados.length > 0 && (
-        <div className="col-span-2 mt-4">
+        <div className="col-span-2 mt-1">
           <p className="text-sm text-gray-600 text-center">
             Mostrando {proveedoresFiltrados.length} proveedores
             {(filtroEstado || filtroTipoDoc || terminoBusqueda) && " (filtrados)"}

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import "./ModalPedido.css";
 import { UbicacionService } from "../../../services/ubicacionService";
+import qrTransferencia from "../../../assets/qr_transferencia.jpg";
 
 const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => {
   const [departamentos, setDepartamentos] = useState([]);
@@ -69,7 +70,7 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
     if (show) {
       const cargarDepartamentos = async () => {
         const data = await UbicacionService.obtenerDepartamentos();
-        const opciones = data.map(dep => ({ value: dep, label: dep }));
+        const opciones = data.map(dep => ({ value: dep.name, label: dep.name }));
         setDepartamentos(opciones);
       };
       cargarDepartamentos();
@@ -81,7 +82,7 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
     if (departamentoSelect) {
       const cargarMunicipios = async () => {
         const data = await UbicacionService.obtenerMunicipios(departamentoSelect.value);
-        const opciones = data.map(mun => ({ value: mun, label: mun }));
+        const opciones = data.map(mun => ({ value: mun.name, label: mun.name }));
         setMunicipios(opciones);
       };
       cargarMunicipios();
@@ -200,6 +201,48 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
             />
           </div>
 
+          {/* Información de Pago */}
+          <div className="payment-info-section">
+            <h4 style={{ color: "#d4a574", marginBottom: "1rem", textAlign: "center" }}>
+              Información de Transferencia
+            </h4>
+            <div className="payment-details">
+              <div className="account-number">
+                <p style={{ color: "#f3f3f3", marginBottom: "0.5rem" }}>
+                  <strong>Número de Cuenta:</strong>
+                </p>
+                <p style={{
+                  color: "#d4a574",
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  letterSpacing: "2px",
+                  textAlign: "center"
+                }}>
+                  34785993138
+                </p>
+              </div>
+              <div className="qr-code-container" style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "1rem"
+              }}>
+                <img
+                  src={qrTransferencia}
+                  alt="Código QR para transferencia"
+                  style={{
+                    maxWidth: "200px",
+                    width: "100%",
+                    height: "auto",
+                    border: "2px solid #d4a574",
+                    borderRadius: "8px",
+                    padding: "0.5rem",
+                    backgroundColor: "#fff"
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Comprobante de Transferencia (Factu) */}
           <div className="form-group">
             <label className="labelpedido">Comprobante de Transferencia *</label>
@@ -212,7 +255,7 @@ const ModalPedido = ({ show, onClose, carrito, onConfirmarPedido, usuario }) => 
               }}
               required
               className="input-pedido file-input"
-              style={{ color: "#f3f3f3" }} // Asegurar visibilidad en dark mode
+              style={{ color: "#7b7b7bff" }} // Asegurar visibilidad en dark mode
             />
             {!formData.factu && <small style={{ color: "#d4a574" }}>Debes subir el comprobante para continuar.</small>}
           </div>

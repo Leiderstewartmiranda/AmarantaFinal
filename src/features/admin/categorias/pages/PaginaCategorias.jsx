@@ -49,7 +49,7 @@ const PaginaCategorias = () => {
   const descripcionRef = useRef();
   const busquedaRef = useRef();
 
-  const categoriasPorPagina = 9;
+  const categoriasPorPagina = 7;
 
   // Cargar categorías al iniciar
   useEffect(() => {
@@ -218,8 +218,6 @@ const PaginaCategorias = () => {
     // Validar descripción
     if (!categoria.descripcion || categoria.descripcion.trim() === '') {
       nuevosErrores.descripcion = 'La descripción es obligatoria';
-    } else if (!regexLetras.test(categoria.descripcion.trim())) {
-      nuevosErrores.descripcion = 'La descripción contiene caracteres no permitidos';
     } else if (categoria.descripcion.trim().length < 10) {
       nuevosErrores.descripcion = 'La descripción debe tener al menos 10 caracteres';
     } else if (categoria.descripcion.trim().length > 200) {
@@ -669,7 +667,7 @@ const PaginaCategorias = () => {
       {/* Paginación con el mismo formato que clientes */}
       {
         totalPaginas > 1 && (
-          <div className="col-span-2 mt-4">
+          <div className="col-span-2 mt-1">
             <Paginacion
               paginaActual={paginaActual}
               totalPaginas={totalPaginas}
@@ -684,7 +682,7 @@ const PaginaCategorias = () => {
 
       {
         totalPaginas === 1 && categoriasFiltradas.length > 0 && (
-          <div className="col-span-2 mt-4">
+          <div className="col-span-2 mt-1">
             <p className="text-sm text-gray-600 text-center">
               Mostrando {categoriasFiltradas.length} categorías
               {terminoBusqueda && " (filtradas)"}

@@ -1,0 +1,104 @@
+/* =============================
+   MEJORAS MODAL MIS PEDIDOS
+   ============================= */
+
+/* Modal de lista de pedidos más grande */
+.modal-pedidos-lista {
+    width: 95% !important;
+    max-width: 1400px !important;
+}
+
+/* Grid de pedidos responsive */
+.pedidos-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
+    gap: 1.5rem !important;
+    padding: 0.5rem !important;
+}
+
+/* Tarjetas de pedidos mejoradas */
+.pedido-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%) !important;
+    border: 1px solid rgba(212, 165, 116, 0.2) !important;
+    padding: 1.5rem !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.pedido-card:hover {
+    transform: translateY(-6px) !important;
+    border-color: var(--primary-gold) !important;
+    box-shadow: 0 8px 25px rgba(212, 165, 116, 0.3) !important;
+}
+
+/* Header del pedido mejorado */
+.pedido-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 1.2rem !important;
+    padding-bottom: 1rem !important;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.1) !important;
+}
+
+.pedido-numero {
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-weight: 600 !important;
+    font-size: 1.05rem !important;
+}
+
+/* Info items mejorados */
+.info-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: var(--text-dim) !important;
+    margin-bottom: 0.8rem !important;
+    font-size: 0.95rem !important;
+}
+
+/* Botón ver detalles mejorado */
+.btn-ver-detalles {
+    width: 100% !important;
+    margin-top: 1.2rem !important;
+    padding: 0.85rem !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    border: 1.5px solid var(--primary-gold) !important;
+    color: var(--primary-gold) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-ver-detalles:hover {
+    background: var(--primary-gold) !important;
+    color: #000 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4) !important;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .modal-pedidos-lista {
+        width: 95% !important;
+        max-width: 100% !important;
+        padding: 1.5rem !important;
+    }
+
+    .pedidos-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .pedido-card {
+        padding: 1.2rem !important;
+    }
+}

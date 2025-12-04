@@ -58,14 +58,34 @@
 }
 
 .modal-close {
-  background: none;
+  background: rgba(74, 75, 47, 0.1);
+  /* Fondo sutil verde */
   border: none;
-  color: black;
-  font-size: 1.7rem;
+  color: #4a4b2f !important;
+  /* Color verde oscuro visible */
+  font-size: 1.8rem;
   cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
+  opacity: 1;
+  /* Completamente visible */
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  line-height: 1;
 }
 
+.modal-close:hover {
+  background: var(--naranjado);
+  /* Fondo naranja al hacer hover */
+  color: white !important;
+  /* Texto blanco al hacer hover */
+  transform: scale(1.1) rotate(90deg);
+  /* Efecto de rotación */
+}
 
 /* Cuerpo */
 .modal-body {

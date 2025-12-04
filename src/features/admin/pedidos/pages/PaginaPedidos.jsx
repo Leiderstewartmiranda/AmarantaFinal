@@ -14,7 +14,8 @@ import {
   PostPedido,
   CancelarPedido,
   GetClientes,
-  GetProductos
+  GetProductos,
+  ActualizarEstadoPedido
 } from "../../../../services/pedidoService";
 import TituloSeccion from "../../../../compartidos/Titulo/Titulos";
 import Swal from "sweetalert2";
@@ -39,7 +40,7 @@ const PaginaPedidos = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroFecha, setFiltroFecha] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
-  const pedidosPorPagina = 9;
+  const pedidosPorPagina = 7;
   const [showConfirmacion, setShowConfirmacion] = useState(false);
   const [pedidoAEliminar, setPedidoAEliminar] = useState(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
@@ -314,6 +315,8 @@ const PaginaPedidos = () => {
     try {
       if (nuevoEstado === "Cancelado") {
         await CancelarPedido(id);
+      } else {
+        await ActualizarEstadoPedido(id, nuevoEstado);
       }
 
       // Actualizar estado localmente
@@ -619,6 +622,8 @@ const PaginaPedidos = () => {
       // Actualizar solo el estado por ahora
       if (datosActualizados.Estado === "Cancelado") {
         await CancelarPedido(datosActualizados.CodigoPedido);
+      } else {
+        await ActualizarEstadoPedido(datosActualizados.CodigoPedido, datosActualizados.Estado);
       }
 
       // Actualizar localmente
@@ -982,7 +987,7 @@ const PaginaPedidos = () => {
       {/* 🔹 Paginación con información de resultados */}
       {
         totalPaginas > 1 && (
-          <div className="col-span-2 mt-4">
+          <div className="col-span-2 mt-1">
             <Paginacion
               paginaActual={paginaActual}
               totalPaginas={totalPaginas}
@@ -999,7 +1004,7 @@ const PaginaPedidos = () => {
       {/* 🔹 Mostrar info cuando hay filtros pero solo una página */}
       {
         totalPaginas === 1 && pedidosFiltrados.length > 0 && (
-          <div className="col-span-2 mt-4">
+          <div className="col-span-2 mt-1">
             <p className="text-sm text-gray-600 text-center">
               Mostrando {pedidosFiltrados.length} pedidos
               {(filtroCliente || filtroEstado || filtroFecha || terminoBusqueda) && " (filtrados)"}

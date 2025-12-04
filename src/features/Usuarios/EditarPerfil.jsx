@@ -164,8 +164,8 @@ export default function EditarPerfil() {
             <select name="departamento" value={usuario.departamento || ""} onChange={handleChange}>
               <option value="">Selecciona un departamento</option>
               {departamentos.map((dep) => (
-                <option key={dep} value={dep}>
-                  {dep}
+                <option key={dep.id} value={dep.name}>
+                  {dep.name}
                 </option>
               ))}
             </select>
@@ -181,8 +181,8 @@ export default function EditarPerfil() {
             >
               <option value="">Selecciona un municipio</option>
               {municipios.map((mun) => (
-                <option key={mun} value={mun}>
-                  {mun}
+                <option key={mun.id} value={mun.name}>
+                  {mun.name}
                 </option>
               ))}
             </select>

@@ -34,22 +34,22 @@ const FormularioVerCompra = ({
     }
   };
 
-  
+
 
   const getProveedorInfo = () => {
     if (!compra || !compra.idProveedor) {
-      return { nombre: "Desconocido", tipoDocumento: "-", documento: "-" };
+      return { nombreEmpresa: "Desconocido", nit: "-", representante: "-" };
     }
 
     const proveedor = proveedores.find(p => p.idProveedor === compra.idProveedor);
 
     return proveedor
       ? {
-          nombre: proveedor.nombreEmpresa,
-          tipoDocumento: proveedor.nit || "No especificado",
-          documento: proveedor.representante || "N/A"
-        }
-      : { nombre: "Desconocido", tipoDocumento: "-", documento: "-" };
+        nombreEmpresa: proveedor.nombreEmpresa,
+        nit: proveedor.nit || "No especificado",
+        representante: proveedor.representante || "N/A"
+      }
+      : { nombreEmpresa: "Desconocido", nit: "-", representante: "-" };
   };
 
   const proveedor = getProveedorInfo();
@@ -84,12 +84,12 @@ const FormularioVerCompra = ({
           {new Date(compra.fechaCompra).toLocaleDateString("es-CO")}
         </p>
         <p>
-          <b>Proveedor:</b> {proveedor.nombre}
+          <b>Proveedor:</b> {proveedor.nombreEmpresa}
         </p>
         <p>
-          <b>{proveedor.tipoDocumento}:</b> {proveedor.documento}
+           <b>{proveedor.nit}: </b> {proveedor.representante}
         </p>
-        
+
         <p>
           <b>Total:</b> {formatoMoneda(compra.precioTotal)}
         </p>
