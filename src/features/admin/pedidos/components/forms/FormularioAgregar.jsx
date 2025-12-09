@@ -83,9 +83,10 @@ const FormularioAgregar = ({
   // 🔸 Opciones para clientes (Filtrando los inactivos)
   const opcionesClientes = useMemo(() => {
     return clientes
-      .filter((cliente) => cliente.estado !== "Inactivo") // Filtramos solo los clientes activos
+      .filter((cliente) => cliente.estado === true) // Filtramos solo los clientes activos
       .map((cliente) => {
-        const id = cliente.idCliente || cliente.codigoCliente || cliente.Id_Cliente;
+        // Soporte para diferentes estructuras de datos (Clientes vs Usuarios)
+        const id = cliente.idUsuario || cliente.idCliente || cliente.codigoCliente || cliente.Id_Cliente;
         const nombre = cliente.nombreCompleto ||
           `${cliente.nombre || ""} ${cliente.apellido || ""}`.trim() ||
           cliente.Nombre || "Cliente";
@@ -311,8 +312,8 @@ const FormularioAgregar = ({
               onClick={handleAgregarProducto}
               disabled={!productoSelect}
               className={`font-semibold py-2 px-4 rounded transition duration-300 flex items-center gap-1 ${productoSelect
-                  ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
-                  : "bg-gray-400 text-white cursor-not-allowed"
+                ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
+                : "bg-gray-400 text-white cursor-not-allowed"
                 }`}
             >
               <Icon icon="mdi:cart-arrow-down" width="18" /> Agregar
@@ -437,8 +438,8 @@ const FormularioAgregar = ({
             type="submit"
             disabled={!puedeCrear}
             className={`font-semibold py-2 px-4 rounded transition duration-300 ${puedeCrear
-                ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
-                : "bg-gray-400 text-white cursor-not-allowed"
+              ? "bg-[var(--naranjado)] text-white hover:bg-orange-600"
+              : "bg-gray-400 text-white cursor-not-allowed"
               }`}
           >
             Agregar Pedido

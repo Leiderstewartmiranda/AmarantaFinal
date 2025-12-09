@@ -391,6 +391,18 @@ const PaginaRoles = () => {
 
   // 🔹 Cambiar Estado (Toggle)
   const handleCambiarEstado = async (rol, nuevoEstado) => {
+    // 🔥 PROTECCIÓN DE ROL ADMIN
+    if (rol.nombreRol.toLowerCase() === "admin" || rol.nombreRol.toLowerCase() === "administrador") {
+      Swal.fire({
+        icon: "warning",
+        title: "⚠️ Acción no permitida",
+        text: "El rol de Administrador no puede ser desactivado",
+        confirmButtonColor: "#b45309",
+        background: "#fff8e7",
+      });
+      return;
+    }
+
     const nuevoEstadoStr = nuevoEstado ? "Activo" : "Inactivo";
 
     Swal.fire({
@@ -449,6 +461,18 @@ const PaginaRoles = () => {
   // ELIMINAR rol
   const handleEliminar = (rol) => {
     if (rol) {
+      // 🔥 PROTECCIÓN DE ROL ADMIN
+      if (rol.nombreRol.toLowerCase() === "admin" || rol.nombreRol.toLowerCase() === "administrador") {
+        Swal.fire({
+          icon: "warning",
+          title: "⚠️ Acción no permitida",
+          text: "El rol de Administrador no puede ser eliminado",
+          confirmButtonColor: "#b45309",
+          background: "#fff8e7",
+        });
+        return;
+      }
+
       Swal.fire({
         icon: "warning",
         title: "⚠️ Confirmar eliminación",
@@ -605,6 +629,7 @@ const PaginaRoles = () => {
                         className="sr-only peer"
                         checked={element.Estado || false}
                         onChange={() => handleCambiarEstado(element, !element.Estado)}
+                        disabled={element.nombreRol.toLowerCase() === "admin" || element.nombreRol.toLowerCase() === "administrador"}
                       />
                       <div
                         className={`w-11 h-6 rounded-full peer ${element.Estado ? "bg-green-500" : "bg-gray-300"

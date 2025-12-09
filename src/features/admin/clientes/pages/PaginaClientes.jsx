@@ -118,7 +118,8 @@ const PaginaClientes = () => {
       Rol: "Usuario",
       // Si el backend acepta Estado en creación, lo enviamos. Si no, lo ignorará.
       // Convertimos "Activo" -> true, "Inactivo" -> false
-      Estado: datosFormulario.estado === "Activo" ? true : false
+      Estado: datosFormulario.estado === "Activo" ? true : false,
+      estado: datosFormulario.estado === "Activo" ? true : false
     };
 
     try {
@@ -132,14 +133,14 @@ const PaginaClientes = () => {
         Apellido: usuarioCreado.apellido,
         NombreCompleto: `${usuarioCreado.nombre} ${usuarioCreado.apellido}`.trim(),
         TipoDocumento: usuarioCreado.tipoDocumento || nuevoUsuario.TipoDocumento,
-        Documento: usuarioCreado.documento,
+        Documento: usuarioCreado.documento || nuevoUsuario.Documento,
         Correo: usuarioCreado.correo,
         Telefono: usuarioCreado.telefono,
         Direccion: usuarioCreado.direccion,
         Departamento: usuarioCreado.departamento,
         Municipio: usuarioCreado.municipio,
-        Estado: (usuarioCreado.estado === false) ? "Inactivo" : "Activo",
-        EstadoBool: usuarioCreado.estado,
+        Estado: nuevoUsuario.Estado ? "Activo" : "Inactivo",
+        EstadoBool: nuevoUsuario.Estado,
         Rol: usuarioCreado.rol || "Usuario"
       };
 

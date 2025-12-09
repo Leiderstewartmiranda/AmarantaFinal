@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ModalBase from "../../../../../compartidos/modal/modalbase";
 import { GetPedidoById } from "../../../../../services/pedidoService";
-import { GetClienteById } from "../../../../../services/clienteService";
+import { GetUsuarioById } from "../../../../../services/usuarioService";
 
 const FormularioVer = ({ show, close, codigoPedido, titulo, formatearMoneda }) => {
   const [pedido, setPedido] = useState(null);
@@ -22,7 +22,7 @@ const FormularioVer = ({ show, close, codigoPedido, titulo, formatearMoneda }) =
 
       const clienteId = pedidoData?.idCliente || pedidoData?.IdCliente;
       if (clienteId) {
-        const clienteData = await GetClienteById(clienteId);
+        const clienteData = await GetUsuarioById(clienteId);
         setCliente(clienteData);
       } else {
         setCliente(null);

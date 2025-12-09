@@ -187,7 +187,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             >
               <option value="">Seleccione...</option>
               {departamentos.map((dep) => (
-                <option key={dep} value={dep}>{dep}</option>
+                <option key={dep.name} value={dep.name}>{dep.name}</option>
               ))}
             </select>
           </div>
@@ -203,7 +203,7 @@ export default function FormularioModificar({ show, close, formData, onSubmit })
             >
               <option value="">Seleccione...</option>
               {municipios.map((mun) => (
-                <option key={mun} value={mun}>{mun}</option>
+                <option key={mun.name} value={mun.name}>{mun.name}</option>
               ))}
             </select>
           </div>
